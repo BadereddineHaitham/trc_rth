@@ -1,0 +1,48 @@
+name: Build iOS Application
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build-ios:
+    name: Build iOS App (.zip / Runner.app)
+    runs-on: macos-latest
+
+    steps:
+      - name: 📥 Checkout Codebase
+        uses: actions/checkout@v4
+
+      - name: ☕ Set up Java (JDK 17)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: 🐦 Set up Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: 📦 Install Flutter Dependencies
+        run: flutter pub get
+
+      - name: 🍎 Build iOS Release App (Unsigned)
+        run: flutter build ios --release --no-codesign
+
+      - name: 🤐 Package iOS Bundle
+        run: |
+          mkdir -p build/ios_output
+          cd build/ios/iphoneos
+          zip -r ../../ios_output/TRC_RTH_iOS_App.zip Runner.app
+
+      - name: 📤 Upload iOS Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: TRC-RTH-iOS-App
+          path: build/ios_output/TRC_RTH_iOS_App.zip
+          retention-days: 30
