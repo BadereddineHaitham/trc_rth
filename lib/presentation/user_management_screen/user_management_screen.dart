@@ -1318,6 +1318,16 @@ class _AddUserSheetState extends State<_AddUserSheet> {
         username: username,
         fullName: fullName,
       );
+      final userId = (data['id'] as String?) ?? username;
+      try {
+        await SupabaseService.instance.updateUserProfile(
+          key: username,
+          username: username,
+          role: _selectedRole,
+          organisation: 'Sonatrach-TRC RTH-HSE',
+          site: 'Hassi Messaoud',
+        );
+      } catch (_) {}
       final newUser = _UserModel.fromSupabase(data);
       if (mounted) {
         Navigator.pop(context);

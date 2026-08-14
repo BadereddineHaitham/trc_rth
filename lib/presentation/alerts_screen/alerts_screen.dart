@@ -89,7 +89,7 @@ class AlertItem {
 class AlertsScreen extends StatefulWidget {
   final String role;
 
-  const AlertsScreen({super.key, this.role = 'Admin'});
+  const AlertsScreen({super.key, this.role = 'User'});
 
   @override
   State<AlertsScreen> createState() => _AlertsScreenState();
@@ -107,6 +107,7 @@ class _AlertsScreenState extends State<AlertsScreen>
   RealtimeChannel? _channel;
 
   bool get _isSuperAdmin => widget.role == 'Super Admin';
+  bool get _canManageAlerts => widget.role == 'Super Admin' || widget.role == 'Admin';
 
   @override
   void initState() {
@@ -181,6 +182,7 @@ class _AlertsScreenState extends State<AlertsScreen>
   int get _resolvedCount => _alerts.where((a) => a.resolved).length;
 
   Future<void> _resolveAlert(AlertItem item) async {
+    if (!_canManageAlerts) return;
     try {
       await _svc.dismissAlert(item.id);
       setState(() {
@@ -222,6 +224,7 @@ class _AlertsScreenState extends State<AlertsScreen>
   }
 
   Future<void> _reopenAlert(AlertItem item) async {
+    if (!_canManageAlerts) return;
     try {
       await _svc.restoreAlert(item.id);
       setState(() {
@@ -599,8 +602,8 @@ class _AlertsScreenState extends State<AlertsScreen>
         separatorBuilder: (_, __) => const SizedBox(height: 10),
         itemBuilder: (ctx, i) => _AlertCard(
           item: items[i],
-          canResolve: _isSuperAdmin && !items[i].resolved,
-          canReopen: _isSuperAdmin && items[i].resolved,
+          canResolve: _canManageAlerts && !items[i].resolved,
+          canReopen: _canManageAlerts && items[i].resolved,
           onResolve: () => _resolveAlert(items[i]),
           onReopen: () => _reopenAlert(items[i]),
         ),

@@ -26,7 +26,17 @@ class SupabaseService {
 
   // Initialize Supabase - call this in main()
   static Future<void> initialize() async {
-    await Supabase.initialize(url: supabaseUrl, anonKey: supabaseAnonKey);
+    await Supabase.initialize(
+      url: supabaseUrl,
+      anonKey: supabaseAnonKey,
+      authOptions: const FlutterAuthClientOptions(
+        authFlowType: AuthFlowType.pkce,
+        autoRefreshToken: true,
+      ),
+      realtimeClientOptions: const RealtimeClientOptions(
+        eventsPerSecond: 10,
+      ),
+    );
   }
 
   // Get Supabase client
@@ -534,12 +544,14 @@ class SupabaseService {
     String cannonRange = '',
     String battery = '',
     String wheelRef = '',
+    String affectation = '',
   }) async {
     final data = {
       'name': name,
       'vehicle_type': vehicleType,
       'matricule': matricule,
       'status': status,
+      'affectation': affectation,
       if (parkId != null) 'park_id': parkId,
       if (insuranceStart != null) 'insurance_start': insuranceStart,
       if (insuranceExpiry != null) 'insurance_expiry': insuranceExpiry,
@@ -1137,6 +1149,20 @@ class SupabaseService {
             'detail': 'Statut: En maintenance',
           });
         }
+
+        // 5. Missing equipment on vehicle
+        final missingCount = (v['missing_equipment_count'] as int?) ?? 0;
+        if (missingCount > 0) {
+          expectedAlerts.add({
+            'vehicle_id': vehicleId,
+            'category': 'equipment',
+            'severity': 'warning',
+            'title': 'Équipement(s) manquant(s)',
+            'subtitle': '$missingCount équipement(s) manquant(s) sur $name',
+            'vehicle_name': name,
+            'detail': 'Matricule: $matricule',
+          });
+        }
       }
 
       for (final fe in fixedEquipments) {
@@ -1397,5 +1423,153 @@ class SupabaseService {
         'fixedEquipmentCount': 0,
       };
     }
+  }
+
+  // ── SYSTEM SETTINGS & PRESENCE ──────────────────────────────────────────────
+  Future<Map<String, dynamic>> getSystemSettings() async {
+    try {
+      final res = await client
+          .from('system_settings')
+          .select()
+          .eq('id', 'default')
+          .maybeSingle();
+      if (res != null) return Map<String, dynamic>.from(res);
+    } catch (_) {}
+    return {
+      'username': 'Super Admin',
+      'organisation': 'Sonatrach-TRC RTH-HSE',
+      'site': 'Hassi Messaoud',
+    };
+  }
+
+  Future<void> updateSystemSettings({
+    required String username,
+    required String organisation,
+    required String site,
+  }) async {
+    await client.from('system_settings').upsert({
+      'id': 'default',
+      'username': username,
+      'organisation': organisation,
+      'site': site,
+      'updated_at': DateTime.now().toIso8601String(),
+    });
+  }
+
+  Future<void> pingPresence({
+    required String deviceId,
+    required String role,
+    required String userName,
+  }) async {
+    try {
+      await client.from('user_presences').upsert({
+        'device_id': deviceId,
+        'role': role,
+        'user_name': userName,
+        'last_seen': DateTime.now().toIso8601String(),
+      });
+    } catch (_) {}
+  }
+
+  Future<int> getActivePresencesCount() async {
+    try {
+      final cutoff =
+          DateTime.now().subtract(const Duration(seconds: 45)).toIso8601String();
+      final res = await client
+          .from('user_presences')
+          .select('device_id')
+          .gte('last_seen', cutoff);
+      final count = (res as List).length;
+      return count > 0 ? count : 1;
+    } catch (_) {
+      return 1;
+    }
+  }
+
+  // ── USER PROFILES ─────────────────────────────────────────────────────────
+
+  Future<Map<String, dynamic>> getUserProfile(
+    String userIdOrName, {
+    String defaultUsername = '',
+    String defaultRole = 'Admin',
+  }) async {
+    final queryKey = userIdOrName.trim();
+    if (queryKey.isEmpty) {
+      return {
+        'username': defaultUsername.isNotEmpty ? defaultUsername : 'Utilisateur',
+        'role': defaultRole,
+        'organisation': 'Sonatrach-TRC RTH-HSE',
+        'site': 'Hassi Messaoud',
+      };
+    }
+    try {
+      final resList = await client
+          .from('user_profiles')
+          .select()
+          .or('user_id.eq.$queryKey,username.eq.$queryKey,full_name.eq.$queryKey')
+          .limit(1);
+
+      if (resList.isNotEmpty) {
+        final profile = Map<String, dynamic>.from(resList.first);
+        return {
+          'user_id': profile['user_id'] ?? profile['id'] ?? queryKey,
+          'username': profile['username'] ?? profile['full_name'] ?? defaultUsername,
+          'role': profile['role'] ?? defaultRole,
+          'organisation': profile['organisation'] ?? 'Sonatrach-TRC RTH-HSE',
+          'site': profile['site'] ?? 'Hassi Messaoud',
+        };
+      }
+    } catch (_) {}
+
+    return {
+      'user_id': queryKey,
+      'username': defaultUsername.isNotEmpty ? defaultUsername : queryKey,
+      'role': defaultRole,
+      'organisation': 'Sonatrach-TRC RTH-HSE',
+      'site': 'Hassi Messaoud',
+    };
+  }
+
+  Future<void> updateUserProfile({
+    required String key,
+    required String username,
+    required String role,
+    required String organisation,
+    required String site,
+  }) async {
+    final targetKey = key.trim();
+    if (targetKey.isEmpty) return;
+
+    try {
+      final existing = await client
+          .from('user_profiles')
+          .select()
+          .or('user_id.eq.$targetKey,username.eq.$targetKey,full_name.eq.$targetKey')
+          .limit(1);
+
+      if (existing.isNotEmpty) {
+        final rowId = existing.first['id'];
+        await client.from('user_profiles').update({
+          'user_id': targetKey,
+          'username': username,
+          'full_name': username,
+          'role': role,
+          'organisation': organisation,
+          'site': site,
+          'updated_at': DateTime.now().toIso8601String(),
+        }).eq('id', rowId);
+        return;
+      }
+    } catch (_) {}
+
+    await client.from('user_profiles').insert({
+      'user_id': targetKey,
+      'username': username,
+      'full_name': username,
+      'role': role,
+      'organisation': organisation,
+      'site': site,
+      'updated_at': DateTime.now().toIso8601String(),
+    });
   }
 }

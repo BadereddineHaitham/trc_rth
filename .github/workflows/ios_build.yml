@@ -1,55 +1,46 @@
-name: Build iOS Application
+name: Build iOS IPA
 
 on:
+  workflow_dispatch:
   push:
     branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
-  workflow_dispatch:
 
 jobs:
   build-ios:
-    name: Build iOS App (.zip / Runner.app)
     runs-on: macos-latest
 
     steps:
-      - name: 📥 Checkout Codebase
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: ☕ Set up Java (JDK 17)
+      - name: Set up Java
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
+          distribution: 'zulu'
           java-version: '17'
 
-      - name: 🐦 Set up Flutter SDK
+      - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           cache: true
 
-      - name: 📦 Install Flutter Dependencies
+      - name: Install Dependencies
         run: flutter pub get
 
-      - name: 🛠️ Update CocoaPods Pods
+      - name: Build iOS Application (No Codesign for Ad-Hoc/Sim)
         run: |
-          cd ios
-          pod repo update || true
-          pod install --repo-update || true
-          cd ..
+          flutter build ios --release --no-codesign
 
-      - name: 🍎 Build iOS Release App (Unsigned)
-        run: flutter build ios --release --no-codesign
-
-      - name: 🤐 Package iOS Bundle
+      - name: Create IPA Package
         run: |
-          mkdir -p build/ios_output
           cd build/ios/iphoneos
-          zip -r ../../ios_output/TRC_RTH_iOS_App.zip Runner.app
+          mkdir Payload
+          mv Runner.app Payload/
+          zip -r Sanad_iOS.ipa Payload
 
-      - name: 📤 Upload iOS Build Artifact
+      - name: Upload iOS IPA Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: TRC-RTH-iOS-App
-          path: build/ios_output/TRC_RTH_iOS_App.zip
-          retention-days: 30
+          name: Sanad_iOS_IPA
+          path: build/ios/iphoneos/Sanad_iOS.ipa

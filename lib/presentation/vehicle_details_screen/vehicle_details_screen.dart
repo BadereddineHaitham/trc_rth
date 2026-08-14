@@ -15,7 +15,7 @@ class VehicleDetailsScreen extends StatefulWidget {
   const VehicleDetailsScreen({
     super.key,
     required this.vehicleId,
-    this.role = 'Admin',
+    this.role = 'User',
   });
 
   @override
@@ -32,7 +32,7 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
   String? _errorMsg;
   RealtimeChannel? _channel;
 
-  bool get _canEdit => widget.role == 'Super Admin';
+  bool get _canEdit => widget.role == 'Super Admin' || widget.role == 'Admin';
 
   @override
   void initState() {
@@ -107,6 +107,7 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
     'cannonRange': _vehicleData['cannon_range'] ?? '',
     'battery': _vehicleData['battery'] ?? '',
     'wheelRef': _vehicleData['wheel_ref'] ?? '',
+    'affectation': _vehicleData['affectation'] ?? '',
     'missingEquipment': _vehicleData['missing_equipment_count'] ?? 0,
   };
 
@@ -126,6 +127,7 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
                 'vehicle_type': updated['type'],
                 'matricule': updated['matricule'],
                 'status': updated['status'],
+                'affectation': updated['affectation'],
                 'insurance_start': updated['insuranceStart'],
                 'insurance_expiry': updated['insuranceExpiry'],
                 'inspection_expiry': updated['inspectionExpiry'],
@@ -465,6 +467,7 @@ class _EditVehicleSheetState extends State<_EditVehicleSheet> {
   late TextEditingController _cannonCtrl;
   late TextEditingController _batteryCtrl;
   late TextEditingController _wheelRefCtrl;
+  late TextEditingController _affectationCtrl;
   late String _selectedStatus;
   DateTime? _insuranceStart;
   DateTime? _insuranceExpiry;
@@ -505,6 +508,9 @@ class _EditVehicleSheetState extends State<_EditVehicleSheet> {
     _wheelRefCtrl = TextEditingController(
       text: widget.vehicle['wheelRef'] as String? ?? '',
     );
+    _affectationCtrl = TextEditingController(
+      text: widget.vehicle['affectation'] as String? ?? '',
+    );
     _selectedStatus = widget.vehicle['status'] as String? ?? 'operational';
 
     final insStartStr = widget.vehicle['insuranceStart'] as String? ?? '';
@@ -540,6 +546,7 @@ class _EditVehicleSheetState extends State<_EditVehicleSheet> {
     _cannonCtrl.dispose();
     _batteryCtrl.dispose();
     _wheelRefCtrl.dispose();
+    _affectationCtrl.dispose();
     super.dispose();
   }
 
@@ -674,6 +681,14 @@ class _EditVehicleSheetState extends State<_EditVehicleSheet> {
               onChanged: (v) =>
                   setState(() => _selectedStatus = v ?? 'operational'),
             ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _affectationCtrl,
+              decoration: const InputDecoration(
+                labelText: 'Affectation (Emplacement du véhicule)',
+                hintText: 'ex: Base RTH Hassi Messaoud, Zone A...',
+              ),
+            ),
             const SizedBox(height: 16),
             Text(
               'Documents administratifs',
@@ -717,7 +732,7 @@ class _EditVehicleSheetState extends State<_EditVehicleSheet> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Capacités & Spécifications',
+              'Spécifications techniques',
               style: GoogleFonts.ibmPlexSans(
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
@@ -725,44 +740,6 @@ class _EditVehicleSheetState extends State<_EditVehicleSheet> {
               ),
             ),
             const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _waterCtrl,
-                    decoration: const InputDecoration(labelText: 'Eau'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: TextField(
-                    controller: _emulsifierCtrl,
-                    decoration: const InputDecoration(labelText: 'Émulseur'),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _powderCtrl,
-                    decoration: const InputDecoration(labelText: 'Poudre'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: TextField(
-                    controller: _cannonCtrl,
-                    decoration: const InputDecoration(
-                      labelText: 'Portée canon',
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
             Row(
               children: [
                 Expanded(
@@ -806,6 +783,7 @@ class _EditVehicleSheetState extends State<_EditVehicleSheet> {
                           'type': _typeCtrl.text.trim(),
                           'matricule': _matriculeCtrl.text.trim(),
                           'status': _selectedStatus,
+                          'affectation': _affectationCtrl.text.trim(),
                           'generalRemark': _remarqueCtrl.text.trim(),
                           'water': _waterCtrl.text.trim(),
                           'emulsifier': _emulsifierCtrl.text.trim(),

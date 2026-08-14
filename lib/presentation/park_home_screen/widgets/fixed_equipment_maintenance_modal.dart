@@ -606,7 +606,7 @@ class _FixedEquipmentMaintenanceModalState
                 ),
               ),
               child: Text(
-                isGood ? 'B — Bon' : 'M — Mauvais',
+                isGood ? 'B' : 'M',
                 style: GoogleFonts.ibmPlexSans(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,

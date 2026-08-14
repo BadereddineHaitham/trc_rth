@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/app_export.dart';
@@ -717,11 +718,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         'label': 'Alertes',
         'route': AppRoutes.alertsScreen,
       },
-      {
-        'icon': 'inventory_2',
-        'label': 'Définitions équipements',
-        'route': AppRoutes.equipmentDefinitionsScreen,
-      },
       if (_isSuperAdmin)
         {
           'icon': 'people',
@@ -945,23 +941,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     Navigator.pop(context);
                     context.go(AppRoutes.qrScannerScreen);
                   },
-                  dense: true,
-                  contentPadding: EdgeInsets.zero,
-                ),
-                ListTile(
-                  leading: CustomIconWidget(
-                    iconName: 'code',
-                    color: AppTheme.primary,
-                    size: 20,
-                  ),
-                  title: Text(
-                    'Développé par Haitham BADEREDDINE',
-                    style: GoogleFonts.ibmPlexSans(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: AppTheme.primary,
-                    ),
-                  ),
                   dense: true,
                   contentPadding: EdgeInsets.zero,
                 ),

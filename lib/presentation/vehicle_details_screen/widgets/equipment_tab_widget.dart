@@ -29,10 +29,16 @@ class _EquipmentTabWidgetState extends State<EquipmentTabWidget> {
   bool _isLoading = true;
   String? _errorMsg;
   RealtimeChannel? _channel;
+  RealtimeChannel? _vehicleChannel;
+
+  String _titleStandard = 'Standard';
+  String _titleExisting = 'Existant';
 
   bool get _canEdit =>
       widget.userRole == UserRole.admin ||
       widget.userRole == UserRole.superAdmin;
+
+  bool get _isSuperAdmin => widget.userRole == UserRole.superAdmin;
 
   @override
   void initState() {
@@ -44,6 +50,7 @@ class _EquipmentTabWidgetState extends State<EquipmentTabWidget> {
   @override
   void dispose() {
     _channel?.unsubscribe();
+    _vehicleChannel?.unsubscribe();
     super.dispose();
   }
 
@@ -53,9 +60,23 @@ class _EquipmentTabWidgetState extends State<EquipmentTabWidget> {
       _errorMsg = null;
     });
     try {
-      final records = await _svc.getVehicleEquipment(widget.vehicleId);
+      final results = await Future.wait([
+        _svc.getVehicleEquipment(widget.vehicleId),
+        _svc.getVehicleById(widget.vehicleId),
+      ]);
+      final records = results[0] as List<Map<String, dynamic>>;
+      final veh = results[1] as Map<String, dynamic>? ?? {};
+
       if (mounted) {
         setState(() {
+          final std = veh['equipment_title_standard'] as String?;
+          _titleStandard =
+              (std != null && std.trim().isNotEmpty) ? std.trim() : 'Standard';
+
+          final ext = veh['equipment_title_existing'] as String?;
+          _titleExisting =
+              (ext != null && ext.trim().isNotEmpty) ? ext.trim() : 'Existant';
+
           _equipmentData = records.map((r) {
             final def =
                 r['equipment_definitions'] as Map<String, dynamic>? ?? {};
@@ -97,6 +118,35 @@ class _EquipmentTabWidgetState extends State<EquipmentTabWidget> {
             value: widget.vehicleId,
           ),
           callback: (_) => _loadData(),
+        )
+        .subscribe();
+
+    _vehicleChannel = _svc.client
+        .channel('equip_titles_${widget.vehicleId}')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'vehicles',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'id',
+            value: widget.vehicleId,
+          ),
+          callback: (payload) {
+            final rec = payload.newRecord;
+            if (rec.isNotEmpty && mounted) {
+              setState(() {
+                final std = rec['equipment_title_standard'] as String?;
+                if (std != null && std.trim().isNotEmpty) {
+                  _titleStandard = std.trim();
+                }
+                final ext = rec['equipment_title_existing'] as String?;
+                if (ext != null && ext.trim().isNotEmpty) {
+                  _titleExisting = ext.trim();
+                }
+              });
+            }
+          },
         )
         .subscribe();
   }
@@ -180,7 +230,7 @@ class _EquipmentTabWidgetState extends State<EquipmentTabWidget> {
                   child: TextField(
                     controller: standardCtrl,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(labelText: 'Standard'),
+                    decoration: InputDecoration(labelText: _titleStandard),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -188,7 +238,7 @@ class _EquipmentTabWidgetState extends State<EquipmentTabWidget> {
                   child: TextField(
                     controller: existingCtrl,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(labelText: 'Existant'),
+                    decoration: InputDecoration(labelText: _titleExisting),
                   ),
                 ),
               ],
@@ -245,10 +295,165 @@ class _EquipmentTabWidgetState extends State<EquipmentTabWidget> {
     );
   }
 
+  void _showEditTitlesModal() {
+    if (!_isSuperAdmin) return;
+    final stdCtrl = TextEditingController(text: _titleStandard);
+    final extCtrl = TextEditingController(text: _titleExisting);
+    bool isSaving = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setModalState) => Padding(
+          padding: EdgeInsets.only(
+            left: 20,
+            right: 20,
+            top: 20,
+            bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: CustomIconWidget(
+                      iconName: 'edit',
+                      color: AppTheme.primary,
+                      size: 18,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Personnaliser les titres des colonnes',
+                      style: GoogleFonts.ibmPlexSans(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.darkCharcoal,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(ctx),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              Text(
+                'Modifier les noms par défaut ("Standard" et "Existant") pour ce véhicule :',
+                style: GoogleFonts.ibmPlexSans(
+                  fontSize: 12,
+                  color: AppTheme.mutedText,
+                ),
+              ),
+              const SizedBox(height: 14),
+              TextField(
+                controller: stdCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'Nom de la colonne 1 (ex: Standard, Consigne...)',
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: extCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'Nom de la colonne 2 (ex: Existant, Réel...)',
+                ),
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: isSaving
+                      ? null
+                      : () async {
+                          final newStd = stdCtrl.text.trim().isEmpty
+                              ? 'Standard'
+                              : stdCtrl.text.trim();
+                          final newExt = extCtrl.text.trim().isEmpty
+                              ? 'Existant'
+                              : extCtrl.text.trim();
+
+                          setModalState(() => isSaving = true);
+                          try {
+                            await _svc.updateVehicle(
+                              vehicleId: widget.vehicleId,
+                              data: {
+                                'equipment_title_standard': newStd,
+                                'equipment_title_existing': newExt,
+                              },
+                            );
+                            if (mounted) {
+                              setState(() {
+                                _titleStandard = newStd;
+                                _titleExisting = newExt;
+                              });
+                            }
+                            if (ctx.mounted) Navigator.pop(ctx);
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Titres mis à jour en temps réel : "$newStd" / "$newExt"',
+                                    style: GoogleFonts.ibmPlexSans(
+                                        color: Colors.white),
+                                  ),
+                                  backgroundColor: AppTheme.success,
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            setModalState(() => isSaving = false);
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Erreur: $e'),
+                                  backgroundColor: AppTheme.critical,
+                                ),
+                              );
+                            }
+                          }
+                        },
+                  child: isSaving
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text('Enregistrer les titres'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   void _showEditEquipmentModal(Map<String, dynamic> item) {
-    final nameCtrl = TextEditingController(text: item['designation'] as String? ?? '');
-    final standardCtrl = TextEditingController(text: '${item['standard'] ?? 0}');
-    final existingCtrl = TextEditingController(text: '${item['existing'] ?? 0}');
+    final nameCtrl =
+        TextEditingController(text: item['designation'] as String? ?? '');
+    final standardCtrl =
+        TextEditingController(text: '${item['standard'] ?? 0}');
+    final existingCtrl =
+        TextEditingController(text: '${item['existing'] ?? 0}');
 
     showModalBottomSheet(
       context: context,
@@ -297,7 +502,7 @@ class _EquipmentTabWidgetState extends State<EquipmentTabWidget> {
                   child: TextField(
                     controller: standardCtrl,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(labelText: 'Standard'),
+                    decoration: InputDecoration(labelText: _titleStandard),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -305,7 +510,7 @@ class _EquipmentTabWidgetState extends State<EquipmentTabWidget> {
                   child: TextField(
                     controller: existingCtrl,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(labelText: 'Existant'),
+                    decoration: InputDecoration(labelText: _titleExisting),
                   ),
                 ),
               ],
@@ -446,51 +651,89 @@ class _EquipmentTabWidgetState extends State<EquipmentTabWidget> {
         // Summary header
         Container(
           color: AppTheme.surfaceLight,
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-          child: Row(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
+              // Line 1: Title & equipment summary count
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
                       'Armement du véhicule',
                       style: GoogleFonts.ibmPlexSans(
-                        fontSize: 14,
+                        fontSize: 15,
                         fontWeight: FontWeight.w700,
                         color: AppTheme.darkCharcoal,
                       ),
-                    ),
-                    Text(
-                      '${_equipmentData.length} équipements • $missing manquant(s)',
-                      style: GoogleFonts.ibmPlexSans(
-                        fontSize: 12,
-                        color: missing > 0
-                            ? AppTheme.critical
-                            : AppTheme.success,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              if (_canEdit)
-                ElevatedButton.icon(
-                  onPressed: _showAddEquipmentModal,
-                  icon: const Icon(Icons.add, size: 16),
-                  label: const Text('Ajouter'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primary,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    textStyle: GoogleFonts.ibmPlexSans(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                ),
+                  Text(
+                    '${_equipmentData.length} équip. • $missing manquant(s)',
+                    style: GoogleFonts.ibmPlexSans(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: missing > 0
+                          ? AppTheme.critical
+                          : AppTheme.success,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              // Line 2: Buttons (Super Admin custom titles button + Add button)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  if (_isSuperAdmin) ...[
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: _showEditTitlesModal,
+                        icon: const Icon(Icons.edit_note, size: 16),
+                        label: Text(
+                          'Colonnes : $_titleStandard / $_titleExisting',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppTheme.primary,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          side: const BorderSide(color: AppTheme.primary),
+                          textStyle: GoogleFonts.ibmPlexSans(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                  ] else
+                    const Spacer(),
+                  if (_canEdit)
+                    ElevatedButton.icon(
+                      onPressed: _showAddEquipmentModal,
+                      icon: const Icon(Icons.add, size: 16),
+                      label: const Text('Ajouter'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        textStyle: GoogleFonts.ibmPlexSans(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
             ],
           ),
         ),
@@ -523,6 +766,8 @@ class _EquipmentTabWidgetState extends State<EquipmentTabWidget> {
                       category: entry.key,
                       items: entry.value,
                       canEdit: _canEdit,
+                      titleStandard: _titleStandard,
+                      titleExisting: _titleExisting,
                       onEdit: (item) => _showEditEquipmentModal(item),
                       onDelete: (item) => _deleteEquipment(item),
                       onQuantityChanged: (itemId, newQty) async {
@@ -557,6 +802,8 @@ class _CategorySection extends StatelessWidget {
   final String category;
   final List<Map<String, dynamic>> items;
   final bool canEdit;
+  final String titleStandard;
+  final String titleExisting;
   final Function(Map<String, dynamic> item) onEdit;
   final Function(Map<String, dynamic> item) onDelete;
   final Function(String id, int qty) onQuantityChanged;
@@ -565,6 +812,8 @@ class _CategorySection extends StatelessWidget {
     required this.category,
     required this.items,
     required this.canEdit,
+    required this.titleStandard,
+    required this.titleExisting,
     required this.onEdit,
     required this.onDelete,
     required this.onQuantityChanged,
@@ -590,6 +839,8 @@ class _CategorySection extends StatelessWidget {
           (item) => _EquipmentRow(
             item: item,
             canEdit: canEdit,
+            titleStandard: titleStandard,
+            titleExisting: titleExisting,
             onEdit: () => onEdit(item),
             onDelete: () => onDelete(item),
             onQuantityChanged: onQuantityChanged,
@@ -604,6 +855,8 @@ class _CategorySection extends StatelessWidget {
 class _EquipmentRow extends StatefulWidget {
   final Map<String, dynamic> item;
   final bool canEdit;
+  final String titleStandard;
+  final String titleExisting;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
   final Function(String id, int qty) onQuantityChanged;
@@ -611,6 +864,8 @@ class _EquipmentRow extends StatefulWidget {
   const _EquipmentRow({
     required this.item,
     required this.canEdit,
+    required this.titleStandard,
+    required this.titleExisting,
     required this.onEdit,
     required this.onDelete,
     required this.onQuantityChanged,
@@ -637,126 +892,172 @@ class _EquipmentRowState extends State<_EquipmentRow> {
 
   @override
   Widget build(BuildContext context) {
+    final designation = widget.item['designation'] as String? ?? '';
     final standard = (widget.item['standard'] as int?) ?? 0;
     final missing = standard > _existing ? standard - _existing : 0;
     final isMissing = missing > 0;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 6),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: isMissing
-            ? AppTheme.criticalContainer.withAlpha(80)
+            ? AppTheme.criticalContainer.withAlpha(60)
             : Colors.white,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(
           color: isMissing
-              ? AppTheme.critical.withAlpha(60)
+              ? AppTheme.critical.withAlpha(70)
               : AppTheme.outlineVariantLight,
+          width: 1.1,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.darkCharcoal.withAlpha(8),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  widget.item['designation'] as String? ?? '',
+          // Single top line: Designation + Standard + Existant + Manquant status
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  designation,
                   style: GoogleFonts.ibmPlexSans(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
                     color: AppTheme.darkCharcoal,
                   ),
+                  maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                Text(
-                  'Standard: $standard ${widget.item['unit'] ?? ''}',
+              ),
+              const SizedBox(width: 8),
+              // Standard badge
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryContainer.withAlpha(150),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  '${widget.titleStandard}: $standard',
                   style: GoogleFonts.ibmPlexSans(
                     fontSize: 11,
-                    color: AppTheme.mutedText,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.primary,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
+              // Existant badge
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                decoration: BoxDecoration(
+                  color: isMissing
+                      ? AppTheme.criticalContainer
+                      : AppTheme.successContainer,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  '${widget.titleExisting}: $_existing',
+                  style: GoogleFonts.ibmPlexSans(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: isMissing ? AppTheme.critical : AppTheme.success,
+                  ),
+                ),
+              ),
+              if (isMissing) ...[
+                const SizedBox(width: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: AppTheme.critical,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    'Manquant: $missing',
+                    style: GoogleFonts.ibmPlexSans(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ],
-            ),
+            ],
           ),
           if (widget.canEdit) ...[
-            IconButton(
-              icon: const Icon(Icons.remove_circle_outline, size: 20),
-              color: _existing > 0 ? AppTheme.critical : Colors.grey,
-              onPressed: _existing > 0
-                  ? () {
-                      setState(() => _existing--);
-                      widget.onQuantityChanged(
-                        widget.item['id'] as String,
-                        _existing,
-                      );
-                    }
-                  : null,
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
-            ),
-          ],
-          Container(
-            width: 32,
-            alignment: Alignment.center,
-            child: Text(
-              '$_existing',
-              style: GoogleFonts.ibmPlexSans(
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
-                color: isMissing ? AppTheme.critical : AppTheme.success,
-              ),
-            ),
-          ),
-          if (widget.canEdit) ...[
-            IconButton(
-              icon: const Icon(Icons.add_circle_outline, size: 20),
-              color: AppTheme.success,
-              onPressed: () {
-                setState(() => _existing++);
-                widget.onQuantityChanged(
-                  widget.item['id'] as String,
-                  _existing,
-                );
-              },
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
-            ),
-            IconButton(
-              icon: const Icon(Icons.edit_outlined, size: 18),
-              color: AppTheme.primary,
-              onPressed: widget.onEdit,
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
-              tooltip: 'Modifier',
-            ),
-            IconButton(
-              icon: const Icon(Icons.delete_outline, size: 18),
-              color: AppTheme.critical,
-              onPressed: widget.onDelete,
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
-              tooltip: 'Supprimer',
-            ),
-          ],
-          if (isMissing)
-            Container(
-              margin: const EdgeInsets.only(left: 4),
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: AppTheme.critical,
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(
-                '-$missing',
-                style: GoogleFonts.ibmPlexSans(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.remove_circle_outline, size: 20),
+                  color: _existing > 0 ? AppTheme.critical : Colors.grey,
+                  onPressed: _existing > 0
+                      ? () {
+                          setState(() => _existing--);
+                          widget.onQuantityChanged(
+                            widget.item['id'] as String,
+                            _existing,
+                          );
+                        }
+                      : null,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
                 ),
-              ),
+                Container(
+                  width: 32,
+                  alignment: Alignment.center,
+                  child: Text(
+                    '$_existing',
+                    style: GoogleFonts.ibmPlexSans(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: isMissing ? AppTheme.critical : AppTheme.success,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.add_circle_outline, size: 20),
+                  color: AppTheme.success,
+                  onPressed: () {
+                    setState(() => _existing++);
+                    widget.onQuantityChanged(
+                      widget.item['id'] as String,
+                      _existing,
+                    );
+                  },
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  icon: const Icon(Icons.edit_outlined, size: 18),
+                  color: AppTheme.primary,
+                  onPressed: widget.onEdit,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                  tooltip: 'Modifier',
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete_outline, size: 18),
+                  color: AppTheme.critical,
+                  onPressed: widget.onDelete,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                  tooltip: 'Supprimer',
+                ),
+              ],
             ),
+          ],
         ],
       ),
     );

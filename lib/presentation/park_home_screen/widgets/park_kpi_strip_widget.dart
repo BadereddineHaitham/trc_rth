@@ -78,57 +78,17 @@ class ParkKpiStripWidget extends StatelessWidget {
                 color: const Color(0xFFFBBF24),
                 iconColor: const Color(0xFFFBBF24),
                 bgColor: const Color(0xFFFBBF24).withAlpha(26),
-                flex: 2,
+                flex: 1,
               ),
               const SizedBox(width: 8),
               _KpiCard(
                 value: '$fixedEquipment',
-                label: 'Équip. fixes',
+                label: 'Équipements fixes',
                 icon: 'settings',
                 color: Colors.white,
-                iconColor: Colors.white.withAlpha(153),
-                bgColor: Colors.white.withAlpha(15),
-                flex: 2,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                flex: 2,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppTheme.primary.withAlpha(38),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: AppTheme.primary.withAlpha(77),
-                      width: 1,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      CustomIconWidget(
-                        iconName: 'sync',
-                        color: AppTheme.primary,
-                        size: 14,
-                      ),
-                      const SizedBox(width: 4),
-                      Flexible(
-                        child: Text(
-                          'Synchronisé\n12:08',
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.ibmPlexSans(
-                            fontSize: 10,
-                            color: AppTheme.primary,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                iconColor: Colors.white.withAlpha(200),
+                bgColor: Colors.white.withAlpha(20),
+                flex: 1,
               ),
             ],
           ),

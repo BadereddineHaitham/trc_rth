@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -545,7 +546,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen>
                   ),
                   const SizedBox(width: 5),
                   Text(
-                    'Accès sécurisé — Sonatrach RTH',
+                    'Accès sécurisé — Sonatrach-TRC RTH-HSE',
                     style: GoogleFonts.ibmPlexSans(
                       fontSize: 11,
                       color: AppTheme.mutedText,
@@ -554,34 +555,42 @@ class _AdminLoginScreenState extends State<AdminLoginScreen>
                 ],
               ),
               const SizedBox(height: 10),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 5,
-                ),
-                decoration: BoxDecoration(
-                  color: AppTheme.primary.withAlpha(15),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppTheme.primary.withAlpha(40)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    CustomIconWidget(
-                      iconName: 'code',
-                      color: AppTheme.primary,
-                      size: 13,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      'Développé par Haitham BADEREDDINE',
-                      style: GoogleFonts.ibmPlexSans(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
+              GestureDetector(
+                onTap: () async {
+                  final Uri url = Uri.parse('https://wa.me/213553237642');
+                  if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+                    await launchUrl(url);
+                  }
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primary.withAlpha(15),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppTheme.primary.withAlpha(40)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CustomIconWidget(
+                        iconName: 'code',
                         color: AppTheme.primary,
+                        size: 13,
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 6),
+                      Text(
+                        'Développé par Haitham BADEREDDINE 💬',
+                        style: GoogleFonts.ibmPlexSans(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.primary,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],

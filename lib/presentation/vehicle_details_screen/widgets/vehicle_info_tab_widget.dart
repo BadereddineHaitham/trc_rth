@@ -50,6 +50,7 @@ class VehicleInfoTabWidget extends StatelessWidget {
     final type = _str(vehicle['type']);
     final battery = _str(vehicle['battery']);
     final wheelRef = _str(vehicle['wheelRef']);
+    final affectation = _str(vehicle['affectation']);
 
     final insuranceExpired = _isExpired(insExpiry);
     final inspectionExpired = _isExpired(inspExpiry);
@@ -90,6 +91,12 @@ class VehicleInfoTabWidget extends StatelessWidget {
               ),
               const Divider(height: 1),
               _InfoRow(label: 'Parc', value: 'Parc RTH — Hassi Messaoud'),
+              const Divider(height: 1),
+              _InfoRow(
+                label: 'Affectation',
+                value: affectation.isEmpty ? 'Non spécifiée' : affectation,
+                isBold: true,
+              ),
             ],
           ),
 

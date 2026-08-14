@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/app_export.dart';
 import '../../../../services/supabase_service.dart';
@@ -20,17 +22,29 @@ class FireAgentsTabWidget extends StatefulWidget {
 class _FireAgentsTabWidgetState extends State<FireAgentsTabWidget> {
   late Map<String, String> _values;
   bool _isSaving = false;
+  RealtimeChannel? _channel;
 
   @override
   void initState() {
     super.initState();
+    _initValues();
+    _subscribeRealtime();
+  }
+
+  void _initValues() {
     _values = {
+      // Agents extincteurs
       'water': widget.vehicle['water_capacity'] as String? ??
           widget.vehicle['water'] as String? ?? '—',
       'emulsifier': widget.vehicle['emulsifier_capacity'] as String? ??
           widget.vehicle['emulsifier'] as String? ?? '—',
       'powder': widget.vehicle['powder_capacity'] as String? ??
           widget.vehicle['powder'] as String? ?? '—',
+
+      // Débit pompe
+      'pumpFlowWater': widget.vehicle['pump_flow_water'] as String? ?? '—',
+      'pumpFlowEmulsifier': widget.vehicle['pump_flow_emulsifier'] as String? ?? '—',
+      'pumpFlowPowder': widget.vehicle['pump_flow_powder'] as String? ?? '—',
       'cannonRange': widget.vehicle['cannon_range'] as String? ??
           widget.vehicle['cannonRange'] as String? ?? '—',
     };
@@ -39,16 +53,47 @@ class _FireAgentsTabWidgetState extends State<FireAgentsTabWidget> {
   @override
   void didUpdateWidget(covariant FireAgentsTabWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    _values = {
-      'water': widget.vehicle['water_capacity'] as String? ??
-          widget.vehicle['water'] as String? ?? '—',
-      'emulsifier': widget.vehicle['emulsifier_capacity'] as String? ??
-          widget.vehicle['emulsifier'] as String? ?? '—',
-      'powder': widget.vehicle['powder_capacity'] as String? ??
-          widget.vehicle['powder'] as String? ?? '—',
-      'cannonRange': widget.vehicle['cannon_range'] as String? ??
-          widget.vehicle['cannonRange'] as String? ?? '—',
-    };
+    _initValues();
+  }
+
+  @override
+  void dispose() {
+    _channel?.unsubscribe();
+    super.dispose();
+  }
+
+  void _subscribeRealtime() {
+    final vehicleId = widget.vehicle['id'] as String?;
+    if (vehicleId == null || vehicleId.isEmpty) return;
+
+    _channel = SupabaseService.instance.client
+        .channel('vehicle_agents_realtime_$vehicleId')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'vehicles',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'id',
+            value: vehicleId,
+          ),
+          callback: (payload) {
+            final rec = payload.newRecord;
+            if (rec.isNotEmpty && mounted) {
+              setState(() {
+                _values['water'] = rec['water_capacity'] as String? ?? '—';
+                _values['emulsifier'] = rec['emulsifier_capacity'] as String? ?? '—';
+                _values['powder'] = rec['powder_capacity'] as String? ?? '—';
+
+                _values['pumpFlowWater'] = rec['pump_flow_water'] as String? ?? '—';
+                _values['pumpFlowEmulsifier'] = rec['pump_flow_emulsifier'] as String? ?? '—';
+                _values['pumpFlowPowder'] = rec['pump_flow_powder'] as String? ?? '—';
+                _values['cannonRange'] = rec['cannon_range'] as String? ?? '—';
+              });
+            }
+          },
+        )
+        .subscribe();
   }
 
   String _getDbColumn(String key) {
@@ -59,6 +104,12 @@ class _FireAgentsTabWidgetState extends State<FireAgentsTabWidget> {
         return 'emulsifier_capacity';
       case 'powder':
         return 'powder_capacity';
+      case 'pumpFlowWater':
+        return 'pump_flow_water';
+      case 'pumpFlowEmulsifier':
+        return 'pump_flow_emulsifier';
+      case 'pumpFlowPowder':
+        return 'pump_flow_powder';
       case 'cannonRange':
         return 'cannon_range';
       default:
@@ -124,7 +175,7 @@ class _FireAgentsTabWidgetState extends State<FireAgentsTabWidget> {
                   color: AppTheme.darkCharcoal,
                 ),
                 decoration: InputDecoration(
-                  hintText: 'Ex: 2000 L ou 40 m',
+                  hintText: agent['hint'] as String? ?? 'Ex: 2000 L ou 1500 L/min',
                   hintStyle: GoogleFonts.ibmPlexSans(
                     fontSize: 13,
                     color: AppTheme.mutedText,
@@ -219,7 +270,7 @@ class _FireAgentsTabWidgetState extends State<FireAgentsTabWidget> {
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
-                                    '${agent['label']} mis à jour',
+                                    '${agent['label']} mis à jour en temps réel',
                                     style: GoogleFonts.ibmPlexSans(
                                       fontSize: 13,
                                       color: Colors.white,
@@ -271,7 +322,8 @@ class _FireAgentsTabWidgetState extends State<FireAgentsTabWidget> {
   Widget build(BuildContext context) {
     final isTablet = MediaQuery.of(context).size.width >= 600;
 
-    final agents = [
+    // ── 1. Agents extincteurs (Eau, Émulseur, Poudre) ──────────────────────────
+    final extincteurAgents = [
       {
         'key': 'water',
         'label': 'Eau',
@@ -280,6 +332,7 @@ class _FireAgentsTabWidgetState extends State<FireAgentsTabWidget> {
         'color': const Color(0xFF1E88E5),
         'bgColor': const Color(0xFFE3F2FD),
         'description': 'Capacité du réservoir d\'eau',
+        'hint': 'Ex: 3000 L',
       },
       {
         'key': 'emulsifier',
@@ -289,6 +342,7 @@ class _FireAgentsTabWidgetState extends State<FireAgentsTabWidget> {
         'color': const Color(0xFF43A047),
         'bgColor': const Color(0xFFE8F5E9),
         'description': 'Capacité émulseur (mousse)',
+        'hint': 'Ex: 200 L',
       },
       {
         'key': 'powder',
@@ -298,6 +352,41 @@ class _FireAgentsTabWidgetState extends State<FireAgentsTabWidget> {
         'color': const Color(0xFFF57C00),
         'bgColor': const Color(0xFFFFF3E0),
         'description': 'Charge de poudre extinctrice',
+        'hint': 'Ex: 250 kg',
+      },
+    ];
+
+    // ── 2. Débit pompe (Eau, Émulseur, Poudre, Portée canon) ───────────────────
+    final debitPompeItems = [
+      {
+        'key': 'pumpFlowWater',
+        'label': 'Débit Eau',
+        'value': _values['pumpFlowWater']!,
+        'icon': 'water_drop',
+        'color': const Color(0xFF0288D1),
+        'bgColor': const Color(0xFFE0F7FA),
+        'description': 'Débit de la pompe à eau',
+        'hint': 'Ex: 2000 L/min',
+      },
+      {
+        'key': 'pumpFlowEmulsifier',
+        'label': 'Débit Émulseur',
+        'value': _values['pumpFlowEmulsifier']!,
+        'icon': 'science',
+        'color': const Color(0xFF2E7D32),
+        'bgColor': const Color(0xFFE8F5E9),
+        'description': 'Débit d\'injection émulseur',
+        'hint': 'Ex: 150 L/min',
+      },
+      {
+        'key': 'pumpFlowPowder',
+        'label': 'Débit Poudre',
+        'value': _values['pumpFlowPowder']!,
+        'icon': 'grain',
+        'color': const Color(0xFFE65100),
+        'bgColor': const Color(0xFFFFF3E0),
+        'description': 'Débit de projection de poudre',
+        'hint': 'Ex: 35 kg/s',
       },
       {
         'key': 'cannonRange',
@@ -307,6 +396,7 @@ class _FireAgentsTabWidgetState extends State<FireAgentsTabWidget> {
         'color': const Color(0xFF8E24AA),
         'bgColor': const Color(0xFFF3E5F5),
         'description': 'Portée du canon à eau/mousse',
+        'hint': 'Ex: 40 m',
       },
     ];
 
@@ -315,73 +405,73 @@ class _FireAgentsTabWidgetState extends State<FireAgentsTabWidget> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Section title
-          Padding(
-            padding: const EdgeInsets.only(bottom: 14),
-            child: Row(
-              children: [
-                Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: AppTheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Center(
-                    child: CustomIconWidget(
-                      iconName: 'local_fire_department',
-                      color: AppTheme.primary,
-                      size: 18,
-                    ),
+          // ── SECTION 1: AGENTS EXTINCTEURS ───────────────────────────────────
+          Row(
+            children: [
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFEBEE),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Center(
+                  child: CustomIconWidget(
+                    iconName: 'local_fire_department',
+                    color: Color(0xFFD32F2F),
+                    size: 18,
                   ),
                 ),
-                const SizedBox(width: 10),
-                Text(
-                  'Agents extincteurs / Débit pompe',
-                  style: GoogleFonts.ibmPlexSans(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: AppTheme.darkCharcoal,
-                  ),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                'Agents extincteurs',
+                style: GoogleFonts.ibmPlexSans(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.darkCharcoal,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
+          const SizedBox(height: 12),
+          _buildGridOrList(extincteurAgents, isTablet),
 
-          // Agent cards grid
-          isTablet
-              ? GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    childAspectRatio: 1.5,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                  ),
-                  itemCount: agents.length,
-                  itemBuilder: (ctx, i) => _AgentCard(
-                    agent: agents[i],
-                    onEdit: () => _openEditDialog(agents[i]),
-                    canEdit: widget.canEdit,
-                  ),
-                )
-              : Column(
-                  children: agents
-                      .map(
-                        (a) => Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: _AgentCard(
-                            agent: a,
-                            onEdit: () => _openEditDialog(a),
-                            canEdit: widget.canEdit,
-                          ),
-                        ),
-                      )
-                      .toList(),
+          const SizedBox(height: 24),
+
+          // ── SECTION 2: DÉBIT POMPE ──────────────────────────────────────────
+          Row(
+            children: [
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(8),
                 ),
+                child: Center(
+                  child: CustomIconWidget(
+                    iconName: 'speed',
+                    color: AppTheme.primary,
+                    size: 18,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                'Débit pompe',
+                style: GoogleFonts.ibmPlexSans(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.darkCharcoal,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _buildGridOrList(debitPompeItems, isTablet),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
 
           // Info note
           Container(
@@ -402,8 +492,7 @@ class _FireAgentsTabWidgetState extends State<FireAgentsTabWidget> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Les valeurs sont renseignées selon la fiche technique du véhicule. '
-                    'Toute modification doit être validée par le responsable du parc.',
+                    'Les capacités des agents extincteurs et les débits de pompe sont mis à jour en temps réel. Toute modification est sauvegardée immédiatement.',
                     style: GoogleFonts.ibmPlexSans(
                       fontSize: 12,
                       color: AppTheme.secondaryText,
@@ -418,6 +507,42 @@ class _FireAgentsTabWidgetState extends State<FireAgentsTabWidget> {
           const SizedBox(height: 24),
         ],
       ),
+    );
+  }
+
+  Widget _buildGridOrList(List<Map<String, dynamic>> items, bool isTablet) {
+    if (isTablet) {
+      return GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          childAspectRatio: 1.5,
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+        ),
+        itemCount: items.length,
+        itemBuilder: (ctx, i) => _AgentCard(
+          agent: items[i],
+          onEdit: () => _openEditDialog(items[i]),
+          canEdit: widget.canEdit,
+        ),
+      );
+    }
+
+    return Column(
+      children: items
+          .map(
+            (a) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _AgentCard(
+                agent: a,
+                onEdit: () => _openEditDialog(a),
+                canEdit: widget.canEdit,
+              ),
+            ),
+          )
+          .toList(),
     );
   }
 }
@@ -444,11 +569,11 @@ class _AgentCard extends StatelessWidget {
         color: AppTheme.surfaceLight,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: color.withAlpha(51), width: 1),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
-            color: const Color(0x0D17202A),
+            color: Color(0x0D17202A),
             blurRadius: 6,
-            offset: const Offset(0, 2),
+            offset: Offset(0, 2),
           ),
         ],
       ),
@@ -487,7 +612,7 @@ class _AgentCard extends StatelessWidget {
                 Text(
                   agent['value'] as String,
                   style: GoogleFonts.ibmPlexMono(
-                    fontSize: 24,
+                    fontSize: 22,
                     fontWeight: FontWeight.w700,
                     color: color,
                     fontFeatures: const [FontFeature.tabularFigures()],

@@ -94,62 +94,70 @@ class VehicleCardWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final insuranceExpired = _isDocumentExpired(_insuranceExpiry);
     final inspectionExpired = _isDocumentExpired(_inspectionExpiry);
+    final affectation = (vehicle['affectation'] as String?)?.trim() ?? '';
 
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        splashColor: AppTheme.primary.withAlpha(20),
+        borderRadius: BorderRadius.circular(14),
+        splashColor: AppTheme.primary.withAlpha(25),
         child: Container(
           decoration: BoxDecoration(
             color: AppTheme.surfaceLight,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(14),
             border: Border.all(
               color: _status == VehicleStatus.outOfService
-                  ? AppTheme.critical.withAlpha(77)
+                  ? AppTheme.critical.withAlpha(90)
                   : _status == VehicleStatus.maintenance
-                  ? AppTheme.warning.withAlpha(77)
+                  ? AppTheme.warning.withAlpha(90)
                   : AppTheme.outlineVariantLight,
-              width: 1,
+              width: 1.2,
             ),
-            boxShadow: const [
+            boxShadow: [
               BoxShadow(
-                color: Color(0x0D17202A),
-                blurRadius: 8,
-                offset: Offset(0, 2),
+                color: AppTheme.darkCharcoal.withAlpha(12),
+                blurRadius: 10,
+                offset: const Offset(0, 3),
               ),
             ],
           ),
           child: Column(
             children: [
-              // Header
+              // Enhanced Header Banner
               Container(
-                padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
+                padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
                 decoration: BoxDecoration(
-                  color: _status.headerBgColor,
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      _status.headerBgColor,
+                      _status.headerBgColor.withAlpha(220),
+                    ],
+                  ),
                   borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(11),
+                    top: Radius.circular(13),
                   ),
                 ),
                 child: Row(
                   children: [
                     Container(
-                      width: 36,
-                      height: 36,
+                      width: 40,
+                      height: 40,
                       decoration: BoxDecoration(
-                        color: Colors.white.withAlpha(38),
-                        borderRadius: BorderRadius.circular(8),
+                        color: Colors.white.withAlpha(45),
+                        borderRadius: BorderRadius.circular(10),
                       ),
                       child: Center(
                         child: CustomIconWidget(
                           iconName: 'fire_truck',
                           color: Colors.white,
-                          size: 20,
+                          size: 22,
                         ),
                       ),
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -157,46 +165,91 @@ class VehicleCardWidget extends StatelessWidget {
                           Text(
                             _name,
                             style: GoogleFonts.ibmPlexSans(
-                              fontSize: 15,
+                              fontSize: 16,
                               fontWeight: FontWeight.w700,
                               color: Colors.white,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          Text(
-                            _type,
-                            style: GoogleFonts.ibmPlexSans(
-                              fontSize: 11,
-                              color: Colors.white.withAlpha(179),
-                            ),
+                          const SizedBox(height: 2),
+                          Row(
+                            children: [
+                              Text(
+                                _type,
+                                style: GoogleFonts.ibmPlexSans(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.white.withAlpha(210),
+                                ),
+                              ),
+                              if (affectation.isNotEmpty) ...[
+                                Text(
+                                  ' • ',
+                                  style: TextStyle(
+                                    color: Colors.white.withAlpha(180),
+                                    fontSize: 10,
+                                  ),
+                                ),
+                                Flexible(
+                                  child: Text(
+                                    affectation,
+                                    style: GoogleFonts.ibmPlexSans(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ],
                           ),
                         ],
                       ),
                     ),
+                    const SizedBox(width: 8),
                     _StatusBadge(status: _status),
                   ],
                 ),
               ),
 
-              // Body
+              // Card Body
               Padding(
-                padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
+                padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
                 child: Column(
                   children: [
-                    // Matricule row
+                    // Matricule & Alerts row
                     Row(
                       children: [
-                        CustomIconWidget(
-                          iconName: 'badge',
-                          color: AppTheme.mutedText,
-                          size: 14,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          _matricule,
-                          style: GoogleFonts.ibmPlexMono(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: AppTheme.darkCharcoal,
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppTheme.darkCharcoal.withAlpha(12),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              CustomIconWidget(
+                                iconName: 'badge',
+                                color: AppTheme.darkCharcoal,
+                                size: 13,
+                              ),
+                              const SizedBox(width: 5),
+                              Text(
+                                _matricule,
+                                style: GoogleFonts.ibmPlexMono(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppTheme.darkCharcoal,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                         const Spacer(),
@@ -204,11 +257,14 @@ class VehicleCardWidget extends StatelessWidget {
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 8,
-                              vertical: 3,
+                              vertical: 4,
                             ),
                             decoration: BoxDecoration(
                               color: AppTheme.criticalContainer,
                               borderRadius: BorderRadius.circular(6),
+                              border: Border.all(
+                                color: AppTheme.critical.withAlpha(60),
+                              ),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
@@ -216,14 +272,14 @@ class VehicleCardWidget extends StatelessWidget {
                                 CustomIconWidget(
                                   iconName: 'warning',
                                   color: AppTheme.critical,
-                                  size: 12,
+                                  size: 13,
                                 ),
-                                const SizedBox(width: 3),
+                                const SizedBox(width: 4),
                                 Text(
                                   '$_missingEquipment manquant(s)',
                                   style: GoogleFonts.ibmPlexSans(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w600,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
                                     color: AppTheme.critical,
                                   ),
                                 ),
@@ -232,9 +288,9 @@ class VehicleCardWidget extends StatelessWidget {
                           ),
                       ],
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 10),
 
-                    // Document status row
+                    // Document Status Row (Assurance & Control Technique)
                     Row(
                       children: [
                         Expanded(
@@ -247,10 +303,10 @@ class VehicleCardWidget extends StatelessWidget {
                                 _isDocumentExpiringSoon(_insuranceExpiry),
                           ),
                         ),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: 8),
                         Expanded(
                           child: _DocStatusChip(
-                            label: 'CT',
+                            label: 'Contrôle Tech.',
                             date: _formatDate(_inspectionExpiry),
                             isExpired: inspectionExpired,
                             isExpiringSoon:
@@ -395,4 +451,3 @@ enum VehicleStatus {
 
   const VehicleStatus(this.fullName, this.shortName, this.headerBgColor);
 }
-

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/app_export.dart';
 import '../../services/supabase_service.dart';
@@ -19,6 +21,211 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _isLoggingOut = false;
+  final _svc = SupabaseService.instance;
+
+  String _username = '';
+  String _organisation = 'Sonatrach-TRC RTH-HSE';
+  String _site = 'Hassi Messaoud';
+  RealtimeChannel? _settingsChannel;
+
+  bool get _isSuperAdmin => widget.role == 'Super Admin';
+  bool get _canEditProfile => widget.role == 'Super Admin' || widget.role == 'Admin';
+
+  String get _userId => _svc.currentUser?.id ?? widget.username;
+
+  @override
+  void initState() {
+    super.initState();
+    _username = widget.username.isNotEmpty ? widget.username : 'Utilisateur';
+    _loadSettings();
+    _subscribeSettingsRealtime();
+  }
+
+  @override
+  void dispose() {
+    _settingsChannel?.unsubscribe();
+    super.dispose();
+  }
+
+  Future<void> _loadSettings() async {
+    final profile = await _svc.getUserProfile(
+      _userId,
+      defaultUsername: widget.username,
+      defaultRole: widget.role,
+    );
+    if (mounted) {
+      setState(() {
+        final u = (profile['username'] as String?)?.trim() ?? '';
+        if (u.isNotEmpty) {
+          _username = u;
+        } else if (widget.username.isNotEmpty) {
+          _username = widget.username;
+        }
+        final org = (profile['organisation'] as String?)?.trim() ?? '';
+        if (org.isNotEmpty) _organisation = org;
+        final st = (profile['site'] as String?)?.trim() ?? '';
+        if (st.isNotEmpty) _site = st;
+      });
+    }
+  }
+
+  void _subscribeSettingsRealtime() {
+    _settingsChannel = _svc.client
+        .channel('user_profiles_realtime_$_userId')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'user_profiles',
+          callback: (_) => _loadSettings(),
+        )
+        .subscribe();
+  }
+
+  void _showEditAccountSheet() {
+    if (!_canEditProfile) return;
+    final userCtrl = TextEditingController(text: _username);
+    final orgCtrl = TextEditingController(text: _organisation);
+    final siteCtrl = TextEditingController(text: _site);
+    bool isSaving = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setModalState) => Padding(
+          padding: EdgeInsets.only(
+            left: 20,
+            right: 20,
+            top: 20,
+            bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: CustomIconWidget(
+                      iconName: 'edit',
+                      color: AppTheme.primary,
+                      size: 18,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Modifier les informations du compte',
+                      style: GoogleFonts.ibmPlexSans(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.darkCharcoal,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(ctx),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              TextField(
+                controller: userCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'Nom d\'utilisateur',
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: orgCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'Organisation',
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: siteCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'Site',
+                ),
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: isSaving
+                      ? null
+                      : () async {
+                          setModalState(() => isSaving = true);
+                          try {
+                            await _svc.updateUserProfile(
+                              key: _userId,
+                              username: userCtrl.text.trim(),
+                              role: widget.role,
+                              organisation: orgCtrl.text.trim(),
+                              site: siteCtrl.text.trim(),
+                            );
+                            if (mounted) {
+                              setState(() {
+                                _username = userCtrl.text.trim();
+                                _organisation = orgCtrl.text.trim();
+                                _site = siteCtrl.text.trim();
+                              });
+                            }
+                            if (ctx.mounted) Navigator.pop(ctx);
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Informations du compte mises à jour en temps réel',
+                                    style: GoogleFonts.ibmPlexSans(
+                                        color: Colors.white),
+                                  ),
+                                  backgroundColor: AppTheme.success,
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            setModalState(() => isSaving = false);
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Erreur: $e'),
+                                  backgroundColor: AppTheme.critical,
+                                ),
+                              );
+                            }
+                          }
+                        },
+                  child: isSaving
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text('Enregistrer'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,31 +262,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 16),
             _buildActionsSection(context),
             const SizedBox(height: 24),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-              decoration: BoxDecoration(
-                color: AppTheme.primary.withAlpha(15),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppTheme.primary.withAlpha(40)),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CustomIconWidget(
-                    iconName: 'code',
-                    color: AppTheme.primary,
-                    size: 14,
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    'Développé par Haitham BADEREDDINE',
-                    style: GoogleFonts.ibmPlexSans(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
+            GestureDetector(
+              onTap: () async {
+                final Uri url = Uri.parse('https://wa.me/213553237642');
+                if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+                  await launchUrl(url);
+                }
+              },
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppTheme.primary.withAlpha(15),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppTheme.primary.withAlpha(40)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CustomIconWidget(
+                      iconName: 'code',
                       color: AppTheme.primary,
+                      size: 14,
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 6),
+                    Text(
+                      'Développé par Haitham BADEREDDINE 💬',
+                      style: GoogleFonts.ibmPlexSans(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.primary,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 32),
@@ -112,9 +328,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             child: Center(
               child: Text(
-                widget.username.isNotEmpty
-                    ? widget.username[0].toUpperCase()
-                    : 'A',
+                _username.isNotEmpty ? _username[0].toUpperCase() : 'A',
                 style: GoogleFonts.ibmPlexSans(
                   fontSize: 36,
                   fontWeight: FontWeight.w700,
@@ -125,7 +339,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           const SizedBox(height: 14),
           Text(
-            widget.username,
+            _username,
             style: GoogleFonts.ibmPlexSans(
               fontSize: 20,
               fontWeight: FontWeight.w700,
@@ -183,20 +397,48 @@ class _ProfileScreenState extends State<ProfileScreen> {
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-              child: Text(
-                'Informations du compte',
-                style: GoogleFonts.ibmPlexSans(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: AppTheme.mutedText,
-                  letterSpacing: 0.5,
-                ),
+              child: Row(
+                children: [
+                  Text(
+                    'Informations du compte',
+                    style: GoogleFonts.ibmPlexSans(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.mutedText,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const Spacer(),
+                  if (_isSuperAdmin)
+                    InkWell(
+                      onTap: _showEditAccountSheet,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.edit,
+                                size: 14, color: AppTheme.primary),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Modifier',
+                              style: GoogleFonts.ibmPlexSans(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: AppTheme.primary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
             _buildInfoTile(
               icon: 'person',
               label: 'Nom d\'utilisateur',
-              value: widget.username,
+              value: _username,
             ),
             _buildDivider(),
             _buildInfoTile(
@@ -211,13 +453,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _buildInfoTile(
               icon: 'business',
               label: 'Organisation',
-              value: 'Sonatrach — TRC RTH',
+              value: _organisation,
             ),
             _buildDivider(),
             _buildInfoTile(
               icon: 'location_on',
               label: 'Site',
-              value: 'Hassi Messaoud',
+              value: _site,
             ),
           ],
         ),

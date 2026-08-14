@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/app_export.dart';
+import '../../services/presence_service.dart';
 import '../../services/supabase_service.dart';
 import '../profile_screen/profile_screen.dart';
 import './widgets/fixed_equipment_card_widget.dart';
@@ -69,6 +70,7 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    PresenceService.instance.startPresence(role: widget.role);
     _loadData();
     _subscribeRealtime();
   }
@@ -156,6 +158,7 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
               vehicleType: data['type'] as String,
               matricule: data['matricule'] as String,
               status: data['status'] as String,
+              affectation: data['affectation'] as String? ?? '',
               generalRemark: data['remarque'] as String? ?? '',
               battery: data['battery'] as String? ?? '',
               wheelRef: data['wheelRef'] as String? ?? '',
@@ -633,6 +636,7 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
             missingEquipCount: criticalAlerts
                 .where((a) => a['type'] == 'missing_equip')
                 .length,
+            role: widget.role,
           ),
         Expanded(
           child: TabBarView(
@@ -907,6 +911,7 @@ class _AddVehicleSheetState extends State<_AddVehicleSheet> {
   final _remarqueCtrl = TextEditingController();
   final _batteryCtrl = TextEditingController();
   final _wheelRefCtrl = TextEditingController();
+  final _affectationCtrl = TextEditingController();
   String _selectedStatus = 'operational';
   bool _saving = false;
 
@@ -918,6 +923,7 @@ class _AddVehicleSheetState extends State<_AddVehicleSheet> {
     _remarqueCtrl.dispose();
     _batteryCtrl.dispose();
     _wheelRefCtrl.dispose();
+    _affectationCtrl.dispose();
     super.dispose();
   }
 
@@ -990,6 +996,14 @@ class _AddVehicleSheetState extends State<_AddVehicleSheet> {
               ),
             ),
             const SizedBox(height: 12),
+            TextField(
+              controller: _affectationCtrl,
+              decoration: const InputDecoration(
+                labelText: 'Affectation (Emplacement du véhicule)',
+                hintText: 'ex: Base RTH Hassi Messaoud, Zone A...',
+              ),
+            ),
+            const SizedBox(height: 12),
             DropdownButtonFormField<String>(
               initialValue: _selectedStatus,
               decoration: const InputDecoration(labelText: 'Statut'),
@@ -1031,6 +1045,7 @@ class _AddVehicleSheetState extends State<_AddVehicleSheet> {
                           'type': _typeCtrl.text.trim(),
                           'matricule': _matriculeCtrl.text.trim(),
                           'status': _selectedStatus,
+                          'affectation': _affectationCtrl.text.trim(),
                           'remarque': _remarqueCtrl.text.trim(),
                           'battery': _batteryCtrl.text.trim(),
                           'wheelRef': _wheelRefCtrl.text.trim(),
@@ -1625,15 +1640,15 @@ class _AddUSDEquipmentSheetState extends State<_AddUSDEquipmentSheet> {
               GestureDetector(
                 onTap: () => onChanged('B'),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                   decoration: BoxDecoration(
                     color: isGood ? AppTheme.success : Colors.grey.shade200,
                     borderRadius: const BorderRadius.horizontal(left: Radius.circular(6)),
                   ),
                   child: Text(
-                    'B — Bon',
+                    'B',
                     style: GoogleFonts.ibmPlexSans(
-                      fontSize: 11,
+                      fontSize: 12,
                       fontWeight: FontWeight.w700,
                       color: isGood ? Colors.white : AppTheme.mutedText,
                     ),
@@ -1643,15 +1658,15 @@ class _AddUSDEquipmentSheetState extends State<_AddUSDEquipmentSheet> {
               GestureDetector(
                 onTap: () => onChanged('M'),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                   decoration: BoxDecoration(
                     color: !isGood ? AppTheme.critical : Colors.grey.shade200,
                     borderRadius: const BorderRadius.horizontal(right: Radius.circular(6)),
                   ),
                   child: Text(
-                    'M — Mauvais',
+                    'M',
                     style: GoogleFonts.ibmPlexSans(
-                      fontSize: 11,
+                      fontSize: 12,
                       fontWeight: FontWeight.w700,
                       color: !isGood ? Colors.white : AppTheme.mutedText,
                     ),

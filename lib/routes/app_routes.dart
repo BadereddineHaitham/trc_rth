@@ -126,17 +126,17 @@ final GoRouter appRouter = GoRouter(
       path: AppRoutes.vehicleDetailsScreen,
       pageBuilder: (context, state) {
         final extra = state.extra;
-        String vehicleId;
-        String role;
+        String vehicleId = 'vmr80-2';
+        String role = 'User';
         if (extra is Map<String, String>) {
           vehicleId = extra['vehicleId'] ?? 'vmr80-2';
-          role = extra['role'] ?? 'Admin';
-        } else if (extra is String) {
+          role = extra['role'] ?? 'User';
+        } else if (extra is Map<String, dynamic>) {
+          vehicleId = extra['vehicleId'] as String? ?? 'vmr80-2';
+          role = extra['role'] as String? ?? 'User';
+        } else if (extra is String && extra.isNotEmpty) {
           vehicleId = extra;
-          role = 'Admin';
-        } else {
-          vehicleId = 'vmr80-2';
-          role = 'Admin';
+          role = 'User';
         }
         return CustomTransitionPage(
           key: state.pageKey,
@@ -256,28 +256,37 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: AppRoutes.alertsScreen,
-      pageBuilder: (context, state) => CustomTransitionPage(
-        key: state.pageKey,
-        child: AlertsScreen(
-          role: (state.extra as Map<String, String>?)?['role'] ?? 'Admin',
-        ),
-        transitionDuration: const Duration(milliseconds: 280),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          return SlideTransition(
-            position:
-                Tween<Offset>(
-                  begin: const Offset(0.04, 0),
-                  end: Offset.zero,
-                ).animate(
-                  CurvedAnimation(
-                    parent: animation,
-                    curve: Curves.easeOutCubic,
+      pageBuilder: (context, state) {
+        String role = 'User';
+        final extra = state.extra;
+        if (extra is Map<String, String>) {
+          role = extra['role'] ?? 'User';
+        } else if (extra is Map<String, dynamic>) {
+          role = extra['role'] as String? ?? 'User';
+        } else if (extra is String && extra.isNotEmpty) {
+          role = extra;
+        }
+        return CustomTransitionPage(
+          key: state.pageKey,
+          child: AlertsScreen(role: role),
+          transitionDuration: const Duration(milliseconds: 280),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return SlideTransition(
+              position:
+                  Tween<Offset>(
+                    begin: const Offset(0.04, 0),
+                    end: Offset.zero,
+                  ).animate(
+                    CurvedAnimation(
+                      parent: animation,
+                      curve: Curves.easeOutCubic,
+                    ),
                   ),
-                ),
-            child: FadeTransition(opacity: animation, child: child),
-          );
-        },
-      ),
+              child: FadeTransition(opacity: animation, child: child),
+            );
+          },
+        );
+      },
     ),
     GoRoute(
       path: AppRoutes.userManagementScreen,

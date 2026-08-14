@@ -5,11 +5,13 @@ import '../../../../core/app_export.dart';
 class ParkAlertBannerWidget extends StatelessWidget {
   final int expiredDocCount;
   final int missingEquipCount;
+  final String role;
 
   const ParkAlertBannerWidget({
     super.key,
     required this.expiredDocCount,
     required this.missingEquipCount,
+    this.role = 'User',
   });
 
   @override
@@ -29,7 +31,10 @@ class ParkAlertBannerWidget extends StatelessWidget {
               message:
                   '$expiredDocCount document(s) expiré(s) — action requise',
               severity: 'critical',
-              onTap: () => context.push(AppRoutes.alertsScreen),
+              onTap: () => context.push(
+                AppRoutes.alertsScreen,
+                extra: {'role': role},
+              ),
             ),
           if (expiredDocCount > 0 && missingEquipCount > 0)
             const SizedBox(height: 6),
@@ -39,7 +44,10 @@ class ParkAlertBannerWidget extends StatelessWidget {
               message:
                   '$missingEquipCount équipement(s) manquant(s) dans le parc',
               severity: 'warning',
-              onTap: () => context.push(AppRoutes.alertsScreen),
+              onTap: () => context.push(
+                AppRoutes.alertsScreen,
+                extra: {'role': role},
+              ),
             ),
           const SizedBox(height: 12),
         ],

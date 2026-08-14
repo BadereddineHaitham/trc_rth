@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/app_export.dart';
+import '../../services/presence_service.dart';
 import '../../services/supabase_service.dart';
 import '../admin_dashboard_screen/widgets/admin_alert_list_widget.dart';
 import '../admin_dashboard_screen/widgets/admin_fleet_chart_widget.dart';
@@ -85,13 +87,16 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen> {
     },
   ];
 
+  int _activePresencesCount = 1;
+  RealtimeChannel? _presenceChannel;
+
   // System stats for Super Admin — computed from live _stats data
   List<Map<String, dynamic>> get _systemStats => [
     {
-      'label': 'Admins actifs',
-      'value': '${_stats['adminsCount'] ?? 0}',
-      'icon': 'manage_accounts',
-      'color': const Color(0xFF1A237E),
+      'label': 'Connectés (Actifs)',
+      'value': '$_activePresencesCount',
+      'icon': 'sensors',
+      'color': AppTheme.success,
     },
     {
       'label': 'Utilisateurs',
@@ -125,8 +130,24 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen> {
   @override
   void initState() {
     super.initState();
+    PresenceService.instance.startPresence(role: 'Super Admin', userName: 'Super Admin');
     _loadData();
     _subscribeRealtime();
+  }
+
+  @override
+  void dispose() {
+    _vehiclesChannel?.unsubscribe();
+    _alertsChannel?.unsubscribe();
+    _auditChannel?.unsubscribe();
+    _presenceChannel?.unsubscribe();
+    _nameCtrl.dispose();
+    _typeCtrl.dispose();
+    _matriculeCtrl.dispose();
+    _remarqueCtrl.dispose();
+    _batteryCtrl.dispose();
+    _wheelRefCtrl.dispose();
+    super.dispose();
   }
 
   Future<void> _loadData() async {
@@ -140,6 +161,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen> {
         _svc.getAlerts(dismissed: false),
         _svc.getVehicles(),
         _svc.getAuditLogs(limit: 10),
+        _svc.getActivePresencesCount(),
       ]);
 
       if (mounted) {
@@ -147,6 +169,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen> {
         final alerts = results[1] as List<Map<String, dynamic>>;
         final vehicles = results[2] as List<Map<String, dynamic>>;
         final audit = results[3] as List<Map<String, dynamic>>;
+        final activeCount = results[4] as int;
 
         // Fetch user counts (non-blocking — Edge Function may fail)
         int adminsCount = 0;
@@ -167,6 +190,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen> {
         }
 
         setState(() {
+          _activePresencesCount = activeCount;
           _stats = {
             ...stats,
             'adminsCount': adminsCount,
@@ -258,6 +282,23 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen> {
           callback: (_) => _loadData(),
         )
         .subscribe();
+
+    _presenceChannel = _svc.client
+        .channel('superadmin_presences')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'user_presences',
+          callback: (_) async {
+            final activeCount = await _svc.getActivePresencesCount();
+            if (mounted) {
+              setState(() {
+                _activePresencesCount = activeCount;
+              });
+            }
+          },
+        )
+        .subscribe();
   }
 
   String _docStatus(String? dateStr) {
@@ -347,19 +388,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen> {
     }
   }
 
-  @override
-  void dispose() {
-    _nameCtrl.dispose();
-    _typeCtrl.dispose();
-    _matriculeCtrl.dispose();
-    _remarqueCtrl.dispose();
-    _batteryCtrl.dispose();
-    _wheelRefCtrl.dispose();
-    _vehiclesChannel?.unsubscribe();
-    _alertsChannel?.unsubscribe();
-    _auditChannel?.unsubscribe();
-    super.dispose();
-  }
+
 
   void _showAddVehicleSheet() {
     _nameCtrl.clear();
@@ -1264,7 +1293,6 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen> {
     final drawerItems = [
       {'icon': 'dashboard', 'label': 'Tableau de bord', 'index': 0},
       {'icon': 'fire_truck', 'label': 'Véhicules', 'index': 1},
-      {'icon': 'inventory_2', 'label': 'Équipements', 'index': 2},
       {'icon': 'build', 'label': 'Maintenance', 'index': 3},
       {'icon': 'notifications_active', 'label': 'Alertes', 'index': 4},
       {'icon': 'people', 'label': 'Utilisateurs', 'index': 5},
@@ -1503,23 +1531,6 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen> {
                     Navigator.pop(context);
                     context.go(AppRoutes.qrScannerScreen);
                   },
-                  dense: true,
-                  contentPadding: EdgeInsets.zero,
-                ),
-                ListTile(
-                  leading: CustomIconWidget(
-                    iconName: 'code',
-                    color: const Color(0xFF1A237E),
-                    size: 20,
-                  ),
-                  title: Text(
-                    'Développé par Haitham BADEREDDINE',
-                    style: GoogleFonts.ibmPlexSans(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFF1A237E),
-                    ),
-                  ),
                   dense: true,
                   contentPadding: EdgeInsets.zero,
                 ),
