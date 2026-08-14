@@ -470,7 +470,7 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
             onPressed: onFixesTab
                 ? (_fixesSubTabIndex == 0
                     ? _showAddUSDEquipmentSheet
-                    : () => _showAddFixedEquipmentSheet(presetCategory: 'Moto Pompe'))
+                    : () => _showAddFixedEquipmentSheet(presetCategory: 'Pompe divers'))
                 : _showAddVehicleSheet,
             backgroundColor: AppTheme.primary,
             foregroundColor: Colors.white,
@@ -481,7 +481,7 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
             ),
             label: Text(
               onFixesTab
-                  ? (_fixesSubTabIndex == 0 ? 'Ajouter USD' : 'Ajouter Moto Pompe')
+                  ? (_fixesSubTabIndex == 0 ? 'Ajouter USD' : 'Ajouter Pompe divers')
                   : 'Véhicule',
               style: GoogleFonts.ibmPlexSans(
                 fontSize: 14,
@@ -740,7 +740,7 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
                           Expanded(
                             child: _buildSubTabItem(
                               index: 1,
-                              label: 'Moto Pompe (${_motoPompeEquipments.length})',
+                              label: 'Pompe divers (${_motoPompeEquipments.length})',
                               icon: 'settings',
                             ),
                           ),
@@ -753,7 +753,7 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
                             ? _usdEquipments
                             : _motoPompeEquipments;
                         final subTabName =
-                            _fixesSubTabIndex == 0 ? 'USD' : 'Moto Pompe';
+                            _fixesSubTabIndex == 0 ? 'USD' : 'Pompe divers';
 
                         if (currentList.isEmpty) {
                           return ListView(
