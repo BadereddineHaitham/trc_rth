@@ -25,26 +25,25 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Install CocoaPods Dependencies
-        run: |
-          flutter pub get
-          cd ios
-          pod install
-          cd ..
+      - name: Install Flutter Dependencies
+        run: flutter pub get
 
-      - name: Build iOS Application
+      - name: Build iOS App Bundle
         run: |
           flutter build ios --release --no-codesign
 
-      - name: Package Valid IPA for Diawi & InstallOnAir
+      - name: Package IPA for Diawi and Sideloadly
         run: |
           cd build/ios/iphoneos
           mkdir -p Payload
           cp -R Runner.app Payload/
           zip -r -y Sanad_iOS.ipa Payload
+          zip -r -y Runner_App.zip Runner.app
 
-      - name: Upload iOS IPA Artifact
+      - name: Upload iOS IPA Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: Sanad_iOS_IPA
-          path: build/ios/iphoneos/Sanad_iOS.ipa
+          name: Sanad_iOS_Package
+          path: |
+            build/ios/iphoneos/Sanad_iOS.ipa
+            build/ios/iphoneos/Runner_App.zip
