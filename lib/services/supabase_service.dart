@@ -828,6 +828,7 @@ class SupabaseService {
     required String status,
     String? parkId,
     String? lastInspection,
+    Map<String, dynamic>? usdDetails,
   }) async {
     final data = {
       'name': name,
@@ -837,6 +838,7 @@ class SupabaseService {
       if (parkId != null) 'park_id': parkId,
       if (lastInspection != null && lastInspection.isNotEmpty)
         'last_inspection': lastInspection,
+      if (usdDetails != null) 'usd_details': usdDetails,
     };
 
     final response = await client
@@ -860,6 +862,29 @@ class SupabaseService {
       } catch (_) {}
     }
     return response;
+  }
+
+  Future<void> updateFixedEquipment({
+    required String id,
+    required Map<String, dynamic> data,
+  }) async {
+    await client.from('fixed_equipment').update(data).eq('id', id);
+
+    final user = currentUser;
+    if (user != null) {
+      final username =
+          (user.userMetadata?['username'] as String?) ?? user.email ?? 'admin';
+      try {
+        await _insertAuditLog(
+          userId: user.id,
+          username: username,
+          action: 'equipment_updated',
+          description: 'Modification équipement fixe: ${data['name'] ?? id}',
+          entityType: 'equipment',
+          entityId: id,
+        );
+      } catch (_) {}
+    }
   }
 
   Future<void> deleteFixedEquipment(String id) async {
@@ -887,8 +912,30 @@ class SupabaseService {
         .order('maintenance_date', ascending: false);
   }
 
+  Future<List<Map<String, dynamic>>> getMaintenanceRecordsForEquipment(
+    String equipmentId,
+  ) async {
+    final response = await client
+        .from('maintenance_records')
+        .select()
+        .eq('equipment_id', equipmentId)
+        .order('maintenance_date', ascending: false);
+    return List<Map<String, dynamic>>.from(response);
+  }
+
+  Stream<List<Map<String, dynamic>>> watchMaintenanceRecordsForEquipment(
+    String equipmentId,
+  ) {
+    return client
+        .from('maintenance_records')
+        .stream(primaryKey: ['id'])
+        .eq('equipment_id', equipmentId)
+        .order('maintenance_date', ascending: false);
+  }
+
   Future<Map<String, dynamic>> createMaintenanceRecord({
-    required String vehicleId,
+    String? vehicleId,
+    String? equipmentId,
     required String vehicleName,
     required String maintenanceDate,
     required String maintenanceType,
@@ -901,7 +948,8 @@ class SupabaseService {
   }) async {
     final user = currentUser;
     final data = <String, dynamic>{
-      'vehicle_id': vehicleId,
+      if (vehicleId != null) 'vehicle_id': vehicleId,
+      if (equipmentId != null) 'equipment_id': equipmentId,
       'maintenance_date': maintenanceDate,
       'maintenance_type': maintenanceType,
       'description': description,

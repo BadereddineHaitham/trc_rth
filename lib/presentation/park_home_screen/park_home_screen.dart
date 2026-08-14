@@ -5,6 +5,7 @@ import '../../../core/app_export.dart';
 import '../../services/supabase_service.dart';
 import '../profile_screen/profile_screen.dart';
 import './widgets/fixed_equipment_card_widget.dart';
+import './widgets/fixed_equipment_maintenance_modal.dart';
 import './widgets/park_alert_banner_widget.dart';
 import './widgets/park_kpi_strip_widget.dart';
 import './widgets/vehicle_card_widget.dart';
@@ -26,6 +27,7 @@ class ParkHomeScreen extends StatefulWidget {
 class _ParkHomeScreenState extends State<ParkHomeScreen>
     with SingleTickerProviderStateMixin {
   int _currentNavIndex = 0;
+  int _fixesSubTabIndex = 0; // 0 = USD, 1 = Moto Pompe
   late final TabController _tabController;
   final _svc = SupabaseService.instance;
 
@@ -34,6 +36,16 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
   List<Map<String, dynamic>> _alertMaps = [];
   bool _isLoading = true;
   String? _errorMsg;
+
+  List<Map<String, dynamic>> get _usdEquipments => _fixedEquipmentMaps
+      .where((e) =>
+          (e['category'] as String? ?? '').toUpperCase().contains('USD'))
+      .toList();
+
+  List<Map<String, dynamic>> get _motoPompeEquipments => _fixedEquipmentMaps
+      .where((e) =>
+          !(e['category'] as String? ?? '').toUpperCase().contains('USD'))
+      .toList();
 
   RealtimeChannel? _vehiclesChannel;
   RealtimeChannel? _alertsChannel;
@@ -183,12 +195,13 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
     );
   }
 
-  void _showAddFixedEquipmentSheet() {
+  void _showAddFixedEquipmentSheet({String? presetCategory}) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => _AddFixedEquipmentSheet(
+        presetCategory: presetCategory,
         onSave: (data) async {
           try {
             await _svc.createFixedEquipment(
@@ -230,6 +243,112 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
             }
           }
         },
+      ),
+    );
+  }
+
+  void _showAddUSDEquipmentSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => _AddUSDEquipmentSheet(
+        onSave: (data) async {
+          try {
+            await _svc.createFixedEquipment(
+              name: data['name'] as String,
+              category: 'USD',
+              location: data['location'] as String,
+              status: data['status'] as String,
+              parkId: widget.parkId,
+              lastInspection: data['lastInspection'] as String?,
+              usdDetails: data['usdDetails'] as Map<String, dynamic>?,
+            );
+            await _loadData();
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    'Équipement USD "${data['name']}" ajouté avec succès',
+                    style: GoogleFonts.ibmPlexSans(color: Colors.white),
+                  ),
+                  backgroundColor: AppTheme.success,
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              );
+            }
+          } catch (e) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    'Erreur: $e',
+                    style: GoogleFonts.ibmPlexSans(color: Colors.white),
+                  ),
+                  backgroundColor: AppTheme.critical,
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            }
+          }
+        },
+      ),
+    );
+  }
+
+  Widget _buildSubTabItem({
+    required int index,
+    required String label,
+    required String icon,
+  }) {
+    final isSelected = _fixesSubTabIndex == index;
+    return InkWell(
+      onTap: () => setState(() => _fixesSubTabIndex = index),
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? AppTheme.primary : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isSelected ? AppTheme.primary : AppTheme.outlineVariantLight,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CustomIconWidget(
+              iconName: icon,
+              color: isSelected ? Colors.white : AppTheme.mutedText,
+              size: 16,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: GoogleFonts.ibmPlexSans(
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                color: isSelected ? Colors.white : AppTheme.mutedText,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _openFixedEquipmentMaintenanceModal(Map<String, dynamic> equipment) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => FixedEquipmentMaintenanceModal(
+        equipment: equipment,
+        canEdit: _canEdit,
+        onDataChanged: _loadData,
       ),
     );
   }
@@ -346,7 +465,9 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
 
           return FloatingActionButton.extended(
             onPressed: onFixesTab
-                ? _showAddFixedEquipmentSheet
+                ? (_fixesSubTabIndex == 0
+                    ? _showAddUSDEquipmentSheet
+                    : () => _showAddFixedEquipmentSheet(presetCategory: 'Moto Pompe'))
                 : _showAddVehicleSheet,
             backgroundColor: AppTheme.primary,
             foregroundColor: Colors.white,
@@ -356,7 +477,9 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
               size: 22,
             ),
             label: Text(
-              onFixesTab ? 'Équipement fixe' : 'Véhicule',
+              onFixesTab
+                  ? (_fixesSubTabIndex == 0 ? 'Ajouter USD' : 'Ajouter Moto Pompe')
+                  : 'Véhicule',
               style: GoogleFonts.ibmPlexSans(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
@@ -594,56 +717,103 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
               // ── Tab 1: Fixes ──────────────────────────────────────────────
               RefreshIndicator(
                 onRefresh: _loadData,
-                child: _fixedEquipmentMaps.isEmpty
-                    ? ListView(
+                child: Column(
+                  children: [
+                    // Sub-tabs for USD / Moto Pompe
+                    Container(
+                      color: AppTheme.surfaceVariantLight,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: Row(
                         children: [
-                          const SizedBox(height: 80),
-                          Center(
-                            child: Column(
-                              children: [
-                                CustomIconWidget(
-                                  iconName: 'settings',
-                                  color: AppTheme.mutedText,
-                                  size: 48,
-                                ),
-                                const SizedBox(height: 12),
-                                Text(
-                                  'Aucun équipement fixe',
-                                  style: GoogleFonts.ibmPlexSans(
-                                    color: AppTheme.mutedText,
-                                    fontSize: 15,
-                                  ),
-                                ),
-                                if (_canEdit) ...
-                                  [
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      'Appuyez sur + pour ajouter',
-                                      style: GoogleFonts.ibmPlexSans(
-                                        color: AppTheme.mutedText,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ],
-                              ],
+                          Expanded(
+                            child: _buildSubTabItem(
+                              index: 0,
+                              label: 'USD (${_usdEquipments.length})',
+                              icon: 'shield',
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: _buildSubTabItem(
+                              index: 1,
+                              label: 'Moto Pompe (${_motoPompeEquipments.length})',
+                              icon: 'settings',
                             ),
                           ),
                         ],
-                      )
-                    : ListView.builder(
-                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 80),
-                        itemCount: _fixedEquipmentMaps.length,
-                        itemBuilder: (ctx, i) => Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: FixedEquipmentCardWidget(
-                            equipment: _fixedEquipmentMaps[i],
-                            onDelete: _canEdit
-                                ? () => _deleteFixedEquipment(
-                                    _fixedEquipmentMaps[i])
-                                : null,
-                          ),
-                        ),
                       ),
+                    ),
+                    Expanded(
+                      child: () {
+                        final currentList = _fixesSubTabIndex == 0
+                            ? _usdEquipments
+                            : _motoPompeEquipments;
+                        final subTabName =
+                            _fixesSubTabIndex == 0 ? 'USD' : 'Moto Pompe';
+
+                        if (currentList.isEmpty) {
+                          return ListView(
+                            children: [
+                              const SizedBox(height: 60),
+                              Center(
+                                child: Column(
+                                  children: [
+                                    CustomIconWidget(
+                                      iconName: _fixesSubTabIndex == 0
+                                          ? 'shield'
+                                          : 'settings',
+                                      color: AppTheme.mutedText,
+                                      size: 48,
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      'Aucun équipement $subTabName',
+                                      style: GoogleFonts.ibmPlexSans(
+                                        color: AppTheme.mutedText,
+                                        fontSize: 15,
+                                      ),
+                                    ),
+                                    if (_canEdit) ...[
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'Appuyez sur + pour ajouter un équipement $subTabName',
+                                        style: GoogleFonts.ibmPlexSans(
+                                          color: AppTheme.mutedText,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            ],
+                          );
+                        }
+
+                        return ListView.builder(
+                          padding: const EdgeInsets.fromLTRB(16, 12, 16, 80),
+                          itemCount: currentList.length,
+                          itemBuilder: (ctx, i) {
+                            final item = currentList[i];
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 10),
+                              child: FixedEquipmentCardWidget(
+                                equipment: item,
+                                onTap: () =>
+                                    _openFixedEquipmentMaintenanceModal(item),
+                                onMaintenance: () =>
+                                    _openFixedEquipmentMaintenanceModal(item),
+                                onDelete: _canEdit
+                                    ? () => _deleteFixedEquipment(item)
+                                    : null,
+                              ),
+                            );
+                          },
+                        );
+                      }(),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -887,8 +1057,12 @@ class _AddVehicleSheetState extends State<_AddVehicleSheet> {
 
 // ── Add Fixed Equipment Sheet ─────────────────────────────────────────────────
 class _AddFixedEquipmentSheet extends StatefulWidget {
+  final String? presetCategory;
   final Function(Map<String, dynamic>) onSave;
-  const _AddFixedEquipmentSheet({required this.onSave});
+  const _AddFixedEquipmentSheet({
+    this.presetCategory,
+    required this.onSave,
+  });
 
   @override
   State<_AddFixedEquipmentSheet> createState() =>
@@ -902,6 +1076,14 @@ class _AddFixedEquipmentSheetState extends State<_AddFixedEquipmentSheet> {
   String _selectedStatus = 'operational';
   DateTime? _lastInspection;
   bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.presetCategory != null && widget.presetCategory!.isNotEmpty) {
+      _categoryCtrl.text = widget.presetCategory!;
+    }
+  }
 
   @override
   void dispose() {
@@ -923,6 +1105,10 @@ class _AddFixedEquipmentSheetState extends State<_AddFixedEquipmentSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final titleText = widget.presetCategory != null && widget.presetCategory!.isNotEmpty
+        ? 'Nouvel équipement — ${widget.presetCategory}'
+        : 'Nouvel équipement fixe';
+
     return Container(
       decoration: const BoxDecoration(
         color: Colors.white,
@@ -942,7 +1128,7 @@ class _AddFixedEquipmentSheetState extends State<_AddFixedEquipmentSheet> {
             Row(
               children: [
                 Text(
-                  'Nouvel équipement fixe',
+                  titleText,
                   style: GoogleFonts.ibmPlexSans(
                     fontSize: 17,
                     fontWeight: FontWeight.w700,
@@ -965,7 +1151,7 @@ class _AddFixedEquipmentSheetState extends State<_AddFixedEquipmentSheet> {
             TextField(
               controller: _categoryCtrl,
               decoration: const InputDecoration(
-                labelText: 'Catégorie (ex: Extincteur, RIA...)',
+                labelText: 'Catégorie (ex: Moto Pompe, Extincteur...)',
               ),
             ),
             const SizedBox(height: 12),
@@ -1035,7 +1221,7 @@ class _AddFixedEquipmentSheetState extends State<_AddFixedEquipmentSheet> {
                           'name': _nameCtrl.text.trim(),
                           'category': _categoryCtrl.text.trim().isNotEmpty
                               ? _categoryCtrl.text.trim()
-                              : 'Général',
+                              : (widget.presetCategory ?? 'Général'),
                           'location': _locationCtrl.text.trim(),
                           'status': _selectedStatus,
                           'lastInspection': _lastInspection != null
@@ -1058,6 +1244,191 @@ class _AddFixedEquipmentSheetState extends State<_AddFixedEquipmentSheet> {
           ],
         ),
       ),
+    );
+  }
+}
+
+// ── Add USD Equipment Sheet (19 components B/M) ────────────────────────────────
+class _AddUSDEquipmentSheet extends StatefulWidget {
+  final Function(Map<String, dynamic>) onSave;
+  const _AddUSDEquipmentSheet({required this.onSave});
+
+  @override
+  State<_AddUSDEquipmentSheet> createState() => _AddUSDEquipmentSheetState();
+}
+
+class _AddUSDEquipmentSheetState extends State<_AddUSDEquipmentSheet> {
+  final _nameCtrl = TextEditingController(text: 'Unité USD');
+  final _locationCtrl = TextEditingController();
+  String _selectedStatus = 'operational';
+  DateTime? _lastInspection;
+  bool _saving = false;
+
+  final Map<String, String> _usdComponentStates = {
+    'Vanne Entrée USD': 'B',
+    'Vanne Sortie USD': 'B',
+    'Vannes Entrée 1/4 tours — Unité A': 'B',
+    'Vannes Entrée 1/4 tours — Unité B': 'B',
+    'Vannes Sortie 1/4 tours — Unité A': 'B',
+    'Vannes Sortie 1/4 tours — Unité B': 'B',
+    'Vanne Régulatrice': 'B',
+    'Vanne de remplissage et vidange émulseur — Unité A': 'B',
+    'Vanne de remplissage et vidange émulseur — Unité B': 'B',
+    'Vanne de remplissage et vidange eau — Unité A': 'B',
+    'Vanne de remplissage et vidange eau — Unité B': 'B',
+    'Vannes de purge ligne d\'interconnexion — Unité A': 'B',
+    'Vannes de purge ligne d\'interconnexion — Unité B': 'B',
+    'État D\'Unité A': 'B',
+    'État D\'Unité B': 'B',
+    'Filtre': 'B',
+    'Les Manomètres': 'B',
+    'Clapet anti-retour': 'B',
+    'Autre': 'B',
+  };
+
+  @override
+  void dispose() {
+    _nameCtrl.dispose();
+    _locationCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _lastInspection ?? DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+    if (picked != null) setState(() => _lastInspection = picked);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final vannesKeys = [
+      'Vanne Entrée USD', 'Vanne Sortie USD', 'Vannes Entrée 1/4 tours — Unité A', 'Vannes Entrée 1/4 tours — Unité B',
+      'Vannes Sortie 1/4 tours — Unité A', 'Vannes Sortie 1/4 tours — Unité B', 'Vanne Régulatrice',
+      'Vanne de remplissage et vidange émulseur — Unité A', 'Vanne de remplissage et vidange émulseur — Unité B',
+      'Vanne de remplissage et vidange eau — Unité A', 'Vanne de remplissage et vidange eau — Unité B',
+      'Vannes de purge ligne d\'interconnexion — Unité A', 'Vannes de purge ligne d\'interconnexion — Unité B',
+    ];
+
+    final diversKeys = [
+      'État D\'Unité A', 'État D\'Unité B', 'Filtre', 'Les Manomètres', 'Clapet anti-retour', 'Autre',
+    ];
+
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.9,
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      padding: EdgeInsets.only(
+        left: 20, right: 20, top: 20,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Text(
+                'Nouvel Équipement USD',
+                style: GoogleFonts.ibmPlexSans(
+                  fontSize: 17, fontWeight: FontWeight.w700, color: AppTheme.darkCharcoal,
+                ),
+              ),
+              const Spacer(),
+              IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextField(
+                    controller: _nameCtrl,
+                    decoration: const InputDecoration(labelText: 'Nom de l\'Équipement USD *'),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _locationCtrl,
+                    decoration: const InputDecoration(labelText: 'Emplacement (ex: Zone USD 1...)'),
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    initialValue: _selectedStatus,
+                    decoration: const InputDecoration(labelText: 'Statut Général'),
+                    items: const [
+                      DropdownMenuItem(value: 'operational', child: Text('Opérationnel')),
+                      DropdownMenuItem(value: 'maintenance', child: Text('En maintenance')),
+                      DropdownMenuItem(value: 'out_of_service', child: Text('Hors service')),
+                    ],
+                    onChanged: (v) => setState(() => _selectedStatus = v ?? 'operational'),
+                  ),
+                  const SizedBox(height: 12),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text('Dernière inspection', style: GoogleFonts.ibmPlexSans(fontSize: 13)),
+                    subtitle: Text(
+                      _lastInspection != null ? '${_lastInspection!.day}/${_lastInspection!.month}/${_lastInspection!.year}' : 'Sélectionner',
+                    ),
+                    trailing: const Icon(Icons.calendar_today, size: 18),
+                    onTap: _pickDate,
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(color: Colors.grey.shade50, borderRadius: BorderRadius.circular(12)),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('État des Composants (B = Bon / M = Mauvais)', style: const TextStyle(fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 12),
+                        ...vannesKeys.map((k) => _buildStateRow(k, _usdComponentStates[k]!, (v) => setState(() => _usdComponentStates[k] = v))),
+                        ...diversKeys.map((k) => _buildStateRow(k, _usdComponentStates[k]!, (v) => setState(() => _usdComponentStates[k] = v))),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _saving ? null : () async {
+                        if (_nameCtrl.text.isEmpty) return;
+                        setState(() => _saving = true);
+                        Navigator.pop(context);
+                        await widget.onSave({
+                          'name': _nameCtrl.text.trim(),
+                          'category': 'USD',
+                          'location': _locationCtrl.text.trim(),
+                          'status': _selectedStatus,
+                          'lastInspection': _lastInspection?.toIso8601String().split('T')[0],
+                          'usdDetails': _usdComponentStates,
+                        });
+                      },
+                      child: _saving ? const CircularProgressIndicator() : const Text('Enregistrer'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStateRow(String label, String state, Function(String) onChanged) {
+    return Row(
+      children: [
+        Expanded(child: Text(label)),
+        Switch(value: state == 'B', onChanged: (v) => onChanged(v ? 'B' : 'M')),
+      ],
     );
   }
 }
