@@ -1248,7 +1248,7 @@ class _AddFixedEquipmentSheetState extends State<_AddFixedEquipmentSheet> {
   }
 }
 
-// ── Add USD Equipment Sheet (19 components B/M) ────────────────────────────────
+// ── Add USD Equipment Sheet (LES VANNES / DIVERS B/M) ──────────────────────────
 class _AddUSDEquipmentSheet extends StatefulWidget {
   final Function(Map<String, dynamic>) onSave;
   const _AddUSDEquipmentSheet({required this.onSave});
@@ -1263,8 +1263,10 @@ class _AddUSDEquipmentSheetState extends State<_AddUSDEquipmentSheet> {
   String _selectedStatus = 'operational';
   DateTime? _lastInspection;
   bool _saving = false;
+  int _selectedCategoryTab = 0; // 0 = LES VANNES, 1 = DIVERS
 
   final Map<String, String> _usdComponentStates = {
+    // LES VANNES (13)
     'Vanne Entrée USD': 'B',
     'Vanne Sortie USD': 'B',
     'Vannes Entrée 1/4 tours — Unité A': 'B',
@@ -1278,6 +1280,7 @@ class _AddUSDEquipmentSheetState extends State<_AddUSDEquipmentSheet> {
     'Vanne de remplissage et vidange eau — Unité B': 'B',
     'Vannes de purge ligne d\'interconnexion — Unité A': 'B',
     'Vannes de purge ligne d\'interconnexion — Unité B': 'B',
+    // DIVERS (6)
     'État D\'Unité A': 'B',
     'État D\'Unité B': 'B',
     'Filtre': 'B',
@@ -1306,16 +1309,31 @@ class _AddUSDEquipmentSheetState extends State<_AddUSDEquipmentSheet> {
   @override
   Widget build(BuildContext context) {
     final vannesKeys = [
-      'Vanne Entrée USD', 'Vanne Sortie USD', 'Vannes Entrée 1/4 tours — Unité A', 'Vannes Entrée 1/4 tours — Unité B',
-      'Vannes Sortie 1/4 tours — Unité A', 'Vannes Sortie 1/4 tours — Unité B', 'Vanne Régulatrice',
-      'Vanne de remplissage et vidange émulseur — Unité A', 'Vanne de remplissage et vidange émulseur — Unité B',
-      'Vanne de remplissage et vidange eau — Unité A', 'Vanne de remplissage et vidange eau — Unité B',
-      'Vannes de purge ligne d\'interconnexion — Unité A', 'Vannes de purge ligne d\'interconnexion — Unité B',
+      'Vanne Entrée USD',
+      'Vanne Sortie USD',
+      'Vannes Entrée 1/4 tours — Unité A',
+      'Vannes Entrée 1/4 tours — Unité B',
+      'Vannes Sortie 1/4 tours — Unité A',
+      'Vannes Sortie 1/4 tours — Unité B',
+      'Vanne Régulatrice',
+      'Vanne de remplissage et vidange émulseur — Unité A',
+      'Vanne de remplissage et vidange émulseur — Unité B',
+      'Vanne de remplissage et vidange eau — Unité A',
+      'Vanne de remplissage et vidange eau — Unité B',
+      'Vannes de purge ligne d\'interconnexion — Unité A',
+      'Vannes de purge ligne d\'interconnexion — Unité B',
     ];
 
     final diversKeys = [
-      'État D\'Unité A', 'État D\'Unité B', 'Filtre', 'Les Manomètres', 'Clapet anti-retour', 'Autre',
+      'État D\'Unité A',
+      'État D\'Unité B',
+      'Filtre',
+      'Les Manomètres',
+      'Clapet anti-retour',
+      'Autre',
     ];
+
+    final currentKeys = _selectedCategoryTab == 0 ? vannesKeys : diversKeys;
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.9,
@@ -1324,17 +1342,30 @@ class _AddUSDEquipmentSheetState extends State<_AddUSDEquipmentSheet> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       padding: EdgeInsets.only(
-        left: 20, right: 20, top: 20,
+        left: 20,
+        right: 20,
+        top: 20,
         bottom: MediaQuery.of(context).viewInsets.bottom + 20,
       ),
       child: Column(
         children: [
           Row(
             children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.shield, color: AppTheme.primary, size: 22),
+              ),
+              const SizedBox(width: 10),
               Text(
                 'Nouvel Équipement USD',
                 style: GoogleFonts.ibmPlexSans(
-                  fontSize: 17, fontWeight: FontWeight.w700, color: AppTheme.darkCharcoal,
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.darkCharcoal,
                 ),
               ),
               const Spacer(),
@@ -1352,45 +1383,135 @@ class _AddUSDEquipmentSheetState extends State<_AddUSDEquipmentSheet> {
                 children: [
                   TextField(
                     controller: _nameCtrl,
-                    decoration: const InputDecoration(labelText: 'Nom de l\'Équipement USD *'),
+                    decoration: const InputDecoration(
+                      labelText: 'Nom de l\'Équipement USD *',
+                    ),
                   ),
                   const SizedBox(height: 12),
                   TextField(
                     controller: _locationCtrl,
-                    decoration: const InputDecoration(labelText: 'Emplacement (ex: Zone USD 1...)'),
+                    decoration: const InputDecoration(
+                      labelText: 'Emplacement (ex: Zone USD 1...)',
+                    ),
                   ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
                     initialValue: _selectedStatus,
                     decoration: const InputDecoration(labelText: 'Statut Général'),
                     items: const [
-                      DropdownMenuItem(value: 'operational', child: Text('Opérationnel')),
-                      DropdownMenuItem(value: 'maintenance', child: Text('En maintenance')),
-                      DropdownMenuItem(value: 'out_of_service', child: Text('Hors service')),
+                      DropdownMenuItem(
+                        value: 'operational',
+                        child: Text('Opérationnel'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'maintenance',
+                        child: Text('En maintenance'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'out_of_service',
+                        child: Text('Hors service'),
+                      ),
                     ],
-                    onChanged: (v) => setState(() => _selectedStatus = v ?? 'operational'),
+                    onChanged: (v) =>
+                        setState(() => _selectedStatus = v ?? 'operational'),
                   ),
                   const SizedBox(height: 12),
                   ListTile(
                     contentPadding: EdgeInsets.zero,
-                    title: Text('Dernière inspection', style: GoogleFonts.ibmPlexSans(fontSize: 13)),
+                    title: Text(
+                      'Dernière inspection',
+                      style: GoogleFonts.ibmPlexSans(fontSize: 13),
+                    ),
                     subtitle: Text(
-                      _lastInspection != null ? '${_lastInspection!.day}/${_lastInspection!.month}/${_lastInspection!.year}' : 'Sélectionner',
+                      _lastInspection != null
+                          ? '${_lastInspection!.day.toString().padLeft(2, '0')}/${_lastInspection!.month.toString().padLeft(2, '0')}/${_lastInspection!.year}'
+                          : 'Appuyez pour sélectionner',
+                      style: GoogleFonts.ibmPlexSans(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: _lastInspection != null
+                            ? AppTheme.darkCharcoal
+                            : AppTheme.mutedText,
+                      ),
                     ),
                     trailing: const Icon(Icons.calendar_today, size: 18),
                     onTap: _pickDate,
                   ),
                   const SizedBox(height: 16),
+
+                  // ── Category Type Switcher (LES VANNES vs DIVERS) ───────────
+                  Text(
+                    'Choix de la Catégorie de Composants',
+                    style: GoogleFonts.ibmPlexSans(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.darkCharcoal,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildCategoryTabBtn(
+                          index: 0,
+                          title: 'LES VANNES (13)',
+                          icon: Icons.water_drop,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _buildCategoryTabBtn(
+                          index: 1,
+                          title: 'DIVERS (6)',
+                          icon: Icons.tune,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+
+                  // ── Items List with B / M state toggles ────────────────────
                   Container(
                     padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(color: Colors.grey.shade50, borderRadius: BorderRadius.circular(12)),
+                    decoration: BoxDecoration(
+                      color: AppTheme.surfaceVariantLight,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppTheme.outlineVariantLight),
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('État des Composants (B = Bon / M = Mauvais)', style: const TextStyle(fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 12),
-                        ...vannesKeys.map((k) => _buildStateRow(k, _usdComponentStates[k]!, (v) => setState(() => _usdComponentStates[k] = v))),
-                        ...diversKeys.map((k) => _buildStateRow(k, _usdComponentStates[k]!, (v) => setState(() => _usdComponentStates[k] = v))),
+                        Row(
+                          children: [
+                            Text(
+                              _selectedCategoryTab == 0
+                                  ? 'LISTE DES VANNES'
+                                  : 'LISTE DIVERS',
+                              style: GoogleFonts.ibmPlexSans(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: AppTheme.primary,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                            const Spacer(),
+                            Text(
+                              'B = Bon état | M = Mauvais état',
+                              style: GoogleFonts.ibmPlexSans(
+                                fontSize: 11,
+                                color: AppTheme.mutedText,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const Divider(height: 16),
+                        ...currentKeys.map(
+                          (key) => _buildStateRow(
+                            key,
+                            _usdComponentStates[key] ?? 'B',
+                            (val) => setState(() => _usdComponentStates[key] = val),
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -1398,20 +1519,33 @@ class _AddUSDEquipmentSheetState extends State<_AddUSDEquipmentSheet> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: _saving ? null : () async {
-                        if (_nameCtrl.text.isEmpty) return;
-                        setState(() => _saving = true);
-                        Navigator.pop(context);
-                        await widget.onSave({
-                          'name': _nameCtrl.text.trim(),
-                          'category': 'USD',
-                          'location': _locationCtrl.text.trim(),
-                          'status': _selectedStatus,
-                          'lastInspection': _lastInspection?.toIso8601String().split('T')[0],
-                          'usdDetails': _usdComponentStates,
-                        });
-                      },
-                      child: _saving ? const CircularProgressIndicator() : const Text('Enregistrer'),
+                      onPressed: _saving
+                          ? null
+                          : () async {
+                              if (_nameCtrl.text.trim().isEmpty) return;
+                              setState(() => _saving = true);
+                              Navigator.pop(context);
+                              await widget.onSave({
+                                'name': _nameCtrl.text.trim(),
+                                'category': 'USD',
+                                'location': _locationCtrl.text.trim(),
+                                'status': _selectedStatus,
+                                'lastInspection': _lastInspection != null
+                                    ? _lastInspection!.toIso8601String().split('T')[0]
+                                    : null,
+                                'usdDetails': _usdComponentStates,
+                              });
+                            },
+                      child: _saving
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Text('Enregistrer Équipement USD'),
                     ),
                   ),
                 ],
@@ -1423,12 +1557,111 @@ class _AddUSDEquipmentSheetState extends State<_AddUSDEquipmentSheet> {
     );
   }
 
-  Widget _buildStateRow(String label, String state, Function(String) onChanged) {
-    return Row(
-      children: [
-        Expanded(child: Text(label)),
-        Switch(value: state == 'B', onChanged: (v) => onChanged(v ? 'B' : 'M')),
-      ],
+  Widget _buildCategoryTabBtn({
+    required int index,
+    required String title,
+    required IconData icon,
+  }) {
+    final isSelected = _selectedCategoryTab == index;
+    return InkWell(
+      onTap: () => setState(() => _selectedCategoryTab = index),
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: isSelected ? AppTheme.primary : AppTheme.surfaceLight,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isSelected ? AppTheme.primary : AppTheme.outlineVariantLight,
+            width: isSelected ? 1.5 : 1.0,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              color: isSelected ? Colors.white : AppTheme.mutedText,
+              size: 16,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              title,
+              style: GoogleFonts.ibmPlexSans(
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                color: isSelected ? Colors.white : AppTheme.darkCharcoal,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStateRow(
+    String label,
+    String currentState,
+    Function(String) onChanged,
+  ) {
+    final isGood = currentState == 'B';
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: GoogleFonts.ibmPlexSans(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: AppTheme.darkCharcoal,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Row(
+            children: [
+              GestureDetector(
+                onTap: () => onChanged('B'),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: isGood ? AppTheme.success : Colors.grey.shade200,
+                    borderRadius: const BorderRadius.horizontal(left: Radius.circular(6)),
+                  ),
+                  child: Text(
+                    'B — Bon',
+                    style: GoogleFonts.ibmPlexSans(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: isGood ? Colors.white : AppTheme.mutedText,
+                    ),
+                  ),
+                ),
+              ),
+              GestureDetector(
+                onTap: () => onChanged('M'),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: !isGood ? AppTheme.critical : Colors.grey.shade200,
+                    borderRadius: const BorderRadius.horizontal(right: Radius.circular(6)),
+                  ),
+                  child: Text(
+                    'M — Mauvais',
+                    style: GoogleFonts.ibmPlexSans(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: !isGood ? Colors.white : AppTheme.mutedText,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

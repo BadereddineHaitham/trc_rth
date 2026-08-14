@@ -378,6 +378,32 @@ class _FixedEquipmentMaintenanceModalState
     );
   }
 
+  int _usdTabCategoryIndex = 0; // 0 = LES VANNES, 1 = DIVERS
+
+  Future<void> _updateComponentState(String itemKey, String newState) async {
+    if (!widget.canEdit) return;
+    try {
+      final updatedDetails = Map<String, dynamic>.from(_usdDetails);
+      updatedDetails[itemKey] = newState;
+      await _svc.updateFixedEquipment(
+        id: _equipmentId,
+        data: {'usd_details': updatedDetails},
+      );
+      widget.equipment['usd_details'] = updatedDetails;
+      if (mounted) setState(() {});
+      widget.onDataChanged();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur mise à jour: $e'),
+            backgroundColor: AppTheme.critical,
+          ),
+        );
+      }
+    }
+  }
+
   Widget _buildUSDComponentsSection() {
     final details = _usdDetails;
 
@@ -407,6 +433,8 @@ class _FixedEquipmentMaintenanceModalState
       'Autre',
     ];
 
+    final currentList = _usdTabCategoryIndex == 0 ? vannesList : diversList;
+
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -426,7 +454,7 @@ class _FixedEquipmentMaintenanceModalState
               ),
               const SizedBox(width: 6),
               Text(
-                'État des Composants USD (B = Bon / M = Mauvais)',
+                'État des Composants USD (B / M)',
                 style: GoogleFonts.ibmPlexSans(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
@@ -435,31 +463,77 @@ class _FixedEquipmentMaintenanceModalState
               ),
             ],
           ),
+          const SizedBox(height: 10),
+
+          // Category Switcher
+          Row(
+            children: [
+              Expanded(
+                child: _buildModalCategoryBtn(
+                  index: 0,
+                  title: 'LES VANNES (${vannesList.length})',
+                  icon: 'water_drop',
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildModalCategoryBtn(
+                  index: 1,
+                  title: 'DIVERS (${diversList.length})',
+                  icon: 'tune',
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 12),
-          Text(
-            'LES VANNES',
-            style: GoogleFonts.ibmPlexSans(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              color: AppTheme.primary,
-              letterSpacing: 0.5,
+          ...currentList.map(
+            (item) => _buildItemStateRow(
+              item,
+              details[item] as String? ?? 'B',
             ),
           ),
-          const SizedBox(height: 6),
-          ...vannesList.map((item) => _buildItemStateRow(item, details[item] as String? ?? 'B')),
-          const SizedBox(height: 12),
-          Text(
-            'DIVERS',
-            style: GoogleFonts.ibmPlexSans(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              color: AppTheme.primary,
-              letterSpacing: 0.5,
-            ),
-          ),
-          const SizedBox(height: 6),
-          ...diversList.map((item) => _buildItemStateRow(item, details[item] as String? ?? 'B')),
         ],
+      ),
+    );
+  }
+
+  Widget _buildModalCategoryBtn({
+    required int index,
+    required String title,
+    required String icon,
+  }) {
+    final isSelected = _usdTabCategoryIndex == index;
+    return InkWell(
+      onTap: () => setState(() => _usdTabCategoryIndex = index),
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? AppTheme.primary : AppTheme.surfaceLight,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isSelected ? AppTheme.primary : AppTheme.outlineVariantLight,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CustomIconWidget(
+              iconName: icon,
+              color: isSelected ? Colors.white : AppTheme.mutedText,
+              size: 14,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              title,
+              style: GoogleFonts.ibmPlexSans(
+                fontSize: 11,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                color: isSelected ? Colors.white : AppTheme.darkCharcoal,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -467,7 +541,7 @@ class _FixedEquipmentMaintenanceModalState
   Widget _buildItemStateRow(String label, String state) {
     final isGood = state.toUpperCase() == 'B';
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 5),
       child: Row(
         children: [
           Expanded(
@@ -476,27 +550,70 @@ class _FixedEquipmentMaintenanceModalState
               style: GoogleFonts.ibmPlexSans(
                 fontSize: 12,
                 color: AppTheme.darkCharcoal,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-            decoration: BoxDecoration(
-              color: isGood ? AppTheme.successContainer : AppTheme.criticalContainer,
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(
-                color: isGood ? AppTheme.success.withAlpha(80) : AppTheme.critical.withAlpha(80),
+          if (widget.canEdit)
+            Row(
+              children: [
+                GestureDetector(
+                  onTap: () => _updateComponentState(label, 'B'),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: isGood ? AppTheme.success : Colors.grey.shade200,
+                      borderRadius: const BorderRadius.horizontal(left: Radius.circular(6)),
+                    ),
+                    child: Text(
+                      'B',
+                      style: GoogleFonts.ibmPlexSans(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: isGood ? Colors.white : AppTheme.mutedText,
+                      ),
+                    ),
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () => _updateComponentState(label, 'M'),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: !isGood ? AppTheme.critical : Colors.grey.shade200,
+                      borderRadius: const BorderRadius.horizontal(right: Radius.circular(6)),
+                    ),
+                    child: Text(
+                      'M',
+                      style: GoogleFonts.ibmPlexSans(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: !isGood ? Colors.white : AppTheme.mutedText,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            )
+          else
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+              decoration: BoxDecoration(
+                color: isGood ? AppTheme.successContainer : AppTheme.criticalContainer,
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(
+                  color: isGood ? AppTheme.success.withAlpha(80) : AppTheme.critical.withAlpha(80),
+                ),
+              ),
+              child: Text(
+                isGood ? 'B — Bon' : 'M — Mauvais',
+                style: GoogleFonts.ibmPlexSans(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: isGood ? AppTheme.success : AppTheme.critical,
+                ),
               ),
             ),
-            child: Text(
-              isGood ? 'B — Bon état' : 'M — Mauvais état',
-              style: GoogleFonts.ibmPlexSans(
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-                color: isGood ? AppTheme.success : AppTheme.critical,
-              ),
-            ),
-          ),
         ],
       ),
     );
