@@ -21,7 +21,6 @@ class FireAgentsTabWidget extends StatefulWidget {
 
 class _FireAgentsTabWidgetState extends State<FireAgentsTabWidget> {
   late Map<String, String> _values;
-  bool _isSaving = false;
   RealtimeChannel? _channel;
 
   @override
@@ -219,102 +218,51 @@ class _FireAgentsTabWidgetState extends State<FireAgentsTabWidget> {
           ),
           actions: [
             TextButton(
-              onPressed: _isSaving ? null : () => Navigator.pop(ctx),
+              onPressed: () => Navigator.pop(ctx),
               child: Text(
                 'Annuler',
                 style: GoogleFonts.ibmPlexSans(color: AppTheme.mutedText),
               ),
             ),
             ElevatedButton(
-              onPressed: _isSaving
-                  ? null
-                  : () async {
-                      final newVal =
-                          ctrl.text.trim().isEmpty ? '—' : ctrl.text.trim();
-                      final vehicleId = widget.vehicle['id'] as String?;
-                      final dbColumn = _getDbColumn(key);
+              onPressed: () {
+                final newVal =
+                    ctrl.text.trim().isEmpty ? '—' : ctrl.text.trim();
+                final vehicleId = widget.vehicle['id'] as String?;
+                final dbColumn = _getDbColumn(key);
 
-                      setDialogState(() => _isSaving = true);
+                // 1. Instant local UI update & close dialog immediately
+                if (mounted) {
+                  setState(() {
+                    _values[key] = newVal;
+                  });
+                }
+                Navigator.pop(ctx);
 
-                      if (vehicleId != null && vehicleId.isNotEmpty) {
-                        try {
-                          await SupabaseService.instance.updateVehicle(
-                            vehicleId: vehicleId,
-                            data: {dbColumn: newVal},
-                          );
-                        } catch (e) {
-                          setDialogState(() => _isSaving = false);
-                          if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Erreur: $e'),
-                                backgroundColor: AppTheme.critical,
-                              ),
-                            );
-                          }
-                          return;
-                        }
-                      }
-
-                      setState(() {
-                        _values[key] = newVal;
-                        _isSaving = false;
-                      });
-                      if (ctx.mounted) Navigator.pop(ctx);
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Row(
-                              children: [
-                                const Icon(
-                                  Icons.check_circle,
-                                  color: Colors.white,
-                                  size: 18,
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    '${agent['label']} mis à jour en temps réel',
-                                    style: GoogleFonts.ibmPlexSans(
-                                      fontSize: 13,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            backgroundColor: AppTheme.success,
-                            behavior: SnackBarBehavior.floating,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            duration: const Duration(seconds: 2),
-                          ),
-                        );
-                      }
-                    },
+                // 2. Background database update
+                if (vehicleId != null && vehicleId.isNotEmpty) {
+                  SupabaseService.instance.updateVehicle(
+                    vehicleId: vehicleId,
+                    data: {dbColumn: newVal},
+                  ).catchError((e) {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Erreur: $e'),
+                          backgroundColor: AppTheme.critical,
+                        ),
+                      );
+                    }
+                  });
+                }
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.primary,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              child: _isSaving
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : Text(
-                      'Enregistrer',
-                      style: GoogleFonts.ibmPlexSans(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+              child: const Text('Enregistrer'),
             ),
           ],
         ),

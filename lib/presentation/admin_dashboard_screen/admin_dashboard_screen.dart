@@ -314,7 +314,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   final _nameCtrl = TextEditingController();
   final _typeCtrl = TextEditingController();
   final _matriculeCtrl = TextEditingController();
-  final _parcCtrl = TextEditingController(text: 'Parc RTH Sonatrach');
+  final _parcCtrl = TextEditingController();
   final _affectationCtrl = TextEditingController();
   String _selectedStatus = 'operational';
   DateTime? _insuranceDate;
@@ -326,7 +326,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     _nameCtrl.clear();
     _typeCtrl.clear();
     _matriculeCtrl.clear();
-    _parcCtrl.text = 'Parc RTH Sonatrach';
+    _parcCtrl.clear();
     _affectationCtrl.clear();
     _remarqueCtrl.clear();
     _selectedStatus = 'operational';

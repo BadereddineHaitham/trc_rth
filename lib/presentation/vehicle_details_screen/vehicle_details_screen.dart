@@ -118,8 +118,8 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
     'battery': _vehicleData['battery'] ?? '',
     'wheelRef': _vehicleData['wheel_ref'] ?? '',
     'affectation': _vehicleData['affectation'] ?? '',
-    'parc': _vehicleData['parc_name'] ?? _vehicleData['parc'] ?? (_vehicleData['parks'] is Map ? _vehicleData['parks']['name'] : null) ?? 'Parc RTH Sonatrach',
-    'parc_name': _vehicleData['parc_name'] ?? _vehicleData['parc'] ?? 'Parc RTH Sonatrach',
+    'parc': _vehicleData['parc_name'] ?? _vehicleData['parc'] ?? (_vehicleData['parks'] is Map ? _vehicleData['parks']['name'] : null) ?? '',
+    'parc_name': _vehicleData['parc_name'] ?? _vehicleData['parc'] ?? '',
     'missingEquipment': _vehicleData['missing_equipment_count'] ?? 0,
   };
 
@@ -525,7 +525,7 @@ class _EditVehicleSheetState extends State<_EditVehicleSheet> {
       text: widget.vehicle['affectation'] as String? ?? '',
     );
     _parcCtrl = TextEditingController(
-      text: widget.vehicle['parc'] as String? ?? widget.vehicle['parc_name'] as String? ?? 'Parc RTH Sonatrach',
+      text: widget.vehicle['parc'] as String? ?? widget.vehicle['parc_name'] as String? ?? '',
     );
     _selectedStatus = widget.vehicle['status'] as String? ?? 'operational';
 

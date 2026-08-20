@@ -920,7 +920,7 @@ class _AddVehicleSheetState extends State<_AddVehicleSheet> {
   final _nameCtrl = TextEditingController();
   final _typeCtrl = TextEditingController();
   final _matriculeCtrl = TextEditingController();
-  final _parcCtrl = TextEditingController(text: 'Parc RTH Sonatrach');
+  final _parcCtrl = TextEditingController();
   final _remarqueCtrl = TextEditingController();
   final _batteryCtrl = TextEditingController();
   final _wheelRefCtrl = TextEditingController();

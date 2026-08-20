@@ -54,9 +54,7 @@ class VehicleInfoTabWidget extends StatelessWidget {
 
     final parcVal = _str(vehicle['parc']).isNotEmpty
         ? _str(vehicle['parc'])
-        : (_str(vehicle['parc_name']).isNotEmpty
-            ? _str(vehicle['parc_name'])
-            : 'Parc RTH Sonatrach');
+        : _str(vehicle['parc_name']);
 
     final insuranceExpired = _isExpired(insExpiry);
     final inspectionExpired = _isExpired(inspExpiry);
@@ -98,7 +96,7 @@ class VehicleInfoTabWidget extends StatelessWidget {
               const Divider(height: 1),
               _InfoRow(
                 label: 'Parc',
-                value: parcVal.isEmpty ? 'Parc RTH Sonatrach' : parcVal,
+                value: parcVal.isEmpty ? '—' : parcVal,
                 isBold: true,
               ),
               const Divider(height: 1),
