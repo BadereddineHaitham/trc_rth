@@ -464,12 +464,25 @@ class SupabaseService {
   // ── VEHICLES ──────────────────────────────────────────────────────────────
 
   Future<List<Map<String, dynamic>>> getVehicles({String? parkId}) async {
-    var query = client.from('vehicles').select('*, parks(name)');
-    if (parkId != null) {
-      query = query.eq('park_id', parkId);
+    List<Map<String, dynamic>> response = [];
+    if (parkId != null && parkId.isNotEmpty) {
+      try {
+        final filtered = await client
+            .from('vehicles')
+            .select('*, parks(name)')
+            .or('park_id.eq.$parkId,park_id.is.null')
+            .order('name', ascending: true);
+        response = List<Map<String, dynamic>>.from(filtered);
+      } catch (_) {}
     }
-    final response = await query.order('name', ascending: true);
-    return List<Map<String, dynamic>>.from(response);
+    if (response.isEmpty) {
+      final allVehicles = await client
+          .from('vehicles')
+          .select('*, parks(name)')
+          .order('name', ascending: true);
+      response = List<Map<String, dynamic>>.from(allVehicles);
+    }
+    return response;
   }
 
   Future<Map<String, dynamic>?> getVehicleById(String vehicleId) async {
@@ -811,12 +824,25 @@ class SupabaseService {
   // ── FIXED EQUIPMENT ───────────────────────────────────────────────────────
 
   Future<List<Map<String, dynamic>>> getFixedEquipment({String? parkId}) async {
-    var query = client.from('fixed_equipment').select();
-    if (parkId != null) {
-      query = query.eq('park_id', parkId);
+    List<Map<String, dynamic>> response = [];
+    if (parkId != null && parkId.isNotEmpty) {
+      try {
+        final filtered = await client
+            .from('fixed_equipment')
+            .select()
+            .or('park_id.eq.$parkId,park_id.is.null')
+            .order('name', ascending: true);
+        response = List<Map<String, dynamic>>.from(filtered);
+      } catch (_) {}
     }
-    final response = await query.order('name', ascending: true);
-    return List<Map<String, dynamic>>.from(response);
+    if (response.isEmpty) {
+      final allFixed = await client
+          .from('fixed_equipment')
+          .select()
+          .order('name', ascending: true);
+      response = List<Map<String, dynamic>>.from(allFixed);
+    }
+    return response;
   }
 
   Stream<List<Map<String, dynamic>>> watchFixedEquipment({String? parkId}) {
