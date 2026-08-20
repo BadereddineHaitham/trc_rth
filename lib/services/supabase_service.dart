@@ -567,7 +567,6 @@ class SupabaseService {
       'status': status,
       'affectation': affectation,
       'parc_name': parcName,
-      'parc': parcName,
       if (parkId != null) 'park_id': parkId,
       if (insuranceStart != null) 'insurance_start': insuranceStart,
       if (insuranceExpiry != null) 'insurance_expiry': insuranceExpiry,

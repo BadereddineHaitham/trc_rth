@@ -141,7 +141,6 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
                 'status': updated['status'],
                 'affectation': updated['affectation'],
                 'parc_name': updated['parc'] ?? updated['parc_name'] ?? '',
-                'parc': updated['parc'] ?? updated['parc_name'] ?? '',
                 'insurance_start': updated['insuranceStart'],
                 'insurance_expiry': updated['insuranceExpiry'],
                 'inspection_expiry': updated['inspectionExpiry'],
