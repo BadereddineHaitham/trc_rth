@@ -665,34 +665,49 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Scaffold(
-      backgroundColor: AppTheme.backgroundLight,
-      drawer: _buildDrawer(context),
-      body: CustomScrollView(
-        slivers: [
-          _buildSliverAppBar(theme),
-          SliverToBoxAdapter(
-            child: _isLoading || _errorMsg != null
-                ? SizedBox(height: 400, child: _buildLoadingOrError())
-                : Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: _buildSuperAdminContent(),
-                  ),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _showAddVehicleSheet,
-        icon: CustomIconWidget(iconName: 'add', color: Colors.white, size: 20),
-        label: Text(
-          'Ajouter véhicule',
-          style: GoogleFonts.ibmPlexSans(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (Navigator.canPop(context)) {
+          Navigator.pop(context);
+        } else {
+          SystemNavigator.pop();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppTheme.backgroundLight,
+        drawer: _buildDrawer(context),
+        body: CustomScrollView(
+          slivers: [
+            _buildSliverAppBar(theme),
+            SliverToBoxAdapter(
+              child: _isLoading || _errorMsg != null
+                  ? SizedBox(height: 400, child: _buildLoadingOrError())
+                  : Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: _buildSuperAdminContent(),
+                    ),
+            ),
+          ],
+        ),
+        floatingActionButton: FloatingActionButton.extended(
+          onPressed: _showAddVehicleSheet,
+          backgroundColor: AppTheme.primary,
+          foregroundColor: Colors.white,
+          icon: CustomIconWidget(
+            iconName: 'add',
             color: Colors.white,
+            size: 22,
+          ),
+          label: Text(
+            'Ajouter véhicule',
+            style: GoogleFonts.ibmPlexSans(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
-        backgroundColor: AppTheme.primary,
       ),
     );
   }

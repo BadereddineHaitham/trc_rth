@@ -391,38 +391,49 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Scaffold(
-      backgroundColor: AppTheme.backgroundLight,
-      drawer: _buildDrawer(theme),
-      body: NestedScrollView(
-        headerSliverBuilder: (context, innerBoxIsScrolled) => [
-          _buildSliverAppBar(theme, innerBoxIsScrolled),
-        ],
-        body: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : _errorMsg != null
-            ? _buildError()
-            : RefreshIndicator(onRefresh: _loadData, child: _buildBody(theme)),
-      ),
-      floatingActionButton: _isSuperAdmin
-          ? FloatingActionButton.extended(
-              onPressed: _showAddVehicleSheet,
-              backgroundColor: AppTheme.primary,
-              foregroundColor: Colors.white,
-              icon: CustomIconWidget(
-                iconName: 'add',
-                color: Colors.white,
-                size: 22,
-              ),
-              label: Text(
-                'Ajouter véhicule',
-                style: GoogleFonts.ibmPlexSans(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (Navigator.canPop(context)) {
+          Navigator.pop(context);
+        } else {
+          SystemNavigator.pop();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppTheme.backgroundLight,
+        drawer: _buildDrawer(theme),
+        body: NestedScrollView(
+          headerSliverBuilder: (context, innerBoxIsScrolled) => [
+            _buildSliverAppBar(theme, innerBoxIsScrolled),
+          ],
+          body: _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : _errorMsg != null
+              ? _buildError()
+              : RefreshIndicator(onRefresh: _loadData, child: _buildBody(theme)),
+        ),
+        floatingActionButton: _isSuperAdmin
+            ? FloatingActionButton.extended(
+                onPressed: _showAddVehicleSheet,
+                backgroundColor: AppTheme.primary,
+                foregroundColor: Colors.white,
+                icon: CustomIconWidget(
+                  iconName: 'add',
+                  color: Colors.white,
+                  size: 22,
                 ),
-              ),
-            )
-          : null,
+                label: Text(
+                  'Ajouter véhicule',
+                  style: GoogleFonts.ibmPlexSans(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              )
+            : null,
+      ),
     );
   }
 

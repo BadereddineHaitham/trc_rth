@@ -412,84 +412,95 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
     final theme = Theme.of(context);
     final isTablet = MediaQuery.of(context).size.width >= 600;
 
-    return Scaffold(
-      backgroundColor: AppTheme.backgroundLight,
-      body: NestedScrollView(
-        headerSliverBuilder: (context, innerBoxIsScrolled) => [
-          _buildSliverAppBar(theme, innerBoxIsScrolled),
-          SliverPersistentHeader(
-            pinned: true,
-            delegate: _TabBarDelegate(
-              TabBar(
-                controller: _tabController,
-                labelColor: AppTheme.primary,
-                unselectedLabelColor: AppTheme.mutedText,
-                indicatorColor: AppTheme.primary,
-                indicatorWeight: 2.5,
-                tabs: [
-                  Tab(
-                    icon: CustomIconWidget(
-                      iconName: 'fire_truck',
-                      color: _tabController.index == 0
-                          ? AppTheme.primary
-                          : AppTheme.mutedText,
-                      size: 18,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (Navigator.canPop(context)) {
+          Navigator.pop(context);
+        } else {
+          SystemNavigator.pop();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppTheme.backgroundLight,
+        body: NestedScrollView(
+          headerSliverBuilder: (context, innerBoxIsScrolled) => [
+            _buildSliverAppBar(theme, innerBoxIsScrolled),
+            SliverPersistentHeader(
+              pinned: true,
+              delegate: _TabBarDelegate(
+                TabBar(
+                  controller: _tabController,
+                  labelColor: AppTheme.primary,
+                  unselectedLabelColor: AppTheme.mutedText,
+                  indicatorColor: AppTheme.primary,
+                  indicatorWeight: 2.5,
+                  tabs: [
+                    Tab(
+                      icon: CustomIconWidget(
+                        iconName: 'fire_truck',
+                        color: _tabController.index == 0
+                            ? AppTheme.primary
+                            : AppTheme.mutedText,
+                        size: 18,
+                      ),
+                      text: 'Mobiles (${_vehicleMaps.length})',
                     ),
-                    text: 'Mobiles (${_vehicleMaps.length})',
-                  ),
-                  Tab(
-                    icon: CustomIconWidget(
-                      iconName: 'fire_extinguisher',
-                      color: _tabController.index == 1
-                          ? AppTheme.primary
-                          : AppTheme.mutedText,
-                      size: 18,
+                    Tab(
+                      icon: CustomIconWidget(
+                        iconName: 'fire_extinguisher',
+                        color: _tabController.index == 1
+                            ? AppTheme.primary
+                            : AppTheme.mutedText,
+                        size: 18,
+                      ),
+                      text: 'Fixes (${_fixedEquipmentMaps.length})',
                     ),
-                    text: 'Fixes (${_fixedEquipmentMaps.length})',
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
-        body: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : _errorMsg != null
-            ? _buildError()
-            : _buildBody(theme, isTablet),
-      ),
-      bottomNavigationBar: _buildBottomNav(theme),
-      floatingActionButton: AnimatedBuilder(
-        animation: _tabController,
-        builder: (context, _) {
-          final onFixesTab = _tabController.index == 1;
-          final canShowFab = onFixesTab ? _canEdit : _isSuperAdmin;
-          if (!canShowFab) return const SizedBox.shrink();
+          ],
+          body: _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : _errorMsg != null
+              ? _buildError()
+              : _buildBody(theme, isTablet),
+        ),
+        bottomNavigationBar: _buildBottomNav(theme),
+        floatingActionButton: AnimatedBuilder(
+          animation: _tabController,
+          builder: (context, _) {
+            final onFixesTab = _tabController.index == 1;
+            final canShowFab = onFixesTab ? _canEdit : _isSuperAdmin;
+            if (!canShowFab) return const SizedBox.shrink();
 
-          return FloatingActionButton.extended(
-            onPressed: onFixesTab
-                ? (_fixesSubTabIndex == 0
-                    ? _showAddUSDEquipmentSheet
-                    : () => _showAddFixedEquipmentSheet(presetCategory: 'Pompe divers'))
-                : _showAddVehicleSheet,
-            backgroundColor: AppTheme.primary,
-            foregroundColor: Colors.white,
-            icon: CustomIconWidget(
-              iconName: 'add',
-              color: Colors.white,
-              size: 22,
-            ),
-            label: Text(
-              onFixesTab
-                  ? (_fixesSubTabIndex == 0 ? 'Ajouter USD' : 'Ajouter Pompe divers')
-                  : 'Véhicule',
-              style: GoogleFonts.ibmPlexSans(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
+            return FloatingActionButton.extended(
+              onPressed: onFixesTab
+                  ? (_fixesSubTabIndex == 0
+                      ? _showAddUSDEquipmentSheet
+                      : () => _showAddFixedEquipmentSheet(presetCategory: 'Pompe divers'))
+                  : _showAddVehicleSheet,
+              backgroundColor: AppTheme.primary,
+              foregroundColor: Colors.white,
+              icon: CustomIconWidget(
+                iconName: 'add',
+                color: Colors.white,
+                size: 22,
               ),
-            ),
-          );
-        },
+              label: Text(
+                onFixesTab
+                    ? (_fixesSubTabIndex == 0 ? 'Ajouter USD' : 'Ajouter Pompe divers')
+                    : 'Véhicule',
+                style: GoogleFonts.ibmPlexSans(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            );
+          },
+        ),
       ),
     );
   }

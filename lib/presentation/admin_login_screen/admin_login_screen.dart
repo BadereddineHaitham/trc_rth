@@ -245,9 +245,19 @@ class _AdminLoginScreenState extends State<AdminLoginScreen>
   Widget build(BuildContext context) {
     final isTablet = MediaQuery.of(context).size.width >= 600;
 
-    return Scaffold(
-      backgroundColor: AppTheme.backgroundLight,
-      body: SafeArea(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (Navigator.canPop(context)) {
+          Navigator.pop(context);
+        } else {
+          SystemNavigator.pop();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppTheme.backgroundLight,
+        body: SafeArea(
         child: SingleChildScrollView(
           child: Center(
             child: ConstrainedBox(
@@ -597,6 +607,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen>
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 }
