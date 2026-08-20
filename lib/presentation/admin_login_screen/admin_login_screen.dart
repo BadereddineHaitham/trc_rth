@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -296,8 +297,9 @@ class _AdminLoginScreenState extends State<AdminLoginScreen>
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildFormContent() {
     return Form(
@@ -607,7 +609,6 @@ class _AdminLoginScreenState extends State<AdminLoginScreen>
           ),
         ],
       ),
-    ),
-  );
-}
+    );
+  }
 }
