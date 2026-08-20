@@ -104,6 +104,9 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
     'water': _vehicleData['water_capacity'] ?? '',
     'emulsifier': _vehicleData['emulsifier_capacity'] ?? '',
     'powder': _vehicleData['powder_capacity'] ?? '',
+    'pumpFlowWater': _vehicleData['pump_flow_water'] ?? '',
+    'pumpFlowEmulsifier': _vehicleData['pump_flow_emulsifier'] ?? '',
+    'pumpFlowPowder': _vehicleData['pump_flow_powder'] ?? '',
     'cannonRange': _vehicleData['cannon_range'] ?? '',
     'battery': _vehicleData['battery'] ?? '',
     'wheelRef': _vehicleData['wheel_ref'] ?? '',
@@ -140,11 +143,22 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
                 'water_capacity': updated['water'],
                 'emulsifier_capacity': updated['emulsifier'],
                 'powder_capacity': updated['powder'],
+                'pump_flow_water': updated['pumpFlowWater'],
+                'pump_flow_emulsifier': updated['pumpFlowEmulsifier'],
+                'pump_flow_powder': updated['powderFlowWater'] ?? updated['pumpFlowPowder'],
                 'cannon_range': updated['cannonRange'],
                 'battery': updated['battery'],
                 'wheel_ref': updated['wheelRef'],
               },
             );
+
+            final parkId = _displayData['parkId'] as String?;
+            final newParkName = updated['parkName'] as String?;
+            if (parkId != null && parkId.isNotEmpty && newParkName != null && newParkName.trim().isNotEmpty) {
+              try {
+                await _svc.updatePark(parkId: parkId, data: {'name': newParkName.trim()});
+              } catch (_) {}
+            }
             await _loadVehicle();
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -472,6 +486,7 @@ class _EditVehicleSheetState extends State<_EditVehicleSheet> {
   late TextEditingController _batteryCtrl;
   late TextEditingController _wheelRefCtrl;
   late TextEditingController _affectationCtrl;
+  late TextEditingController _parkNameCtrl;
   late String _selectedStatus;
   DateTime? _insuranceStart;
   DateTime? _insuranceExpiry;
@@ -515,6 +530,9 @@ class _EditVehicleSheetState extends State<_EditVehicleSheet> {
     _affectationCtrl = TextEditingController(
       text: widget.vehicle['affectation'] as String? ?? '',
     );
+    _parkNameCtrl = TextEditingController(
+      text: widget.vehicle['parkName'] as String? ?? '',
+    );
     _selectedStatus = widget.vehicle['status'] as String? ?? 'operational';
 
     final insStartStr = widget.vehicle['insuranceStart'] as String? ?? '';
@@ -551,6 +569,7 @@ class _EditVehicleSheetState extends State<_EditVehicleSheet> {
     _batteryCtrl.dispose();
     _wheelRefCtrl.dispose();
     _affectationCtrl.dispose();
+    _parkNameCtrl.dispose();
     super.dispose();
   }
 
@@ -687,6 +706,14 @@ class _EditVehicleSheetState extends State<_EditVehicleSheet> {
             ),
             const SizedBox(height: 12),
             TextField(
+              controller: _parkNameCtrl,
+              decoration: const InputDecoration(
+                labelText: 'Nom du parc',
+                hintText: 'ex: Parc RTH — Hassi Messaoud',
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
               controller: _affectationCtrl,
               decoration: const InputDecoration(
                 labelText: 'Affectation (Emplacement du véhicule)',
@@ -787,6 +814,7 @@ class _EditVehicleSheetState extends State<_EditVehicleSheet> {
                           'type': _typeCtrl.text.trim(),
                           'matricule': _matriculeCtrl.text.trim(),
                           'status': _selectedStatus,
+                          'parkName': _parkNameCtrl.text.trim(),
                           'affectation': _affectationCtrl.text.trim(),
                           'generalRemark': _remarqueCtrl.text.trim(),
                           'water': _waterCtrl.text.trim(),

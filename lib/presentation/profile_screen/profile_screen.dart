@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -227,79 +229,105 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  void _handleBackNavigation() {
+    if (context.canPop()) {
+      context.pop();
+    } else if (Navigator.canPop(context)) {
+      Navigator.of(context).pop();
+    } else {
+      if (_isSuperAdmin) {
+        context.go(AppRoutes.superAdminDashboardScreen);
+      } else if (widget.role == 'Admin') {
+        context.go(
+          AppRoutes.adminDashboardScreen,
+          extra: {'role': widget.role, 'username': widget.username},
+        );
+      } else {
+        context.go(AppRoutes.parkHomeScreen, extra: widget.role);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppTheme.backgroundLight,
-      appBar: AppBar(
-        backgroundColor: AppTheme.darkCharcoal,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new,
-            color: Colors.white,
-            size: 20,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        _handleBackNavigation();
+      },
+      child: Scaffold(
+        backgroundColor: AppTheme.backgroundLight,
+        appBar: AppBar(
+          backgroundColor: AppTheme.darkCharcoal,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(
+              Icons.arrow_back_ios_new,
+              color: Colors.white,
+              size: 20,
+            ),
+            onPressed: _handleBackNavigation,
+            tooltip: 'Retour',
           ),
-          onPressed: () => Navigator.of(context).pop(),
-          tooltip: 'Retour',
-        ),
-        title: Text(
-          'Profil',
-          style: GoogleFonts.ibmPlexSans(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
+          title: Text(
+            'Profil',
+            style: GoogleFonts.ibmPlexSans(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+            ),
           ),
         ),
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            _buildProfileHeader(context),
-            const SizedBox(height: 16),
-            _buildInfoSection(context),
-            const SizedBox(height: 16),
-            _buildActionsSection(context),
-            const SizedBox(height: 24),
-            GestureDetector(
-              onTap: () async {
-                final Uri url = Uri.parse('https://wa.me/213553237642');
-                if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
-                  await launchUrl(url);
-                }
-              },
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                decoration: BoxDecoration(
-                  color: AppTheme.primary.withAlpha(15),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppTheme.primary.withAlpha(40)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    CustomIconWidget(
-                      iconName: 'code',
-                      color: AppTheme.primary,
-                      size: 14,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      'Développé par Haitham BADEREDDINE 💬',
-                      style: GoogleFonts.ibmPlexSans(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
+        body: SingleChildScrollView(
+          child: Column(
+            children: [
+              _buildProfileHeader(context),
+              const SizedBox(height: 16),
+              _buildInfoSection(context),
+              const SizedBox(height: 16),
+              _buildActionsSection(context),
+              const SizedBox(height: 24),
+              GestureDetector(
+                onTap: () async {
+                  final Uri url = Uri.parse('https://wa.me/213553237642');
+                  if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+                    await launchUrl(url);
+                  }
+                },
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primary.withAlpha(15),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppTheme.primary.withAlpha(40)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CustomIconWidget(
+                        iconName: 'code',
                         color: AppTheme.primary,
+                        size: 14,
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 6),
+                      Text(
+                        'Développé par Haitham BADEREDDINE 💬',
+                        style: GoogleFonts.ibmPlexSans(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.primary,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 32),
-          ],
+              const SizedBox(height: 32),
+            ],
+          ),
         ),
       ),
     );
