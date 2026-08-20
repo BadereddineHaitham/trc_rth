@@ -1605,8 +1605,13 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen> {
           ElevatedButton(
             onPressed: () async {
               Navigator.pop(ctx);
-              await SupabaseService.instance.signOut();
-              if (mounted) context.go(AppRoutes.adminLoginScreen);
+              try {
+                await SupabaseService.instance.signOut();
+              } catch (_) {}
+              await Future.microtask(() {});
+              if (mounted && context.mounted) {
+                context.go(AppRoutes.adminLoginScreen);
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.critical,

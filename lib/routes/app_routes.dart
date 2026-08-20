@@ -165,7 +165,9 @@ final GoRouter appRouter = GoRouter(
       pageBuilder: (context, state) => CustomTransitionPage(
         key: state.pageKey,
         child: const AdminLoginScreen(),
-        transitionDuration: const Duration(milliseconds: 280),
+        opaque: true,
+        barrierColor: const Color(0xFFF5F7F9),
+        transitionDuration: const Duration(milliseconds: 300),
         transitionsBuilder: (context, animation, secondaryAnimation, child) =>
             FadeTransition(
               opacity: CurvedAnimation(

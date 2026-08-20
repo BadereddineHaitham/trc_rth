@@ -703,7 +703,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               } catch (_) {
                 // Proceed to login even if signOut fails
               }
-              if (mounted) {
+              await Future.microtask(() {});
+              if (mounted && context.mounted) {
                 context.go(AppRoutes.adminLoginScreen);
               }
             },

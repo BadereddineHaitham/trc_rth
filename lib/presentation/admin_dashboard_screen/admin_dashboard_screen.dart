@@ -1011,8 +1011,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           ElevatedButton(
             onPressed: () async {
               Navigator.pop(ctx);
-              await _svc.signOut();
-              if (mounted) context.go(AppRoutes.adminLoginScreen);
+              try {
+                await _svc.signOut();
+              } catch (_) {}
+              await Future.microtask(() {});
+              if (mounted && context.mounted) {
+                context.go(AppRoutes.adminLoginScreen);
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.critical,
