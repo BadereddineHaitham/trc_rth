@@ -160,6 +160,7 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
               matricule: data['matricule'] as String,
               status: data['status'] as String,
               affectation: data['affectation'] as String? ?? '',
+              parcName: data['parc'] as String? ?? data['parc_name'] as String? ?? '',
               generalRemark: data['remarque'] as String? ?? '',
               battery: data['battery'] as String? ?? '',
               wheelRef: data['wheelRef'] as String? ?? '',

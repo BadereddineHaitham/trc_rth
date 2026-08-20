@@ -558,6 +558,7 @@ class SupabaseService {
     String battery = '',
     String wheelRef = '',
     String affectation = '',
+    String parcName = '',
   }) async {
     final data = {
       'name': name,
@@ -565,6 +566,8 @@ class SupabaseService {
       'matricule': matricule,
       'status': status,
       'affectation': affectation,
+      'parc_name': parcName,
+      'parc': parcName,
       if (parkId != null) 'park_id': parkId,
       if (insuranceStart != null) 'insurance_start': insuranceStart,
       if (insuranceExpiry != null) 'insurance_expiry': insuranceExpiry,
@@ -610,7 +613,7 @@ class SupabaseService {
     required Map<String, dynamic> data,
   }) async {
     await client.from('vehicles').update(data).eq('id', vehicleId);
-    await syncAlertsFromFleet();
+    syncAlertsFromFleet().catchError((_) {});
 
     final user = currentUser;
     if (user != null) {

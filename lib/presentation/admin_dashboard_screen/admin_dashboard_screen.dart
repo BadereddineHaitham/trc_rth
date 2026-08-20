@@ -357,6 +357,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               matricule: _matriculeCtrl.text.trim(),
               status: _selectedStatus,
               affectation: _affectationCtrl.text.trim(),
+              parcName: _parcCtrl.text.trim(),
               insuranceExpiry: _insuranceDate
                   ?.toIso8601String()
                   .split('T')

@@ -580,6 +580,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen> {
                           matricule: _matriculeCtrl.text.trim(),
                           status: _selectedStatus,
                           affectation: _affectationCtrl.text.trim(),
+                          parcName: _parcCtrl.text.trim(),
                           generalRemark: _remarqueCtrl.text.trim(),
                           battery: _batteryCtrl.text.trim(),
                           wheelRef: _wheelRefCtrl.text.trim(),
