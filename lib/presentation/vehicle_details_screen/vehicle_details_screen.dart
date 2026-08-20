@@ -190,6 +190,116 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
     );
   }
 
+  void _confirmDeleteVehicle(BuildContext context, String vehicleName) {
+    final vName = vehicleName.isNotEmpty ? vehicleName : (_displayData['name'] as String? ?? 'ce véhicule');
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppTheme.criticalContainer,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                Icons.delete_forever,
+                color: AppTheme.critical,
+                size: 22,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'Supprimer le véhicule',
+                style: GoogleFonts.ibmPlexSans(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 16,
+                  color: AppTheme.darkCharcoal,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          'Voulez-vous vraiment supprimer définitivement le véhicule "$vName" ?\n\nCette action est irréversible.',
+          style: GoogleFonts.ibmPlexSans(
+            fontSize: 13,
+            color: AppTheme.secondaryText,
+            height: 1.4,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(
+              'Annuler',
+              style: GoogleFonts.ibmPlexSans(color: AppTheme.mutedText),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              try {
+                await _svc.deleteVehicle(widget.vehicleId);
+                if (mounted && context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Row(
+                        children: [
+                          const Icon(Icons.check_circle, color: Colors.white, size: 18),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Véhicule "$vName" supprimé avec succès',
+                              style: GoogleFonts.ibmPlexSans(color: Colors.white),
+                            ),
+                          ),
+                        ],
+                      ),
+                      backgroundColor: AppTheme.success,
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  );
+                  if (Navigator.canPop(context)) {
+                    Navigator.of(context).pop();
+                  } else {
+                    context.go(AppRoutes.parkHomeScreen, extra: widget.role);
+                  }
+                }
+              } catch (e) {
+                if (mounted && context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Erreur lors de la suppression: $e'),
+                      backgroundColor: AppTheme.critical,
+                    ),
+                  );
+                }
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.critical,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: Text(
+              'Supprimer',
+              style: GoogleFonts.ibmPlexSans(fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -346,6 +456,15 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
             onPressed: _openEditSheet,
             tooltip: 'Modifier',
           ),
+        IconButton(
+          icon: const Icon(
+            Icons.delete_outline,
+            color: Colors.white,
+            size: 22,
+          ),
+          onPressed: () => _confirmDeleteVehicle(context, vehicle['name'] as String? ?? ''),
+          tooltip: 'Supprimer le véhicule',
+        ),
         const SizedBox(width: 4),
       ],
       flexibleSpace: FlexibleSpaceBar(
