@@ -122,6 +122,8 @@ class _FireAgentsTabWidgetState extends State<FireAgentsTabWidget> {
     final ctrl = TextEditingController(
       text: _values[key] == '—' ? '' : _values[key],
     );
+    // Local flag — completely isolated per dialog, never pollutes other dialogs
+    bool isSaving = false;
 
     showDialog(
       context: context,
@@ -215,14 +217,14 @@ class _FireAgentsTabWidgetState extends State<FireAgentsTabWidget> {
           ),
           actions: [
             TextButton(
-              onPressed: _isSaving ? null : () => Navigator.pop(ctx),
+              onPressed: isSaving ? null : () => Navigator.pop(ctx),
               child: Text(
                 'Annuler',
                 style: GoogleFonts.ibmPlexSans(color: AppTheme.mutedText),
               ),
             ),
             ElevatedButton(
-              onPressed: _isSaving
+              onPressed: isSaving
                   ? null
                   : () async {
                       final newVal =
@@ -230,7 +232,7 @@ class _FireAgentsTabWidgetState extends State<FireAgentsTabWidget> {
                       final vehicleId = widget.vehicle['id'] as String?;
                       final dbColumn = _getDbColumn(key);
 
-                      setDialogState(() => _isSaving = true);
+                      setDialogState(() => isSaving = true);
 
                       if (vehicleId != null && vehicleId.isNotEmpty) {
                         try {
@@ -239,7 +241,7 @@ class _FireAgentsTabWidgetState extends State<FireAgentsTabWidget> {
                             data: {dbColumn: newVal},
                           );
                         } catch (e) {
-                          setDialogState(() => _isSaving = false);
+                          setDialogState(() => isSaving = false);
                           if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
@@ -252,10 +254,7 @@ class _FireAgentsTabWidgetState extends State<FireAgentsTabWidget> {
                         }
                       }
 
-                      setState(() {
-                        _values[key] = newVal;
-                        _isSaving = false;
-                      });
+                      if (mounted) setState(() => _values[key] = newVal);
                       if (ctx.mounted) Navigator.pop(ctx);
                       if (mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -270,7 +269,7 @@ class _FireAgentsTabWidgetState extends State<FireAgentsTabWidget> {
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
-                                    '${agent['label']} mis à jour en temps réel',
+                                    '${agent['label']} mis à jour',
                                     style: GoogleFonts.ibmPlexSans(
                                       fontSize: 13,
                                       color: Colors.white,
@@ -295,7 +294,7 @@ class _FireAgentsTabWidgetState extends State<FireAgentsTabWidget> {
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              child: _isSaving
+              child: isSaving
                   ? const SizedBox(
                       width: 18,
                       height: 18,
