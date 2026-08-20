@@ -461,6 +461,13 @@ class SupabaseService {
         .order('name', ascending: true);
   }
 
+  Future<void> updatePark({
+    required String parkId,
+    required Map<String, dynamic> data,
+  }) async {
+    await client.from('parks').update(data).eq('id', parkId);
+  }
+
   // ── VEHICLES ──────────────────────────────────────────────────────────────
 
   Future<List<Map<String, dynamic>>> getVehicles({String? parkId}) async {
@@ -610,7 +617,8 @@ class SupabaseService {
     required Map<String, dynamic> data,
   }) async {
     await client.from('vehicles').update(data).eq('id', vehicleId);
-    await syncAlertsFromFleet();
+    // Run alert sync in background — do NOT await so save returns instantly
+    syncAlertsFromFleet().ignore();
 
     final user = currentUser;
     if (user != null) {
@@ -734,7 +742,7 @@ class SupabaseService {
       'existing_quantity': existingQuantity,
     }, onConflict: 'vehicle_id,equipment_definition_id');
 
-    await syncAlertsFromFleet();
+    syncAlertsFromFleet().ignore();
   }
 
   Future<void> updateVehicleEquipmentItem({
@@ -758,7 +766,7 @@ class SupabaseService {
       } catch (_) {}
     }
 
-    await syncAlertsFromFleet();
+    syncAlertsFromFleet().ignore();
   }
 
   Future<void> deleteVehicleEquipmentItem(String vehicleEquipmentId) async {
@@ -766,7 +774,7 @@ class SupabaseService {
         .from('vehicle_equipment')
         .delete()
         .eq('id', vehicleEquipmentId);
-    await syncAlertsFromFleet();
+    syncAlertsFromFleet().ignore();
   }
 
   // ── EQUIPMENT DEFINITIONS ─────────────────────────────────────────────────

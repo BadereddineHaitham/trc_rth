@@ -1,11 +1,24 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../../../core/app_export.dart';
+import '../../../../services/supabase_service.dart';
 
-class VehicleInfoTabWidget extends StatelessWidget {
+class VehicleInfoTabWidget extends StatefulWidget {
   final Map<String, dynamic> vehicle;
+  final bool canEdit;
 
-  const VehicleInfoTabWidget({super.key, required this.vehicle});
+  const VehicleInfoTabWidget({
+    super.key,
+    required this.vehicle,
+    this.canEdit = false,
+  });
+
+  @override
+  State<VehicleInfoTabWidget> createState() => _VehicleInfoTabWidgetState();
+}
+
+class _VehicleInfoTabWidgetState extends State<VehicleInfoTabWidget> {
+  bool _isSavingPark = false;
 
   bool _isExpired(String dateStr) {
     try {
@@ -39,18 +52,153 @@ class VehicleInfoTabWidget extends StatelessWidget {
 
   String _str(dynamic val) => val is String ? val : '';
 
+  void _openEditParkName() {
+    final parkId = _str(widget.vehicle['parkId']);
+    if (parkId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Aucun parc associÃ© Ã  ce vÃ©hicule.',
+            style: GoogleFonts.ibmPlexSans(color: Colors.white),
+          ),
+          backgroundColor: AppTheme.warning,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
+      return;
+    }
+
+    final ctrl = TextEditingController(text: _str(widget.vehicle['parkName']));
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: CustomIconWidget(
+                  iconName: 'edit',
+                  color: AppTheme.primary,
+                  size: 18,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Modifier le nom du parc',
+                  style: GoogleFonts.ibmPlexSans(
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.darkCharcoal,
+                    fontSize: 15,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Saisissez le nouveau nom du parc.',
+                style: GoogleFonts.ibmPlexSans(fontSize: 13, color: AppTheme.mutedText),
+              ),
+              const SizedBox(height: 14),
+              TextField(
+                controller: ctrl,
+                autofocus: true,
+                style: GoogleFonts.ibmPlexSans(fontSize: 15, color: AppTheme.darkCharcoal),
+                decoration: InputDecoration(
+                  hintText: 'Ex: Parc RTH â€” Hassi Messaoud',
+                  hintStyle: GoogleFonts.ibmPlexSans(fontSize: 13, color: AppTheme.mutedText),
+                  prefixIcon: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: CustomIconWidget(iconName: 'local_parking', color: AppTheme.primary, size: 18),
+                  ),
+                  filled: true,
+                  fillColor: AppTheme.backgroundLight,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: AppTheme.outlineVariantLight)),
+                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: AppTheme.outlineVariantLight)),
+                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppTheme.primary, width: 1.5)),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: _isSavingPark ? null : () => Navigator.pop(ctx),
+              child: Text('Annuler', style: GoogleFonts.ibmPlexSans(color: AppTheme.mutedText)),
+            ),
+            ElevatedButton(
+              onPressed: _isSavingPark
+                  ? null
+                  : () async {
+                      final newName = ctrl.text.trim();
+                      if (newName.isEmpty) return;
+                      setDialogState(() => _isSavingPark = true);
+                      try {
+                        await SupabaseService.instance.updatePark(
+                          parkId: parkId,
+                          data: {'name': newName},
+                        );
+                        if (ctx.mounted) Navigator.pop(ctx);
+                        if (mounted) {
+                          setState(() => widget.vehicle['parkName'] = newName);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Row(children: [
+                                const Icon(Icons.check_circle, color: Colors.white, size: 18),
+                                const SizedBox(width: 8),
+                                Expanded(child: Text('Nom du parc mis Ã  jour', style: GoogleFonts.ibmPlexSans(fontSize: 13, color: Colors.white))),
+                              ]),
+                              backgroundColor: AppTheme.success,
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              duration: const Duration(seconds: 2),
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                        setDialogState(() => _isSavingPark = false);
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Erreur: $e'), backgroundColor: AppTheme.critical),
+                          );
+                        }
+                      }
+                    },
+              style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primary, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+              child: _isSavingPark
+                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : Text('Enregistrer', style: GoogleFonts.ibmPlexSans(color: Colors.white)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final insStart = _str(vehicle['insuranceStart']);
-    final insExpiry = _str(vehicle['insuranceExpiry']);
-    final inspExpiry = _str(vehicle['inspectionExpiry']);
-    final oilChange = _str(vehicle['oilChange']);
-    final generalRemark = _str(vehicle['generalRemark']);
-    final matricule = _str(vehicle['matricule']);
-    final type = _str(vehicle['type']);
-    final battery = _str(vehicle['battery']);
-    final wheelRef = _str(vehicle['wheelRef']);
-    final affectation = _str(vehicle['affectation']);
+    final insStart = _str(widget.vehicle['insuranceStart']);
+    final insExpiry = _str(widget.vehicle['insuranceExpiry']);
+    final inspExpiry = _str(widget.vehicle['inspectionExpiry']);
+    final oilChange = _str(widget.vehicle['oilChange']);
+    final generalRemark = _str(widget.vehicle['generalRemark']);
+    final matricule = _str(widget.vehicle['matricule']);
+    final type = _str(widget.vehicle['type']);
+    final battery = _str(widget.vehicle['battery']);
+    final wheelRef = _str(widget.vehicle['wheelRef']);
+    final affectation = _str(widget.vehicle['affectation']);
+    final parkName = _str(widget.vehicle['parkName']);
 
     final insuranceExpired = _isExpired(insExpiry);
     final inspectionExpired = _isExpired(inspExpiry);
@@ -67,36 +215,23 @@ class VehicleInfoTabWidget extends StatelessWidget {
             title: 'Identification',
             icon: 'badge',
             children: [
-              _InfoRow(
-                label: 'Matricule',
-                value: matricule.isEmpty ? '—' : matricule,
-                isMonospace: true,
-                isBold: true,
+              _InfoRow(label: 'Matricule', value: matricule.isEmpty ? 'â€”' : matricule, isMonospace: true, isBold: true),
+              const Divider(height: 1),
+              _InfoRow(label: 'Type de vÃ©hicule', value: type.isEmpty ? 'SpÃ©cialisÃ©' : type),
+              const Divider(height: 1),
+              _InfoRow(label: 'Batterie', value: battery.isEmpty ? 'â€”' : battery),
+              const Divider(height: 1),
+              _InfoRow(label: 'RÃ©f. de roue', value: wheelRef.isEmpty ? 'â€”' : wheelRef, isMonospace: true),
+              const Divider(height: 1),
+              // Editable park name row
+              _EditableInfoRow(
+                label: 'Parc',
+                value: parkName.isEmpty ? 'â€”' : parkName,
+                canEdit: widget.canEdit,
+                onEdit: _openEditParkName,
               ),
               const Divider(height: 1),
-              _InfoRow(
-                label: 'Type de véhicule',
-                value: type.isEmpty ? 'Spécialisé' : type,
-              ),
-              const Divider(height: 1),
-              _InfoRow(
-                label: 'Batterie',
-                value: battery.isEmpty ? '—' : battery,
-              ),
-              const Divider(height: 1),
-              _InfoRow(
-                label: 'Réf. de roue',
-                value: wheelRef.isEmpty ? '—' : wheelRef,
-                isMonospace: true,
-              ),
-              const Divider(height: 1),
-              _InfoRow(label: 'Parc', value: 'Parc RTH — Hassi Messaoud'),
-              const Divider(height: 1),
-              _InfoRow(
-                label: 'Affectation',
-                value: affectation.isEmpty ? 'Non spécifiée' : affectation,
-                isBold: true,
-              ),
+              _InfoRow(label: 'Affectation', value: affectation.isEmpty ? 'Non spÃ©cifiÃ©e' : affectation, isBold: true),
             ],
           ),
 
@@ -107,41 +242,19 @@ class VehicleInfoTabWidget extends StatelessWidget {
             title: 'Documents administratifs',
             icon: 'description',
             children: [
-              // Insurance
-              _DocumentRow(
-                label: 'Assurance',
-                startDate: _formatDate(insStart),
-                endDate: _formatDate(insExpiry),
-                isExpired: insuranceExpired,
-                isExpiringSoon:
-                    !insuranceExpired && _isExpiringSoon(insExpiry),
-              ),
+              _DocumentRow(label: 'Assurance', startDate: _formatDate(insStart), endDate: _formatDate(insExpiry), isExpired: insuranceExpired, isExpiringSoon: !insuranceExpired && _isExpiringSoon(insExpiry)),
               const Divider(height: 1),
-              // Technical inspection
-              _DocumentRow(
-                label: 'Contrôle technique',
-                endDate: _formatDate(inspExpiry),
-                isExpired: inspectionExpired,
-                isExpiringSoon:
-                    !inspectionExpired && _isExpiringSoon(inspExpiry),
-              ),
+              _DocumentRow(label: 'ContrÃ´le technique', endDate: _formatDate(inspExpiry), isExpired: inspectionExpired, isExpiringSoon: !inspectionExpired && _isExpiringSoon(inspExpiry)),
               const Divider(height: 1),
-              // Oil change
-              _DocumentRow(
-                label: 'Vidange',
-                endDate: _formatDate(oilChange),
-                isExpired: false,
-                isExpiringSoon: oilChangeSoon,
-              ),
+              _DocumentRow(label: 'Vidange', endDate: _formatDate(oilChange), isExpired: false, isExpiringSoon: oilChangeSoon),
             ],
           ),
 
           const SizedBox(height: 12),
 
-          // Remarks card
           if (hasRemark)
             _SectionCard(
-              title: 'Remarque générale',
+              title: 'Remarque gÃ©nÃ©rale',
               icon: 'comment',
               children: [
                 Padding(
@@ -150,31 +263,12 @@ class VehicleInfoTabWidget extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: AppTheme.warningContainer,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Center(
-                          child: CustomIconWidget(
-                            iconName: 'info',
-                            color: AppTheme.warning,
-                            size: 18,
-                          ),
-                        ),
+                        width: 32, height: 32,
+                        decoration: BoxDecoration(color: AppTheme.warningContainer, borderRadius: BorderRadius.circular(8)),
+                        child: Center(child: CustomIconWidget(iconName: 'info', color: AppTheme.warning, size: 18)),
                       ),
                       const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          vehicle['generalRemark'] as String,
-                          style: GoogleFonts.ibmPlexSans(
-                            fontSize: 13,
-                            color: AppTheme.darkCharcoal,
-                            height: 1.5,
-                          ),
-                        ),
-                      ),
+                      Expanded(child: Text(widget.vehicle['generalRemark'] as String, style: GoogleFonts.ibmPlexSans(fontSize: 13, color: AppTheme.darkCharcoal, height: 1.5))),
                     ],
                   ),
                 ),
@@ -183,19 +277,12 @@ class VehicleInfoTabWidget extends StatelessWidget {
 
           if (!hasRemark)
             _SectionCard(
-              title: 'Remarque générale',
+              title: 'Remarque gÃ©nÃ©rale',
               icon: 'comment',
               children: [
                 Padding(
                   padding: const EdgeInsets.all(14),
-                  child: Text(
-                    'Aucune remarque enregistrée.',
-                    style: GoogleFonts.ibmPlexSans(
-                      fontSize: 13,
-                      color: AppTheme.mutedText,
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
+                  child: Text('Aucune remarque enregistrÃ©e.', style: GoogleFonts.ibmPlexSans(fontSize: 13, color: AppTheme.mutedText, fontStyle: FontStyle.italic)),
                 ),
               ],
             ),
@@ -206,6 +293,8 @@ class VehicleInfoTabWidget extends StatelessWidget {
     );
   }
 }
+
+// â”€â”€ Section card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _SectionCard extends StatelessWidget {
   final String title;
@@ -236,16 +325,11 @@ class _SectionCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Section header
           Padding(
             padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
             child: Row(
               children: [
-                CustomIconWidget(
-                  iconName: icon,
-                  color: AppTheme.primary,
-                  size: 16,
-                ),
+                CustomIconWidget(iconName: icon, color: AppTheme.primary, size: 16),
                 const SizedBox(width: 8),
                 Text(
                   title,
@@ -266,6 +350,8 @@ class _SectionCard extends StatelessWidget {
     );
   }
 }
+
+// â”€â”€ Plain info row â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _InfoRow extends StatelessWidget {
   final String label;
@@ -322,6 +408,72 @@ class _InfoRow extends StatelessWidget {
   }
 }
 
+// â”€â”€ Editable info row (for park name) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+class _EditableInfoRow extends StatelessWidget {
+  final String label;
+  final String value;
+  final bool canEdit;
+  final VoidCallback onEdit;
+
+  const _EditableInfoRow({
+    required this.label,
+    required this.value,
+    required this.canEdit,
+    required this.onEdit,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: 130,
+            child: Text(
+              label,
+              style: GoogleFonts.ibmPlexSans(
+                fontSize: 13,
+                color: AppTheme.mutedText,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: GoogleFonts.ibmPlexSans(
+                fontSize: 13,
+                fontWeight: FontWeight.w400,
+                color: AppTheme.darkCharcoal,
+              ),
+              textAlign: TextAlign.right,
+            ),
+          ),
+          if (canEdit) ...[
+            const SizedBox(width: 8),
+            GestureDetector(
+              onTap: onEdit,
+              child: Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: CustomIconWidget(iconName: 'edit', color: AppTheme.primary, size: 14),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+// â”€â”€ Document row â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
 class _DocumentRow extends StatelessWidget {
   final String label;
   final String? startDate;
@@ -350,8 +502,8 @@ class _DocumentRow extends StatelessWidget {
   }
 
   String get _statusText {
-    if (isExpired) return 'EXPIRÉ';
-    if (isExpiringSoon) return 'BIENTÔT';
+    if (isExpired) return 'EXPIRÃ‰';
+    if (isExpiringSoon) return 'BIENTÃ”T';
     return 'VALIDE';
   }
 
@@ -371,58 +523,32 @@ class _DocumentRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  label,
-                  style: GoogleFonts.ibmPlexSans(
-                    fontSize: 13,
-                    color: AppTheme.mutedText,
-                  ),
-                ),
+                Text(label, style: GoogleFonts.ibmPlexSans(fontSize: 13, color: AppTheme.mutedText)),
                 const SizedBox(height: 3),
                 if (startDate != null)
                   Text(
-                    '$startDate → $endDate',
-                    style: GoogleFonts.ibmPlexMono(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: AppTheme.darkCharcoal,
-                    ),
+                    '$startDate â†’ $endDate',
+                    style: GoogleFonts.ibmPlexMono(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.darkCharcoal),
                   )
                 else
                   Text(
                     endDate,
-                    style: GoogleFonts.ibmPlexMono(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: AppTheme.darkCharcoal,
-                    ),
+                    style: GoogleFonts.ibmPlexMono(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.darkCharcoal),
                   ),
               ],
             ),
           ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-            decoration: BoxDecoration(
-              color: _bgColor,
-              borderRadius: BorderRadius.circular(6),
-            ),
+            decoration: BoxDecoration(color: _bgColor, borderRadius: BorderRadius.circular(6)),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                CustomIconWidget(
-                  iconName: _statusIcon,
-                  color: _statusColor,
-                  size: 13,
-                ),
+                CustomIconWidget(iconName: _statusIcon, color: _statusColor, size: 13),
                 const SizedBox(width: 4),
                 Text(
                   _statusText,
-                  style: GoogleFonts.ibmPlexSans(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: _statusColor,
-                    letterSpacing: 0.3,
-                  ),
+                  style: GoogleFonts.ibmPlexSans(fontSize: 11, fontWeight: FontWeight.w700, color: _statusColor, letterSpacing: 0.3),
                 ),
               ],
             ),

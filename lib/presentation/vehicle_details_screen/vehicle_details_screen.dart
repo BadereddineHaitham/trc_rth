@@ -109,6 +109,10 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
     'wheelRef': _vehicleData['wheel_ref'] ?? '',
     'affectation': _vehicleData['affectation'] ?? '',
     'missingEquipment': _vehicleData['missing_equipment_count'] ?? 0,
+    'parkId': _vehicleData['park_id'] ?? '',
+    'parkName': (_vehicleData['parks'] is Map)
+        ? ((_vehicleData['parks'] as Map)['name'] ?? '')
+        : '',
   };
 
   void _openEditSheet() {
@@ -255,7 +259,7 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
         body: TabBarView(
           controller: _tabController,
           children: [
-            VehicleInfoTabWidget(vehicle: vehicle),
+            VehicleInfoTabWidget(vehicle: vehicle, canEdit: _canEdit),
             FireAgentsTabWidget(vehicle: vehicle, canEdit: _canEdit),
             EquipmentTabWidget(
               vehicleId: widget.vehicleId,
