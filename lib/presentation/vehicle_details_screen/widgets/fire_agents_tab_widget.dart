@@ -392,7 +392,7 @@ class _FireAgentsTabWidgetState extends State<FireAgentsTabWidget> {
         'key': 'cannonRange',
         'label': 'Portée canon',
         'value': _values['cannonRange']!,
-        'icon': 'gps_fixed',
+        'icon': 'plumbing',
         'color': const Color(0xFF8E24AA),
         'bgColor': const Color(0xFFF3E5F5),
         'description': 'Portée du canon à eau/mousse',
