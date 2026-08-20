@@ -118,8 +118,8 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
     'battery': _vehicleData['battery'] ?? '',
     'wheelRef': _vehicleData['wheel_ref'] ?? '',
     'affectation': _vehicleData['affectation'] ?? '',
-    'parc': _vehicleData['parc_name'] ?? _vehicleData['parc'] ?? (_vehicleData['parks'] is Map ? _vehicleData['parks']['name'] : null) ?? '',
-    'parc_name': _vehicleData['parc_name'] ?? _vehicleData['parc'] ?? '',
+    'parc': _vehicleData['parc_name'] ?? (_vehicleData['parks'] is Map ? _vehicleData['parks']['name'] : null) ?? '',
+    'parc_name': _vehicleData['parc_name'] ?? (_vehicleData['parks'] is Map ? _vehicleData['parks']['name'] : null) ?? '',
     'missingEquipment': _vehicleData['missing_equipment_count'] ?? 0,
   };
 
