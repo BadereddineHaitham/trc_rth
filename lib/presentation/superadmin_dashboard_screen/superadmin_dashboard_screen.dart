@@ -123,6 +123,8 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen> {
   final _nameCtrl = TextEditingController();
   final _typeCtrl = TextEditingController();
   final _matriculeCtrl = TextEditingController();
+  final _parcCtrl = TextEditingController(text: 'Parc RTH Sonatrach');
+  final _affectationCtrl = TextEditingController();
   String _selectedStatus = 'operational';
   final _remarqueCtrl = TextEditingController();
   final _batteryCtrl = TextEditingController();
@@ -145,6 +147,8 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen> {
     _nameCtrl.dispose();
     _typeCtrl.dispose();
     _matriculeCtrl.dispose();
+    _parcCtrl.dispose();
+    _affectationCtrl.dispose();
     _remarqueCtrl.dispose();
     _batteryCtrl.dispose();
     _wheelRefCtrl.dispose();
@@ -395,6 +399,8 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen> {
     _nameCtrl.clear();
     _typeCtrl.clear();
     _matriculeCtrl.clear();
+    _parcCtrl.text = 'Parc RTH Sonatrach';
+    _affectationCtrl.clear();
     _remarqueCtrl.clear();
     _batteryCtrl.clear();
     _wheelRefCtrl.clear();
@@ -501,6 +507,18 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen> {
                   'ex: 315/80 R22.5',
                 ),
                 const SizedBox(height: 12),
+                _buildSheetField(
+                  'Parc (Nom du parc)',
+                  _parcCtrl,
+                  'ex: Parc RTH Sonatrach',
+                ),
+                const SizedBox(height: 12),
+                _buildSheetField(
+                  'Affectation (Emplacement)',
+                  _affectationCtrl,
+                  'ex: Base RTH Hassi Messaoud, Zone A...',
+                ),
+                const SizedBox(height: 12),
                 Text(
                   'Statut',
                   style: GoogleFonts.ibmPlexSans(
@@ -561,6 +579,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen> {
                           vehicleType: _typeCtrl.text.trim(),
                           matricule: _matriculeCtrl.text.trim(),
                           status: _selectedStatus,
+                          affectation: _affectationCtrl.text.trim(),
                           generalRemark: _remarqueCtrl.text.trim(),
                           battery: _batteryCtrl.text.trim(),
                           wheelRef: _wheelRefCtrl.text.trim(),

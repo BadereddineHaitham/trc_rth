@@ -849,7 +849,7 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
             extra: {'role': widget.role},
           );
         } else if (index == 2) {
-          context.go(
+          context.push(
             AppRoutes.profileScreen,
             extra: {'role': widget.role, 'username': 'utilisateur'},
           );
@@ -920,6 +920,7 @@ class _AddVehicleSheetState extends State<_AddVehicleSheet> {
   final _nameCtrl = TextEditingController();
   final _typeCtrl = TextEditingController();
   final _matriculeCtrl = TextEditingController();
+  final _parcCtrl = TextEditingController(text: 'Parc RTH Sonatrach');
   final _remarqueCtrl = TextEditingController();
   final _batteryCtrl = TextEditingController();
   final _wheelRefCtrl = TextEditingController();
@@ -932,10 +933,11 @@ class _AddVehicleSheetState extends State<_AddVehicleSheet> {
     _nameCtrl.dispose();
     _typeCtrl.dispose();
     _matriculeCtrl.dispose();
+    _parcCtrl.dispose();
+    _affectationCtrl.dispose();
     _remarqueCtrl.dispose();
     _batteryCtrl.dispose();
     _wheelRefCtrl.dispose();
-    _affectationCtrl.dispose();
     super.dispose();
   }
 
@@ -1009,6 +1011,14 @@ class _AddVehicleSheetState extends State<_AddVehicleSheet> {
             ),
             const SizedBox(height: 12),
             TextField(
+              controller: _parcCtrl,
+              decoration: const InputDecoration(
+                labelText: 'Parc (Nom du parc)',
+                hintText: 'ex: Parc RTH Sonatrach',
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
               controller: _affectationCtrl,
               decoration: const InputDecoration(
                 labelText: 'Affectation (Emplacement du véhicule)',
@@ -1057,6 +1067,7 @@ class _AddVehicleSheetState extends State<_AddVehicleSheet> {
                           'type': _typeCtrl.text.trim(),
                           'matricule': _matriculeCtrl.text.trim(),
                           'status': _selectedStatus,
+                          'parc': _parcCtrl.text.trim(),
                           'affectation': _affectationCtrl.text.trim(),
                           'remarque': _remarqueCtrl.text.trim(),
                           'battery': _batteryCtrl.text.trim(),

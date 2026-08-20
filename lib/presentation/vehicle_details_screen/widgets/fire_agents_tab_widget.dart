@@ -32,21 +32,25 @@ class _FireAgentsTabWidgetState extends State<FireAgentsTabWidget> {
   }
 
   void _initValues() {
+    String strVal(dynamic v1, dynamic v2) {
+      final s1 = (v1 as String?)?.trim() ?? '';
+      if (s1.isNotEmpty && s1 != '—') return s1;
+      final s2 = (v2 as String?)?.trim() ?? '';
+      if (s2.isNotEmpty && s2 != '—') return s2;
+      return '—';
+    }
+
     _values = {
       // Agents extincteurs
-      'water': widget.vehicle['water_capacity'] as String? ??
-          widget.vehicle['water'] as String? ?? '—',
-      'emulsifier': widget.vehicle['emulsifier_capacity'] as String? ??
-          widget.vehicle['emulsifier'] as String? ?? '—',
-      'powder': widget.vehicle['powder_capacity'] as String? ??
-          widget.vehicle['powder'] as String? ?? '—',
+      'water': strVal(widget.vehicle['water_capacity'], widget.vehicle['water']),
+      'emulsifier': strVal(widget.vehicle['emulsifier_capacity'], widget.vehicle['emulsifier']),
+      'powder': strVal(widget.vehicle['powder_capacity'], widget.vehicle['powder']),
 
       // Débit pompe
-      'pumpFlowWater': widget.vehicle['pump_flow_water'] as String? ?? '—',
-      'pumpFlowEmulsifier': widget.vehicle['pump_flow_emulsifier'] as String? ?? '—',
-      'pumpFlowPowder': widget.vehicle['pump_flow_powder'] as String? ?? '—',
-      'cannonRange': widget.vehicle['cannon_range'] as String? ??
-          widget.vehicle['cannonRange'] as String? ?? '—',
+      'pumpFlowWater': strVal(widget.vehicle['pump_flow_water'], widget.vehicle['pumpFlowWater']),
+      'pumpFlowEmulsifier': strVal(widget.vehicle['pump_flow_emulsifier'], widget.vehicle['pumpFlowEmulsifier']),
+      'pumpFlowPowder': strVal(widget.vehicle['pump_flow_powder'], widget.vehicle['pumpFlowPowder']),
+      'cannonRange': strVal(widget.vehicle['cannon_range'], widget.vehicle['cannonRange']),
     };
   }
 
@@ -122,8 +126,6 @@ class _FireAgentsTabWidgetState extends State<FireAgentsTabWidget> {
     final ctrl = TextEditingController(
       text: _values[key] == '—' ? '' : _values[key],
     );
-    // Local flag — completely isolated per dialog, never pollutes other dialogs
-    bool isSaving = false;
 
     showDialog(
       context: context,
@@ -217,14 +219,14 @@ class _FireAgentsTabWidgetState extends State<FireAgentsTabWidget> {
           ),
           actions: [
             TextButton(
-              onPressed: isSaving ? null : () => Navigator.pop(ctx),
+              onPressed: _isSaving ? null : () => Navigator.pop(ctx),
               child: Text(
                 'Annuler',
                 style: GoogleFonts.ibmPlexSans(color: AppTheme.mutedText),
               ),
             ),
             ElevatedButton(
-              onPressed: isSaving
+              onPressed: _isSaving
                   ? null
                   : () async {
                       final newVal =
@@ -232,7 +234,7 @@ class _FireAgentsTabWidgetState extends State<FireAgentsTabWidget> {
                       final vehicleId = widget.vehicle['id'] as String?;
                       final dbColumn = _getDbColumn(key);
 
-                      setDialogState(() => isSaving = true);
+                      setDialogState(() => _isSaving = true);
 
                       if (vehicleId != null && vehicleId.isNotEmpty) {
                         try {
@@ -241,7 +243,7 @@ class _FireAgentsTabWidgetState extends State<FireAgentsTabWidget> {
                             data: {dbColumn: newVal},
                           );
                         } catch (e) {
-                          setDialogState(() => isSaving = false);
+                          setDialogState(() => _isSaving = false);
                           if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
@@ -254,7 +256,10 @@ class _FireAgentsTabWidgetState extends State<FireAgentsTabWidget> {
                         }
                       }
 
-                      if (mounted) setState(() => _values[key] = newVal);
+                      setState(() {
+                        _values[key] = newVal;
+                        _isSaving = false;
+                      });
                       if (ctx.mounted) Navigator.pop(ctx);
                       if (mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -269,7 +274,7 @@ class _FireAgentsTabWidgetState extends State<FireAgentsTabWidget> {
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
-                                    '${agent['label']} mis à jour',
+                                    '${agent['label']} mis à jour en temps réel',
                                     style: GoogleFonts.ibmPlexSans(
                                       fontSize: 13,
                                       color: Colors.white,
@@ -294,7 +299,7 @@ class _FireAgentsTabWidgetState extends State<FireAgentsTabWidget> {
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              child: isSaving
+              child: _isSaving
                   ? const SizedBox(
                       width: 18,
                       height: 18,

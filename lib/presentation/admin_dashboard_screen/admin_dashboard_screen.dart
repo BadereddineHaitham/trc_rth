@@ -314,6 +314,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   final _nameCtrl = TextEditingController();
   final _typeCtrl = TextEditingController();
   final _matriculeCtrl = TextEditingController();
+  final _parcCtrl = TextEditingController(text: 'Parc RTH Sonatrach');
+  final _affectationCtrl = TextEditingController();
   String _selectedStatus = 'operational';
   DateTime? _insuranceDate;
   DateTime? _inspectionDate;
@@ -324,6 +326,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     _nameCtrl.clear();
     _typeCtrl.clear();
     _matriculeCtrl.clear();
+    _parcCtrl.text = 'Parc RTH Sonatrach';
+    _affectationCtrl.clear();
     _remarqueCtrl.clear();
     _selectedStatus = 'operational';
     _insuranceDate = null;
@@ -338,6 +342,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         nameCtrl: _nameCtrl,
         typeCtrl: _typeCtrl,
         matriculeCtrl: _matriculeCtrl,
+        parcCtrl: _parcCtrl,
+        affectationCtrl: _affectationCtrl,
         remarqueCtrl: _remarqueCtrl,
         selectedStatus: _selectedStatus,
         onStatusChanged: (v) => setState(() => _selectedStatus = v),
@@ -350,6 +356,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               vehicleType: _typeCtrl.text.trim(),
               matricule: _matriculeCtrl.text.trim(),
               status: _selectedStatus,
+              affectation: _affectationCtrl.text.trim(),
               insuranceExpiry: _insuranceDate
                   ?.toIso8601String()
                   .split('T')
@@ -1036,6 +1043,8 @@ class _AddVehicleBottomSheet extends StatefulWidget {
   final TextEditingController nameCtrl;
   final TextEditingController typeCtrl;
   final TextEditingController matriculeCtrl;
+  final TextEditingController parcCtrl;
+  final TextEditingController affectationCtrl;
   final TextEditingController remarqueCtrl;
   final String selectedStatus;
   final Function(String) onStatusChanged;
@@ -1045,6 +1054,8 @@ class _AddVehicleBottomSheet extends StatefulWidget {
     required this.nameCtrl,
     required this.typeCtrl,
     required this.matriculeCtrl,
+    required this.parcCtrl,
+    required this.affectationCtrl,
     required this.remarqueCtrl,
     required this.selectedStatus,
     required this.onStatusChanged,
@@ -1115,6 +1126,22 @@ class _AddVehicleBottomSheetState extends State<_AddVehicleBottomSheet> {
             TextField(
               controller: widget.matriculeCtrl,
               decoration: const InputDecoration(labelText: 'Matricule'),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: widget.parcCtrl,
+              decoration: const InputDecoration(
+                labelText: 'Parc (Nom du parc)',
+                hintText: 'ex: Parc RTH Sonatrach',
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: widget.affectationCtrl,
+              decoration: const InputDecoration(
+                labelText: 'Affectation (Emplacement du véhicule)',
+                hintText: 'ex: Base RTH Hassi Messaoud, Zone A...',
+              ),
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
