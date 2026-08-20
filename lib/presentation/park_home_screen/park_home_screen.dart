@@ -700,6 +700,7 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
                                     extra: {
                                       'vehicleId': _vehicleMaps[i]['id'] as String,
                                       'role': widget.role,
+                                      'initialVehicle': _vehicleMaps[i],
                                     },
                                   ),
                                 ),
@@ -720,6 +721,7 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
                                       extra: {
                                         'vehicleId': _vehicleMaps[i]['id'] as String,
                                         'role': widget.role,
+                                        'initialVehicle': _vehicleMaps[i],
                                       },
                                     ),
                                   ),

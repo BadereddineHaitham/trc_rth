@@ -37,12 +37,12 @@ final GoRouter appRouter = GoRouter(
       pageBuilder: (context, state) => CustomTransitionPage(
         key: state.pageKey,
         child: const SplashScreen(),
-        transitionDuration: const Duration(milliseconds: 280),
+        transitionDuration: const Duration(milliseconds: 120),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return FadeTransition(
             opacity: CurvedAnimation(
               parent: animation,
-              curve: Curves.easeOutCubic,
+              curve: Curves.fastOutSlowIn,
             ),
             child: child,
           );
@@ -54,12 +54,12 @@ final GoRouter appRouter = GoRouter(
       pageBuilder: (context, state) => CustomTransitionPage(
         key: state.pageKey,
         child: const SplashScreen(),
-        transitionDuration: const Duration(milliseconds: 280),
+        transitionDuration: const Duration(milliseconds: 120),
         transitionsBuilder: (context, animation, secondaryAnimation, child) =>
             FadeTransition(
               opacity: CurvedAnimation(
                 parent: animation,
-                curve: Curves.easeOutCubic,
+                curve: Curves.fastOutSlowIn,
               ),
               child: child,
             ),
@@ -70,20 +70,14 @@ final GoRouter appRouter = GoRouter(
       pageBuilder: (context, state) => CustomTransitionPage(
         key: state.pageKey,
         child: const QrScannerScreen(),
-        transitionDuration: const Duration(milliseconds: 280),
+        transitionDuration: const Duration(milliseconds: 120),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          return SlideTransition(
-            position:
-                Tween<Offset>(
-                  begin: const Offset(0.04, 0),
-                  end: Offset.zero,
-                ).animate(
-                  CurvedAnimation(
-                    parent: animation,
-                    curve: Curves.easeOutCubic,
-                  ),
-                ),
-            child: FadeTransition(opacity: animation, child: child),
+          return FadeTransition(
+            opacity: CurvedAnimation(
+              parent: animation,
+              curve: Curves.fastOutSlowIn,
+            ),
+            child: child,
           );
         },
       ),
@@ -103,20 +97,14 @@ final GoRouter appRouter = GoRouter(
         return CustomTransitionPage(
           key: state.pageKey,
           child: ParkHomeScreen(role: role, parkId: parkId),
-          transitionDuration: const Duration(milliseconds: 280),
+          transitionDuration: const Duration(milliseconds: 120),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return SlideTransition(
-              position:
-                  Tween<Offset>(
-                    begin: const Offset(0.04, 0),
-                    end: Offset.zero,
-                  ).animate(
-                    CurvedAnimation(
-                      parent: animation,
-                      curve: Curves.easeOutCubic,
-                    ),
-                  ),
-              child: FadeTransition(opacity: animation, child: child),
+            return FadeTransition(
+              opacity: CurvedAnimation(
+                parent: animation,
+                curve: Curves.fastOutSlowIn,
+              ),
+              child: child,
             );
           },
         );
@@ -128,33 +116,33 @@ final GoRouter appRouter = GoRouter(
         final extra = state.extra;
         String vehicleId = 'vmr80-2';
         String role = 'User';
+        Map<String, dynamic>? initialVehicle;
         if (extra is Map<String, String>) {
           vehicleId = extra['vehicleId'] ?? 'vmr80-2';
           role = extra['role'] ?? 'User';
         } else if (extra is Map<String, dynamic>) {
           vehicleId = extra['vehicleId'] as String? ?? 'vmr80-2';
           role = extra['role'] as String? ?? 'User';
+          initialVehicle = extra['initialVehicle'] as Map<String, dynamic>?;
         } else if (extra is String && extra.isNotEmpty) {
           vehicleId = extra;
           role = 'User';
         }
         return CustomTransitionPage(
           key: state.pageKey,
-          child: VehicleDetailsScreen(vehicleId: vehicleId, role: role),
-          transitionDuration: const Duration(milliseconds: 280),
+          child: VehicleDetailsScreen(
+            vehicleId: vehicleId,
+            role: role,
+            initialVehicle: initialVehicle,
+          ),
+          transitionDuration: const Duration(milliseconds: 120),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return SlideTransition(
-              position:
-                  Tween<Offset>(
-                    begin: const Offset(0.04, 0),
-                    end: Offset.zero,
-                  ).animate(
-                    CurvedAnimation(
-                      parent: animation,
-                      curve: Curves.easeOutCubic,
-                    ),
-                  ),
-              child: FadeTransition(opacity: animation, child: child),
+            return FadeTransition(
+              opacity: CurvedAnimation(
+                parent: animation,
+                curve: Curves.fastOutSlowIn,
+              ),
+              child: child,
             );
           },
         );
@@ -167,12 +155,12 @@ final GoRouter appRouter = GoRouter(
         child: const AdminLoginScreen(),
         opaque: true,
         barrierColor: const Color(0xFFF5F7F9),
-        transitionDuration: const Duration(milliseconds: 300),
+        transitionDuration: const Duration(milliseconds: 150),
         transitionsBuilder: (context, animation, secondaryAnimation, child) =>
             FadeTransition(
               opacity: CurvedAnimation(
                 parent: animation,
-                curve: Curves.easeOutCubic,
+                curve: Curves.fastOutSlowIn,
               ),
               child: child,
             ),
@@ -187,20 +175,14 @@ final GoRouter appRouter = GoRouter(
         return CustomTransitionPage(
           key: state.pageKey,
           child: AdminDashboardScreen(role: role, username: username),
-          transitionDuration: const Duration(milliseconds: 280),
+          transitionDuration: const Duration(milliseconds: 120),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return SlideTransition(
-              position:
-                  Tween<Offset>(
-                    begin: const Offset(0.04, 0),
-                    end: Offset.zero,
-                  ).animate(
-                    CurvedAnimation(
-                      parent: animation,
-                      curve: Curves.easeOutCubic,
-                    ),
-                  ),
-              child: FadeTransition(opacity: animation, child: child),
+            return FadeTransition(
+              opacity: CurvedAnimation(
+                parent: animation,
+                curve: Curves.fastOutSlowIn,
+              ),
+              child: child,
             );
           },
         );
@@ -214,20 +196,14 @@ final GoRouter appRouter = GoRouter(
         return CustomTransitionPage(
           key: state.pageKey,
           child: SuperAdminDashboardScreen(username: username),
-          transitionDuration: const Duration(milliseconds: 280),
+          transitionDuration: const Duration(milliseconds: 120),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return SlideTransition(
-              position:
-                  Tween<Offset>(
-                    begin: const Offset(0.04, 0),
-                    end: Offset.zero,
-                  ).animate(
-                    CurvedAnimation(
-                      parent: animation,
-                      curve: Curves.easeOutCubic,
-                    ),
-                  ),
-              child: FadeTransition(opacity: animation, child: child),
+            return FadeTransition(
+              opacity: CurvedAnimation(
+                parent: animation,
+                curve: Curves.fastOutSlowIn,
+              ),
+              child: child,
             );
           },
         );
@@ -238,20 +214,14 @@ final GoRouter appRouter = GoRouter(
       pageBuilder: (context, state) => CustomTransitionPage(
         key: state.pageKey,
         child: const EquipmentDefinitionsScreen(),
-        transitionDuration: const Duration(milliseconds: 280),
+        transitionDuration: const Duration(milliseconds: 120),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          return SlideTransition(
-            position:
-                Tween<Offset>(
-                  begin: const Offset(0.04, 0),
-                  end: Offset.zero,
-                ).animate(
-                  CurvedAnimation(
-                    parent: animation,
-                    curve: Curves.easeOutCubic,
-                  ),
-                ),
-            child: FadeTransition(opacity: animation, child: child),
+          return FadeTransition(
+            opacity: CurvedAnimation(
+              parent: animation,
+              curve: Curves.fastOutSlowIn,
+            ),
+            child: child,
           );
         },
       ),
@@ -271,20 +241,14 @@ final GoRouter appRouter = GoRouter(
         return CustomTransitionPage(
           key: state.pageKey,
           child: AlertsScreen(role: role),
-          transitionDuration: const Duration(milliseconds: 280),
+          transitionDuration: const Duration(milliseconds: 120),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return SlideTransition(
-              position:
-                  Tween<Offset>(
-                    begin: const Offset(0.04, 0),
-                    end: Offset.zero,
-                  ).animate(
-                    CurvedAnimation(
-                      parent: animation,
-                      curve: Curves.easeOutCubic,
-                    ),
-                  ),
-              child: FadeTransition(opacity: animation, child: child),
+            return FadeTransition(
+              opacity: CurvedAnimation(
+                parent: animation,
+                curve: Curves.fastOutSlowIn,
+              ),
+              child: child,
             );
           },
         );
@@ -295,20 +259,14 @@ final GoRouter appRouter = GoRouter(
       pageBuilder: (context, state) => CustomTransitionPage(
         key: state.pageKey,
         child: const UserManagementScreen(),
-        transitionDuration: const Duration(milliseconds: 280),
+        transitionDuration: const Duration(milliseconds: 120),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          return SlideTransition(
-            position:
-                Tween<Offset>(
-                  begin: const Offset(0.04, 0),
-                  end: Offset.zero,
-                ).animate(
-                  CurvedAnimation(
-                    parent: animation,
-                    curve: Curves.easeOutCubic,
-                  ),
-                ),
-            child: FadeTransition(opacity: animation, child: child),
+          return FadeTransition(
+            opacity: CurvedAnimation(
+              parent: animation,
+              curve: Curves.fastOutSlowIn,
+            ),
+            child: child,
           );
         },
       ),
@@ -322,20 +280,14 @@ final GoRouter appRouter = GoRouter(
         return CustomTransitionPage(
           key: state.pageKey,
           child: ProfileScreen(role: role, username: username),
-          transitionDuration: const Duration(milliseconds: 280),
+          transitionDuration: const Duration(milliseconds: 120),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return SlideTransition(
-              position:
-                  Tween<Offset>(
-                    begin: const Offset(0.04, 0),
-                    end: Offset.zero,
-                  ).animate(
-                    CurvedAnimation(
-                      parent: animation,
-                      curve: Curves.easeOutCubic,
-                    ),
-                  ),
-              child: FadeTransition(opacity: animation, child: child),
+            return FadeTransition(
+              opacity: CurvedAnimation(
+                parent: animation,
+                curve: Curves.fastOutSlowIn,
+              ),
+              child: child,
             );
           },
         );

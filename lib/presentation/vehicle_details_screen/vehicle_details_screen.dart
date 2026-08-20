@@ -11,11 +11,13 @@ import './widgets/vehicle_info_tab_widget.dart';
 class VehicleDetailsScreen extends StatefulWidget {
   final String vehicleId;
   final String role;
+  final Map<String, dynamic>? initialVehicle;
 
   const VehicleDetailsScreen({
     super.key,
     required this.vehicleId,
     this.role = 'User',
+    this.initialVehicle,
   });
 
   @override
@@ -38,6 +40,10 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
+    if (widget.initialVehicle != null && widget.initialVehicle!.isNotEmpty) {
+      _vehicleData = widget.initialVehicle!;
+      _isLoading = false;
+    }
     _loadVehicle();
     _subscribeRealtime();
   }
