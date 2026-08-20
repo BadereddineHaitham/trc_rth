@@ -922,75 +922,82 @@ class _EquipmentRowState extends State<_EquipmentRow> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Single top line: Designation + Standard + Existant + Manquant status
+          // Full equipment designation + Badges
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: Text(
-                  designation,
-                  style: GoogleFonts.ibmPlexSans(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: AppTheme.darkCharcoal,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              const SizedBox(width: 8),
-              // Standard badge
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryContainer.withAlpha(150),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  '${widget.titleStandard}: $standard',
-                  style: GoogleFonts.ibmPlexSans(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.primary,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 6),
-              // Existant badge
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                decoration: BoxDecoration(
-                  color: isMissing
-                      ? AppTheme.criticalContainer
-                      : AppTheme.successContainer,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  '${widget.titleExisting}: $_existing',
-                  style: GoogleFonts.ibmPlexSans(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: isMissing ? AppTheme.critical : AppTheme.success,
-                  ),
-                ),
-              ),
-              if (isMissing) ...[
-                const SizedBox(width: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: AppTheme.critical,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 6, bottom: 2),
                   child: Text(
-                    'Manquant: $missing',
+                    designation,
                     style: GoogleFonts.ibmPlexSans(
-                      fontSize: 11,
+                      fontSize: 14,
                       fontWeight: FontWeight.w700,
-                      color: Colors.white,
+                      color: AppTheme.darkCharcoal,
+                      height: 1.25,
                     ),
                   ),
                 ),
-              ],
+              ),
+              Wrap(
+                alignment: WrapAlignment.end,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 5,
+                runSpacing: 4,
+                children: [
+                  // Standard badge
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryContainer.withAlpha(150),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      '${widget.titleStandard}: $standard',
+                      style: GoogleFonts.ibmPlexSans(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.primary,
+                      ),
+                    ),
+                  ),
+                  // Existant badge
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: isMissing
+                          ? AppTheme.criticalContainer
+                          : AppTheme.successContainer,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      '${widget.titleExisting}: $_existing',
+                      style: GoogleFonts.ibmPlexSans(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: isMissing ? AppTheme.critical : AppTheme.success,
+                      ),
+                    ),
+                  ),
+                  if (isMissing)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: AppTheme.critical,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        'Manquant: $missing',
+                        style: GoogleFonts.ibmPlexSans(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
             ],
           ),
           if (widget.canEdit) ...[
