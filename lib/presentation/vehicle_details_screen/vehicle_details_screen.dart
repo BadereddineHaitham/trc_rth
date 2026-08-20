@@ -461,15 +461,16 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
             onPressed: _openEditSheet,
             tooltip: 'Modifier',
           ),
-        IconButton(
-          icon: const Icon(
-            Icons.delete_outline,
-            color: Colors.white,
-            size: 22,
+        if (_canEdit)
+          IconButton(
+            icon: const Icon(
+              Icons.delete_outline,
+              color: Colors.white,
+              size: 22,
+            ),
+            onPressed: () => _confirmDeleteVehicle(context, vehicle['name'] as String? ?? ''),
+            tooltip: 'Supprimer le véhicule',
           ),
-          onPressed: () => _confirmDeleteVehicle(context, vehicle['name'] as String? ?? ''),
-          tooltip: 'Supprimer le véhicule',
-        ),
         const SizedBox(width: 4),
       ],
       flexibleSpace: FlexibleSpaceBar(
