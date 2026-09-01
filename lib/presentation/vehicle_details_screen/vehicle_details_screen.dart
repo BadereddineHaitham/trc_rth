@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/app_export.dart';
+import '../../../services/pdf_report_service.dart';
 import '../../../services/supabase_service.dart';
 import './widgets/equipment_tab_widget.dart';
 import './widgets/fire_agents_tab_widget.dart';
@@ -412,6 +413,32 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
     );
   }
 
+  Future<void> _printVehicleReport() async {
+    try {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Génération du rapport PDF en cours...'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      final results = await Future.wait([
+        _svc.getVehicleEquipment(widget.vehicleId),
+        _svc.getMaintenanceRecords(widget.vehicleId),
+      ]);
+      await PdfReportService.instance.printVehiclePdf(
+        vehicle: _displayData,
+        equipmentList: results[0],
+        maintenanceRecords: results[1],
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur génération PDF: $e')),
+        );
+      }
+    }
+  }
+
   Widget _buildSliverAppBar(
     ThemeData theme,
     bool innerBoxIsScrolled,
@@ -453,6 +480,15 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
         tooltip: 'Retour',
       ),
       actions: [
+        IconButton(
+          icon: const Icon(
+            Icons.print_outlined,
+            color: Colors.white,
+            size: 22,
+          ),
+          onPressed: _printVehicleReport,
+          tooltip: 'Imprimer / Exporter PDF',
+        ),
         if (_canEdit)
           IconButton(
             icon: CustomIconWidget(

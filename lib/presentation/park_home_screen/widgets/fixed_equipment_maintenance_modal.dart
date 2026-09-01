@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/app_export.dart';
+import '../../../../services/pdf_report_service.dart';
 import '../../../../services/supabase_service.dart';
 
 class FixedEquipmentMaintenanceModal extends StatefulWidget {
@@ -28,6 +29,9 @@ class _FixedEquipmentMaintenanceModalState
   bool _isLoading = true;
   String? _errorMsg;
   RealtimeChannel? _channel;
+
+  String _maintFilterMonth = 'Tous';
+  String _maintFilterYear = 'Tous';
 
   String get _equipmentId => widget.equipment['id'] as String;
   String get _name => widget.equipment['name'] as String? ?? 'Équipement Fixe';
@@ -238,10 +242,31 @@ class _FixedEquipmentMaintenanceModalState
     }
   }
 
+  Future<void> _printFixedEquipmentReport() async {
+    try {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Génération du rapport PDF en cours...'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      await PdfReportService.instance.printFixedEquipmentPdf(
+        equipment: widget.equipment,
+        maintenanceRecords: _maintenanceRecords,
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur génération PDF: $e')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: MediaQuery.of(context).size.height * 0.85,
+      height: MediaQuery.of(context).size.height * 0.9,
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -296,6 +321,11 @@ class _FixedEquipmentMaintenanceModalState
                   ),
                 ),
                 IconButton(
+                  icon: const Icon(Icons.print_outlined, color: AppTheme.primary),
+                  onPressed: _printFixedEquipmentReport,
+                  tooltip: 'Imprimer / Exporter PDF',
+                ),
+                IconButton(
                   icon: const Icon(Icons.close),
                   onPressed: () => Navigator.pop(context),
                 ),
@@ -348,6 +378,86 @@ class _FixedEquipmentMaintenanceModalState
                   ),
                   const SizedBox(height: 12),
 
+                  // Month & Year Filter Bar
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          decoration: BoxDecoration(
+                            color: AppTheme.surfaceVariantLight,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: AppTheme.outlineVariantLight),
+                          ),
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<String>(
+                              value: _maintFilterMonth,
+                              isExpanded: true,
+                              style: GoogleFonts.ibmPlexSans(
+                                fontSize: 12,
+                                color: AppTheme.darkCharcoal,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              icon: const Icon(Icons.calendar_month, size: 16, color: AppTheme.primary),
+                              items: const [
+                                DropdownMenuItem(value: 'Tous', child: Text('Tous les mois')),
+                                DropdownMenuItem(value: '01', child: Text('Janvier')),
+                                DropdownMenuItem(value: '02', child: Text('Février')),
+                                DropdownMenuItem(value: '03', child: Text('Mars')),
+                                DropdownMenuItem(value: '04', child: Text('Avril')),
+                                DropdownMenuItem(value: '05', child: Text('Mai')),
+                                DropdownMenuItem(value: '06', child: Text('Juin')),
+                                DropdownMenuItem(value: '07', child: Text('Juillet')),
+                                DropdownMenuItem(value: '08', child: Text('Août')),
+                                DropdownMenuItem(value: '09', child: Text('Septembre')),
+                                DropdownMenuItem(value: '10', child: Text('Octobre')),
+                                DropdownMenuItem(value: '11', child: Text('Novembre')),
+                                DropdownMenuItem(value: '12', child: Text('Décembre')),
+                              ],
+                              onChanged: (val) {
+                                if (val != null) setState(() => _maintFilterMonth = val);
+                              },
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        width: 110,
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        decoration: BoxDecoration(
+                          color: AppTheme.surfaceVariantLight,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: AppTheme.outlineVariantLight),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: _maintFilterYear,
+                            isExpanded: true,
+                            style: GoogleFonts.ibmPlexSans(
+                              fontSize: 12,
+                              color: AppTheme.darkCharcoal,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            icon: const Icon(Icons.date_range, size: 16, color: AppTheme.primary),
+                            items: const [
+                              DropdownMenuItem(value: 'Tous', child: Text('Toutes')),
+                              DropdownMenuItem(value: '2024', child: Text('2024')),
+                              DropdownMenuItem(value: '2025', child: Text('2025')),
+                              DropdownMenuItem(value: '2026', child: Text('2026')),
+                              DropdownMenuItem(value: '2027', child: Text('2027')),
+                              DropdownMenuItem(value: '2028', child: Text('2028')),
+                            ],
+                            onChanged: (val) {
+                              if (val != null) setState(() => _maintFilterYear = val);
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+
                   if (_isLoading)
                     const Center(
                       child: Padding(
@@ -360,31 +470,46 @@ class _FixedEquipmentMaintenanceModalState
                       'Erreur: $_errorMsg',
                       style: GoogleFonts.ibmPlexSans(color: AppTheme.critical),
                     )
-                  else if (_maintenanceRecords.isEmpty)
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: AppTheme.surfaceVariantLight,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        'Aucune maintenance enregistrée pour cet équipement.',
-                        style: GoogleFonts.ibmPlexSans(
-                          fontSize: 13,
-                          color: AppTheme.mutedText,
+                  else () {
+                    final filteredRecords = _maintenanceRecords.where((rec) {
+                      final dateStr = (rec['maintenance_date'] as String?) ?? (rec['date'] as String?) ?? '';
+                      if (_maintFilterYear != 'Tous') {
+                        if (!dateStr.startsWith(_maintFilterYear)) return false;
+                      }
+                      if (_maintFilterMonth != 'Tous') {
+                        final parts = dateStr.split('-');
+                        if (parts.length >= 2) {
+                          if (parts[1] != _maintFilterMonth) return false;
+                        }
+                      }
+                      return true;
+                    }).toList();
+
+                    if (filteredRecords.isEmpty) {
+                      return Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: AppTheme.surfaceVariantLight,
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                        textAlign: TextAlign.center,
-                      ),
-                    )
-                  else
-                    ListView.separated(
+                        child: Text(
+                          'Aucune maintenance enregistrée pour cet équipement.',
+                          style: GoogleFonts.ibmPlexSans(
+                            fontSize: 13,
+                            color: AppTheme.mutedText,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      );
+                    }
+                    return ListView.separated(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
-                      itemCount: _maintenanceRecords.length,
+                      itemCount: filteredRecords.length,
                       separatorBuilder: (_, __) => const SizedBox(height: 10),
                       itemBuilder: (ctx, i) {
-                        final rec = _maintenanceRecords[i];
+                        final rec = filteredRecords[i];
                         final type = rec['maintenance_type'] as String? ?? 'Préventive';
                         final date = rec['maintenance_date'] as String? ?? '';
                         final desc = rec['description'] as String? ?? '';
@@ -574,7 +699,8 @@ class _FixedEquipmentMaintenanceModalState
                           ),
                         );
                       },
-                    ),
+                    );
+                  }(),
                 ],
               ),
             ),

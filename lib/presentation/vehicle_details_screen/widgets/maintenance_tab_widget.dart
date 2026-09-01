@@ -29,6 +29,9 @@ class _MaintenanceTabWidgetState extends State<MaintenanceTabWidget> {
   String? _errorMsg;
   RealtimeChannel? _channel;
 
+  String _maintFilterMonth = 'Tous';
+  String _maintFilterYear = 'Tous';
+
   bool get _canEdit =>
       widget.userRole == UserRole.admin ||
       widget.userRole == UserRole.superAdmin;
@@ -189,36 +192,138 @@ class _MaintenanceTabWidgetState extends State<MaintenanceTabWidget> {
           ),
         ),
         Container(height: 1, color: AppTheme.outlineVariantLight),
-        Expanded(
-          child: _maintenanceMaps.isEmpty
-              ? _buildEmptyState()
-              : ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-                  itemCount: _maintenanceMaps.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 10),
-                  itemBuilder: (ctx, i) {
-                    final record = _maintenanceMaps[i];
-                    final displayRecord = {
-                      'id': record['id'],
-                      'date': record['maintenance_date'] ?? '',
-                      'type': record['maintenance_type'] ?? '',
-                      'description': record['description'] ?? '',
-                      'provider': record['provider'] ?? '',
-                      'responsible': record['responsible'] ?? '',
-                      'observation': record['observation'] ?? '',
-                      'next_date': record['next_maintenance_date'] ?? '',
-                      'status': record['maintenance_status'] ?? 'Terminé',
-                      'typeColor': _colorForType(
-                        record['maintenance_type'] ?? '',
+        // Filter bar Month & Year
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          color: AppTheme.surfaceVariantLight,
+          child: Row(
+            children: [
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppTheme.outlineVariantLight),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      value: _maintFilterMonth,
+                      isExpanded: true,
+                      style: GoogleFonts.ibmPlexSans(
+                        fontSize: 12,
+                        color: AppTheme.darkCharcoal,
+                        fontWeight: FontWeight.w600,
                       ),
-                    };
-                    return _MaintenanceCard(
-                      record: displayRecord,
-                      canEdit: _canEdit,
-                      onEdit: () => _showEditMaintenanceSheet(record),
-                    );
-                  },
+                      icon: const Icon(Icons.calendar_month, size: 16, color: AppTheme.primary),
+                      items: const [
+                        DropdownMenuItem(value: 'Tous', child: Text('Tous les mois')),
+                        DropdownMenuItem(value: '01', child: Text('Janvier')),
+                        DropdownMenuItem(value: '02', child: Text('Février')),
+                        DropdownMenuItem(value: '03', child: Text('Mars')),
+                        DropdownMenuItem(value: '04', child: Text('Avril')),
+                        DropdownMenuItem(value: '05', child: Text('Mai')),
+                        DropdownMenuItem(value: '06', child: Text('Juin')),
+                        DropdownMenuItem(value: '07', child: Text('Juillet')),
+                        DropdownMenuItem(value: '08', child: Text('Août')),
+                        DropdownMenuItem(value: '09', child: Text('Septembre')),
+                        DropdownMenuItem(value: '10', child: Text('Octobre')),
+                        DropdownMenuItem(value: '11', child: Text('Novembre')),
+                        DropdownMenuItem(value: '12', child: Text('Décembre')),
+                      ],
+                      onChanged: (val) {
+                        if (val != null) setState(() => _maintFilterMonth = val);
+                      },
+                    ),
+                  ),
                 ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                width: 110,
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppTheme.outlineVariantLight),
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    value: _maintFilterYear,
+                    isExpanded: true,
+                    style: GoogleFonts.ibmPlexSans(
+                      fontSize: 12,
+                      color: AppTheme.darkCharcoal,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    icon: const Icon(Icons.date_range, size: 16, color: AppTheme.primary),
+                    items: const [
+                      DropdownMenuItem(value: 'Tous', child: Text('Toutes')),
+                      DropdownMenuItem(value: '2024', child: Text('2024')),
+                      DropdownMenuItem(value: '2025', child: Text('2025')),
+                      DropdownMenuItem(value: '2026', child: Text('2026')),
+                      DropdownMenuItem(value: '2027', child: Text('2027')),
+                      DropdownMenuItem(value: '2028', child: Text('2028')),
+                    ],
+                    onChanged: (val) {
+                      if (val != null) setState(() => _maintFilterYear = val);
+                    },
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Container(height: 1, color: AppTheme.outlineVariantLight),
+        Expanded(
+          child: () {
+            final filteredList = _maintenanceMaps.where((rec) {
+              final dateStr = (rec['maintenance_date'] as String?) ?? (rec['date'] as String?) ?? '';
+              if (_maintFilterYear != 'Tous') {
+                if (!dateStr.startsWith(_maintFilterYear)) return false;
+              }
+              if (_maintFilterMonth != 'Tous') {
+                final parts = dateStr.split('-');
+                if (parts.length >= 2) {
+                  if (parts[1] != _maintFilterMonth) return false;
+                }
+              }
+              return true;
+            }).toList();
+
+            if (filteredList.isEmpty) {
+              return _buildEmptyState();
+            }
+
+            return ListView.separated(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+              itemCount: filteredList.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 10),
+              itemBuilder: (ctx, i) {
+                final record = filteredList[i];
+                final displayRecord = {
+                  'id': record['id'],
+                  'date': record['maintenance_date'] ?? '',
+                  'type': record['maintenance_type'] ?? '',
+                  'description': record['description'] ?? '',
+                  'provider': record['provider'] ?? '',
+                  'responsible': record['responsible'] ?? '',
+                  'observation': record['observation'] ?? '',
+                  'next_date': record['next_maintenance_date'] ?? '',
+                  'status': record['maintenance_status'] ?? 'Terminé',
+                  'typeColor': _colorForType(
+                    record['maintenance_type'] ?? '',
+                  ),
+                };
+                return _MaintenanceCard(
+                  record: displayRecord,
+                  canEdit: _canEdit,
+                  onEdit: () => _showEditMaintenanceSheet(record),
+                  onDelete: () => _deleteMaintenanceRecord(record),
+                );
+              },
+            );
+          }(),
         ),
       ],
     );
@@ -392,6 +497,49 @@ class _MaintenanceTabWidgetState extends State<MaintenanceTabWidget> {
       ),
     );
   }
+
+  Future<void> _deleteMaintenanceRecord(Map<String, dynamic> record) async {
+    final id = record['id'] as String?;
+    if (id == null) return;
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Supprimer l\'opération'),
+        content: const Text('Voulez-vous vraiment supprimer cette fiche de maintenance ?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Annuler'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Supprimer', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true) return;
+
+    try {
+      await _svc.deleteMaintenanceRecord(id);
+      await _loadData();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Maintenance supprimée'),
+            backgroundColor: AppTheme.success,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur: $e')),
+        );
+      }
+    }
+  }
 }
 
 // ── Maintenance Card ──────────────────────────────────────────────────────────
@@ -399,11 +547,13 @@ class _MaintenanceCard extends StatelessWidget {
   final Map<String, dynamic> record;
   final bool canEdit;
   final VoidCallback onEdit;
+  final VoidCallback? onDelete;
 
   const _MaintenanceCard({
     required this.record,
     required this.canEdit,
     required this.onEdit,
+    this.onDelete,
   });
 
   Color _typeColor(String colorKey) {
@@ -482,7 +632,7 @@ class _MaintenanceCard extends StatelessWidget {
                     textAlign: TextAlign.end,
                   ),
                 ),
-                if (canEdit)
+                if (canEdit) ...[
                   Padding(
                     padding: const EdgeInsets.only(left: 8),
                     child: GestureDetector(
@@ -494,6 +644,19 @@ class _MaintenanceCard extends StatelessWidget {
                       ),
                     ),
                   ),
+                  if (onDelete != null)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 8),
+                      child: GestureDetector(
+                        onTap: onDelete,
+                        child: const Icon(
+                          Icons.delete_outline,
+                          color: AppTheme.critical,
+                          size: 18,
+                        ),
+                      ),
+                    ),
+                ],
               ],
             ),
           ),
