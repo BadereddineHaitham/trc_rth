@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/app_export.dart';
+import '../../../../services/pdf_report_service.dart';
 import '../../../../services/supabase_service.dart';
 import './equipment_tab_widget.dart';
 import 'equipment_tab_widget.dart' show UserRole;
@@ -192,7 +193,7 @@ class _MaintenanceTabWidgetState extends State<MaintenanceTabWidget> {
           ),
         ),
         Container(height: 1, color: AppTheme.outlineVariantLight),
-        // Filter bar Month & Year
+        // Filter bar Month & Year + Print PDF
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           color: AppTheme.surfaceVariantLight,
@@ -240,7 +241,7 @@ class _MaintenanceTabWidgetState extends State<MaintenanceTabWidget> {
               ),
               const SizedBox(width: 8),
               Container(
-                width: 110,
+                width: 105,
                 padding: const EdgeInsets.symmetric(horizontal: 10),
                 decoration: BoxDecoration(
                   color: Colors.white,
@@ -268,6 +269,12 @@ class _MaintenanceTabWidgetState extends State<MaintenanceTabWidget> {
                     },
                   ),
                 ),
+              ),
+              const SizedBox(width: 6),
+              IconButton(
+                icon: const Icon(Icons.print_outlined, color: AppTheme.primary, size: 22),
+                onPressed: _printFilteredMaintenancePdf,
+                tooltip: 'Imprimer PDF (Filtré)',
               ),
             ],
           ),
@@ -325,6 +332,37 @@ class _MaintenanceTabWidgetState extends State<MaintenanceTabWidget> {
         ),
       ],
     );
+  }
+
+  Future<void> _printFilteredMaintenancePdf() async {
+    try {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Génération du rapport PDF en cours...'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      final results = await Future.wait([
+        _svc.getVehicleEquipment(widget.vehicleId),
+        _svc.getVehicleById(widget.vehicleId),
+      ]);
+      final equipment = results[0] as List<Map<String, dynamic>>;
+      final veh = (results[1] as Map<String, dynamic>?) ?? {'name': widget.vehicleName};
+
+      await PdfReportService.instance.printVehiclePdf(
+        vehicle: veh,
+        equipmentList: equipment,
+        maintenanceRecords: _maintenanceMaps,
+        filterMonth: _maintFilterMonth,
+        filterYear: _maintFilterYear,
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur génération PDF: $e')),
+        );
+      }
+    }
   }
 
   Widget _buildEmptyState() {

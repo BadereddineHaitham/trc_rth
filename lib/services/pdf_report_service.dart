@@ -32,6 +32,8 @@ class PdfReportService {
     required Map<String, dynamic> vehicle,
     required List<Map<String, dynamic>> equipmentList,
     required List<Map<String, dynamic>> maintenanceRecords,
+    String filterMonth = 'Tous',
+    String filterYear = 'Tous',
   }) async {
     final logoBytes = await _loadLogo();
     final pdf = pw.Document();
@@ -44,6 +46,27 @@ class PdfReportService {
     final insurance = _clean((vehicle['insurance_expiry'] as String?) ?? 'Non renseigné');
     final inspection = _clean((vehicle['inspection_expiry'] as String?) ?? 'Non renseigné');
     final dateFormatted = DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now());
+
+    // Filter maintenance records by year and month
+    final filteredMaintenance = maintenanceRecords.where((m) {
+      final dateStr = (m['maintenance_date'] as String?) ?? (m['date'] as String?) ?? '';
+      if (filterYear != 'Tous' && filterYear.isNotEmpty) {
+        if (!dateStr.startsWith(filterYear)) return false;
+      }
+      if (filterMonth != 'Tous' && filterMonth.isNotEmpty) {
+        final parts = dateStr.split('-');
+        if (parts.length >= 2 && parts[1] != filterMonth) return false;
+      }
+      return true;
+    }).toList();
+
+    String maintHeaderTitle = 'HISTORIQUE DE MAINTENANCE (${filteredMaintenance.length})';
+    if (filterYear != 'Tous' || filterMonth != 'Tous') {
+      final filterParts = <String>[];
+      if (filterMonth != 'Tous') filterParts.add('Mois: $filterMonth');
+      if (filterYear != 'Tous') filterParts.add('Année: $filterYear');
+      maintHeaderTitle += ' [Filtre: ${filterParts.join(', ')}]';
+    }
 
     pdf.addPage(
       pw.MultiPage(
@@ -100,10 +123,10 @@ class PdfReportService {
         },
         build: (pw.Context context) {
           return [
-            // Document Title
+            // Page 1: Vehicle General Info & Equipment List
             pw.Center(
               child: pw.Text(
-                'FICHE TECHNIQUE & HISTORIQUE DE MAINTENANCE VÉHICULE',
+                'FICHE TECHNIQUE VÉHICULE & ARMEMENT',
                 style: pw.TextStyle(
                   fontSize: 14,
                   fontWeight: pw.FontWeight.bold,
@@ -199,16 +222,18 @@ class PdfReportService {
                   return [eqName, qtyStr, obs];
                 }).toList(),
               ),
-            pw.SizedBox(height: 14),
+
+            // Force New Page for Maintenance History when there is an equipment section
+            if (equipmentList.isNotEmpty) pw.NewPage(),
 
             // Section 2: Historique de Maintenance
             pw.Text(
-              'HISTORIQUE DE MAINTENANCE (${maintenanceRecords.length})',
+              maintHeaderTitle,
               style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.blueGrey900),
             ),
             pw.SizedBox(height: 5),
-            if (maintenanceRecords.isEmpty)
-              pw.Text('Aucune opération de maintenance enregistrée.', style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey600))
+            if (filteredMaintenance.isEmpty)
+              pw.Text('Aucune opération de maintenance correspondant aux critères de recherche.', style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey600))
             else
               pw.TableHelper.fromTextArray(
                 headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 8),
@@ -224,7 +249,7 @@ class PdfReportService {
                   5: const pw.FlexColumnWidth(1.0), // Statut
                 },
                 headers: ['Date', 'Type', 'Description', 'Responsable', 'Prestataire', 'Statut'],
-                data: maintenanceRecords.map((m) {
+                data: filteredMaintenance.map((m) {
                   final date = _clean((m['maintenance_date'] as String?) ?? (m['date'] as String?) ?? '-');
                   final mType = _clean((m['maintenance_type'] as String?) ?? (m['type'] as String?) ?? '-');
                   final desc = _clean((m['description'] as String?) ?? '-');
@@ -249,6 +274,8 @@ class PdfReportService {
   Future<void> printFixedEquipmentPdf({
     required Map<String, dynamic> equipment,
     required List<Map<String, dynamic>> maintenanceRecords,
+    String filterMonth = 'Tous',
+    String filterYear = 'Tous',
   }) async {
     final logoBytes = await _loadLogo();
     final pdf = pw.Document();
@@ -264,6 +291,27 @@ class PdfReportService {
     final rawUsd = equipment['usd_details'];
     if (rawUsd is Map<String, dynamic>) usdDetails = rawUsd;
     if (rawUsd is Map) usdDetails = Map<String, dynamic>.from(rawUsd);
+
+    // Filter maintenance records by year and month
+    final filteredMaintenance = maintenanceRecords.where((m) {
+      final dateStr = (m['maintenance_date'] as String?) ?? (m['date'] as String?) ?? '';
+      if (filterYear != 'Tous' && filterYear.isNotEmpty) {
+        if (!dateStr.startsWith(filterYear)) return false;
+      }
+      if (filterMonth != 'Tous' && filterMonth.isNotEmpty) {
+        final parts = dateStr.split('-');
+        if (parts.length >= 2 && parts[1] != filterMonth) return false;
+      }
+      return true;
+    }).toList();
+
+    String maintHeaderTitle = 'HISTORIQUE DE MAINTENANCE (${filteredMaintenance.length})';
+    if (filterYear != 'Tous' || filterMonth != 'Tous') {
+      final filterParts = <String>[];
+      if (filterMonth != 'Tous') filterParts.add('Mois: $filterMonth');
+      if (filterYear != 'Tous') filterParts.add('Année: $filterYear');
+      maintHeaderTitle += ' [Filtre: ${filterParts.join(', ')}]';
+    }
 
     pdf.addPage(
       pw.MultiPage(
@@ -386,14 +434,17 @@ class PdfReportService {
               pw.SizedBox(height: 14),
             ],
 
+            // Force New Page for Maintenance History if there is USD component details
+            if (isUSD && usdDetails.isNotEmpty) pw.NewPage(),
+
             // Section 2: Historique de Maintenance
             pw.Text(
-              'HISTORIQUE DE MAINTENANCE (${maintenanceRecords.length})',
+              maintHeaderTitle,
               style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.blueGrey900),
             ),
             pw.SizedBox(height: 5),
-            if (maintenanceRecords.isEmpty)
-              pw.Text('Aucune opération de maintenance enregistrée.', style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey600))
+            if (filteredMaintenance.isEmpty)
+              pw.Text('Aucune opération de maintenance correspondant aux critères de recherche.', style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey600))
             else
               pw.TableHelper.fromTextArray(
                 headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 8),
@@ -409,7 +460,7 @@ class PdfReportService {
                   5: const pw.FlexColumnWidth(1.0), // Statut
                 },
                 headers: ['Date', 'Type', 'Description', 'Responsable', 'Prestataire', 'Statut'],
-                data: maintenanceRecords.map((m) {
+                data: filteredMaintenance.map((m) {
                   final date = _clean((m['maintenance_date'] as String?) ?? (m['date'] as String?) ?? '-');
                   final mType = _clean((m['maintenance_type'] as String?) ?? (m['type'] as String?) ?? '-');
                   final desc = _clean((m['description'] as String?) ?? '-');
