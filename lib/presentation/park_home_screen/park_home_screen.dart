@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:printing/printing.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:universal_html/html.dart' as html;
 
@@ -1057,7 +1058,7 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
     );
   }
 
-  void _openPdfFile(String name, String base64Data) {
+  Future<void> _openPdfFile(String name, String base64Data) async {
     if (base64Data.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Aucun contenu PDF à afficher.')),
@@ -1066,17 +1067,31 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
     }
     try {
       final bytes = base64Decode(base64Data);
-      final blob = html.Blob([bytes], 'application/pdf');
-      final url = html.Url.createObjectUrlFromBlob(blob);
-      html.AnchorElement(href: url)
-        ..target = '_blank'
-        ..download = name.isNotEmpty ? name : 'PV_Divers.pdf'
-        ..click();
-      html.Url.revokeObjectUrl(url);
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur ouverture du PDF: $e')),
+      final filename = name.isNotEmpty
+          ? (name.toLowerCase().endsWith('.pdf') ? name : '$name.pdf')
+          : 'PV_Divers.pdf';
+
+      await Printing.sharePdf(
+        bytes: bytes,
+        filename: filename,
       );
+    } catch (e) {
+      try {
+        final bytes = base64Decode(base64Data);
+        final filename = name.isNotEmpty
+            ? (name.toLowerCase().endsWith('.pdf') ? name : '$name.pdf')
+            : 'PV_Divers.pdf';
+        await Printing.layoutPdf(
+          onLayout: (format) async => bytes,
+          name: filename,
+        );
+      } catch (err) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Erreur ouverture du PDF: $err')),
+          );
+        }
+      }
     }
   }
 
