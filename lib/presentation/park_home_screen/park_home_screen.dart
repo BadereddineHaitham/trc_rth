@@ -1099,21 +1099,71 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
 
   Future<void> _printPvDiversPdf() async {
     try {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Génération du rapport PV Divers PDF en cours...'),
-          duration: Duration(seconds: 2),
-        ),
-      );
-      await PdfReportService.instance.printPvDiversPdf(
-        pvList: _pvDiversMaps,
-        filterMonth: _pvFilterMonths,
-        filterYear: _pvFilterYear,
-      );
+      final filteredPvList = _pvDiversMaps.where((pv) {
+        final dateStr = (pv['date'] as String?) ?? '';
+        if (_pvFilterYear != 'Tous') {
+          if (!dateStr.contains(_pvFilterYear)) return false;
+        }
+        if (!_pvFilterMonths.contains('Tous') && _pvFilterMonths.isNotEmpty) {
+          final parts = dateStr.split(RegExp(r'[\/\.\-\s]'));
+          String? month;
+          if (parts.length >= 3) {
+            if (parts[0].length == 4) {
+              month = parts[1].padLeft(2, '0');
+            } else if (parts[2].length == 4) {
+              month = parts[1].padLeft(2, '0');
+            }
+          }
+          if (month != null) {
+            if (!_pvFilterMonths.contains(month)) return false;
+          } else {
+            bool matched = false;
+            for (final m in _pvFilterMonths) {
+              if (dateStr.contains('-$m-') || dateStr.contains('/$m/')) {
+                matched = true;
+                break;
+              }
+            }
+            if (!matched) return false;
+          }
+        }
+        return true;
+      }).toList();
+
+      final attachedPvs = filteredPvList.where((pv) {
+        final pdfData = (pv['pdf_data'] as String?) ?? '';
+        return pdfData.isNotEmpty;
+      }).toList();
+
+      if (attachedPvs.isNotEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Impression de ${attachedPvs.length} fichier(s) PDF joint(s)...'),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+        for (final pv in attachedPvs) {
+          final pdfName = (pv['pdf_name'] as String?) ?? 'PV_Joint.pdf';
+          final pdfData = (pv['pdf_data'] as String?) ?? '';
+          await _openPdfFile(pdfName, pdfData);
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Aucun PDF joint trouvé. Génération du rapport récapitulatif PV Divers...'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+        await PdfReportService.instance.printPvDiversPdf(
+          pvList: _pvDiversMaps,
+          filterMonth: _pvFilterMonths,
+          filterYear: _pvFilterYear,
+        );
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur génération PDF: $e')),
+          SnackBar(content: Text('Erreur impression PDF: $e')),
         );
       }
     }
@@ -1238,7 +1288,7 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
               IconButton(
                 icon: const Icon(Icons.print_outlined, color: AppTheme.primary, size: 22),
                 onPressed: _printPvDiversPdf,
-                tooltip: 'Imprimer PDF PV Divers (Filtré)',
+                tooltip: 'Imprimer Fichiers PDF Joints',
               ),
             ],
           ),
@@ -1312,7 +1362,7 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Header: Badge Date + Équipe + Actions
+                          // Header: Badge Date + Équipe (Full width, clear display) + Edit/Delete Actions
                           Row(
                             children: [
                               Container(
@@ -1346,30 +1396,7 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
                                     fontWeight: FontWeight.w700,
                                     color: AppTheme.darkCharcoal,
                                   ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              // Print Attached PDF Icon on Card
-                              GestureDetector(
-                                onTap: () {
-                                  if (hasPdf) {
-                                    _openPdfFile(pdfName, pdfData);
-                                  } else {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('Aucun fichier PDF joint à ce PV. Veuillez joindre un PDF.'),
-                                        backgroundColor: AppTheme.warning,
-                                      ),
-                                    );
-                                  }
-                                },
-                                child: Padding(
-                                  padding: const EdgeInsets.all(4),
-                                  child: Icon(
-                                    Icons.print_outlined,
-                                    size: 20,
-                                    color: hasPdf ? AppTheme.primary : AppTheme.mutedText,
-                                  ),
+                                  overflow: TextOverflow.visible,
                                 ),
                               ),
                               if (_canEdit) ...[
@@ -1408,7 +1435,7 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
                               onTap: () => _openPdfFile(pdfName, pdfData),
                               borderRadius: BorderRadius.circular(8),
                               child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                 decoration: BoxDecoration(
                                   color: Colors.red.shade50,
                                   borderRadius: BorderRadius.circular(8),
@@ -1431,7 +1458,16 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
                                       ),
                                     ),
                                     const SizedBox(width: 8),
-                                    const Icon(Icons.print, size: 16, color: Colors.red),
+                                    const Icon(Icons.print_outlined, size: 16, color: Colors.red),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      'Imprimer',
+                                      style: GoogleFonts.ibmPlexSans(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w700,
+                                        color: Colors.red.shade800,
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
