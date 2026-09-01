@@ -18,6 +18,18 @@ class PdfReportService {
         .replaceAll('”', '"');
   }
 
+  String _formatDateValue(dynamic val) {
+    if (val == null) return 'Non renseigné';
+    final str = val.toString().trim();
+    if (str.isEmpty || str == '-' || str == 'null') return 'Non renseigné';
+    try {
+      final dt = DateTime.parse(str);
+      return DateFormat('dd/MM/yyyy').format(dt);
+    } catch (_) {
+      return str;
+    }
+  }
+
   Future<Uint8List> _loadLogo() async {
     try {
       final ByteData data = await rootBundle.load('assets/images/logo.jpeg');
@@ -43,8 +55,25 @@ class PdfReportService {
     final matricule = _clean((vehicle['matricule'] as String?) ?? (vehicle['id'] as String?) ?? '-');
     final affectation = _clean((vehicle['affectation'] as String?) ?? '-');
     final status = _clean((vehicle['status'] as String?) ?? 'operational');
-    final insurance = _clean((vehicle['insurance_expiry'] as String?) ?? 'Non renseigné');
-    final inspection = _clean((vehicle['inspection_expiry'] as String?) ?? 'Non renseigné');
+
+    final rawInsurance = vehicle['insurance_expiry'] ??
+        vehicle['insuranceExpiry'] ??
+        vehicle['insurance_start'] ??
+        vehicle['insuranceStart'] ??
+        vehicle['insurance'];
+
+    final rawInspection = vehicle['inspection_expiry'] ??
+        vehicle['inspectionExpiry'] ??
+        vehicle['inspection'];
+
+    final rawOilChange = vehicle['oil_change_date'] ??
+        vehicle['oilChange'] ??
+        vehicle['oil_change'];
+
+    final insurance = _clean(_formatDateValue(rawInsurance));
+    final inspection = _clean(_formatDateValue(rawInspection));
+    final oilChange = _clean(_formatDateValue(rawOilChange));
+
     final dateFormatted = DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now());
 
     // Filter maintenance records by year and month
@@ -173,7 +202,7 @@ class PdfReportService {
                   pw.Row(
                     children: [
                       pw.Expanded(child: _buildInfoItem('Contrôle Technique:', inspection)),
-                      pw.Expanded(child: pw.Container()),
+                      pw.Expanded(child: _buildInfoItem('Dernière Vidange:', oilChange)),
                     ],
                   ),
                 ],
