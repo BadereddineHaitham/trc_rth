@@ -30,6 +30,62 @@ class PdfReportService {
     }
   }
 
+  bool _matchesDateFilter(String rawDate, String filterMonth, String filterYear) {
+    final dateStr = rawDate.trim();
+    if (dateStr.isEmpty) {
+      return (filterYear == 'Tous' && filterMonth == 'Tous');
+    }
+
+    String? year;
+    String? month;
+
+    // Try parsing ISO or YYYY-MM-DD
+    try {
+      final dt = DateTime.parse(dateStr);
+      year = dt.year.toString();
+      month = dt.month.toString().padLeft(2, '0');
+    } catch (_) {
+      // Split by common delimiters: -, /, .
+      final parts = dateStr.split(RegExp(r'[\/\.\-\s]'));
+      if (parts.length >= 3) {
+        if (parts[0].length == 4) {
+          // YYYY-MM-DD or YYYY/MM/DD
+          year = parts[0];
+          month = parts[1].padLeft(2, '0');
+        } else if (parts[2].length == 4) {
+          // DD-MM-YYYY or DD/MM/YYYY
+          year = parts[2];
+          month = parts[1].padLeft(2, '0');
+        }
+      }
+    }
+
+    if (filterYear != 'Tous' && filterYear.isNotEmpty) {
+      if (year != null) {
+        if (year != filterYear) return false;
+      } else {
+        if (!dateStr.contains(filterYear)) return false;
+      }
+    }
+
+    if (filterMonth != 'Tous' && filterMonth.isNotEmpty) {
+      if (month != null) {
+        if (month != filterMonth) return false;
+      } else {
+        final monthDash = '-$filterMonth-';
+        final monthSlash = '/$filterMonth/';
+        final monthDot = '.$filterMonth.';
+        if (!dateStr.contains(monthDash) &&
+            !dateStr.contains(monthSlash) &&
+            !dateStr.contains(monthDot)) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
   Future<Uint8List> _loadLogo() async {
     try {
       final ByteData data = await rootBundle.load('assets/images/logo.jpeg');
@@ -76,17 +132,10 @@ class PdfReportService {
 
     final dateFormatted = DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now());
 
-    // Filter maintenance records by year and month
+    // Filter maintenance records by year and month using robust matcher
     final filteredMaintenance = maintenanceRecords.where((m) {
       final dateStr = (m['maintenance_date'] as String?) ?? (m['date'] as String?) ?? '';
-      if (filterYear != 'Tous' && filterYear.isNotEmpty) {
-        if (!dateStr.startsWith(filterYear)) return false;
-      }
-      if (filterMonth != 'Tous' && filterMonth.isNotEmpty) {
-        final parts = dateStr.split('-');
-        if (parts.length >= 2 && parts[1] != filterMonth) return false;
-      }
-      return true;
+      return _matchesDateFilter(dateStr, filterMonth, filterYear);
     }).toList();
 
     String maintHeaderTitle = 'HISTORIQUE DE MAINTENANCE (${filteredMaintenance.length})';
@@ -321,17 +370,10 @@ class PdfReportService {
     if (rawUsd is Map<String, dynamic>) usdDetails = rawUsd;
     if (rawUsd is Map) usdDetails = Map<String, dynamic>.from(rawUsd);
 
-    // Filter maintenance records by year and month
+    // Filter maintenance records by year and month using robust matcher
     final filteredMaintenance = maintenanceRecords.where((m) {
       final dateStr = (m['maintenance_date'] as String?) ?? (m['date'] as String?) ?? '';
-      if (filterYear != 'Tous' && filterYear.isNotEmpty) {
-        if (!dateStr.startsWith(filterYear)) return false;
-      }
-      if (filterMonth != 'Tous' && filterMonth.isNotEmpty) {
-        final parts = dateStr.split('-');
-        if (parts.length >= 2 && parts[1] != filterMonth) return false;
-      }
-      return true;
+      return _matchesDateFilter(dateStr, filterMonth, filterYear);
     }).toList();
 
     String maintHeaderTitle = 'HISTORIQUE DE MAINTENANCE (${filteredMaintenance.length})';
@@ -520,17 +562,10 @@ class PdfReportService {
     final pdf = pw.Document();
     final dateFormatted = DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now());
 
-    // Filter PV records by year and month
+    // Filter PV records by year and month using robust matcher
     final filteredPv = pvList.where((pv) {
       final dateStr = (pv['date'] as String?) ?? '';
-      if (filterYear != 'Tous' && filterYear.isNotEmpty) {
-        if (!dateStr.startsWith(filterYear)) return false;
-      }
-      if (filterMonth != 'Tous' && filterMonth.isNotEmpty) {
-        final parts = dateStr.split('-');
-        if (parts.length >= 2 && parts[1] != filterMonth) return false;
-      }
-      return true;
+      return _matchesDateFilter(dateStr, filterMonth, filterYear);
     }).toList();
 
     String pvHeaderTitle = 'PROCÈS-VERBAUX DIVERS (${filteredPv.length})';

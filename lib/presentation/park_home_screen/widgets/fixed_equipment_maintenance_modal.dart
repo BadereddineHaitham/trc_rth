@@ -253,6 +253,8 @@ class _FixedEquipmentMaintenanceModalState
       await PdfReportService.instance.printFixedEquipmentPdf(
         equipment: widget.equipment,
         maintenanceRecords: _maintenanceRecords,
+        filterMonth: _maintFilterMonth,
+        filterYear: _maintFilterYear,
       );
     } catch (e) {
       if (mounted) {
