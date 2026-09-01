@@ -95,34 +95,74 @@ class _FixedEquipmentMaintenanceModalState
   }
 
   void _showAddMaintenanceSheet() {
+    _openMaintenanceSheet(null);
+  }
+
+  void _showEditMaintenanceSheet(Map<String, dynamic> rec) {
+    _openMaintenanceSheet(rec);
+  }
+
+  void _openMaintenanceSheet(Map<String, dynamic>? existing) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => _AddFixedMaintenanceSheet(
         equipmentName: _name,
+        initialData: existing == null
+            ? null
+            : {
+                'date': existing['maintenance_date'] ?? '',
+                'type': existing['maintenance_type'] ?? 'Préventive',
+                'status': existing['maintenance_status'] ?? 'Terminé',
+                'description': existing['description'] ?? '',
+                'provider': existing['provider'] ?? '',
+                'responsible': existing['responsible'] ?? '',
+                'observation': existing['observation'] ?? '',
+                'next_date': existing['next_maintenance_date'] ?? '',
+              },
         onSubmit: (data) async {
           Navigator.pop(ctx);
           try {
-            await _svc.createMaintenanceRecord(
-              equipmentId: _equipmentId,
-              vehicleName: _name,
-              maintenanceDate: data['date'] as String,
-              maintenanceType: data['type'] as String,
-              description: data['description'] as String,
-              provider: data['provider'] as String? ?? '',
-              responsible: data['responsible'] as String? ?? '',
-              observation: data['observation'] as String? ?? '',
-              nextMaintenanceDate: data['next_date'] as String?,
-              maintenanceStatus: data['status'] as String? ?? 'Terminé',
-            );
+            if (existing == null) {
+              await _svc.createMaintenanceRecord(
+                equipmentId: _equipmentId,
+                vehicleName: _name,
+                maintenanceDate: data['date'] as String,
+                maintenanceType: data['type'] as String,
+                description: data['description'] as String,
+                provider: data['provider'] as String? ?? '',
+                responsible: data['responsible'] as String? ?? '',
+                observation: data['observation'] as String? ?? '',
+                nextMaintenanceDate: data['next_date'] as String?,
+                maintenanceStatus: data['status'] as String? ?? 'Terminé',
+              );
+            } else {
+              await _svc.updateMaintenanceRecord(
+                recordId: existing['id'] as String,
+                vehicleName: _name,
+                data: {
+                  'maintenance_date': data['date'],
+                  'maintenance_type': data['type'],
+                  'description': data['description'],
+                  'provider': data['provider'],
+                  'responsible': data['responsible'],
+                  'observation': data['observation'],
+                  'maintenance_status': data['status'] ?? 'Terminé',
+                  if ((data['next_date'] as String? ?? '').isNotEmpty)
+                    'next_maintenance_date': data['next_date'],
+                },
+              );
+            }
             await _loadMaintenance();
             widget.onDataChanged();
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(
-                    'Maintenance enregistrée pour "$_name"',
+                    existing == null
+                        ? 'Maintenance enregistrée pour "$_name"'
+                        : 'Maintenance mise à jour',
                     style: GoogleFonts.ibmPlexSans(color: Colors.white),
                   ),
                   backgroundColor: AppTheme.success,
@@ -147,6 +187,55 @@ class _FixedEquipmentMaintenanceModalState
         },
       ),
     );
+  }
+
+  Future<void> _deleteMaintenanceRecord(Map<String, dynamic> rec) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Supprimer la maintenance'),
+        content: Text(
+          'Supprimer cet enregistrement de maintenance ("${rec['description'] ?? ''}")  ?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Annuler'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Supprimer', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true) return;
+    try {
+      await _svc.deleteMaintenanceRecord(rec['id'] as String);
+      await _loadMaintenance();
+      widget.onDataChanged();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Maintenance supprimée',
+              style: GoogleFonts.ibmPlexSans(color: Colors.white),
+            ),
+            backgroundColor: AppTheme.success,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur: $e'),
+            backgroundColor: AppTheme.critical,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -300,6 +389,9 @@ class _FixedEquipmentMaintenanceModalState
                         final date = rec['maintenance_date'] as String? ?? '';
                         final desc = rec['description'] as String? ?? '';
                         final status = rec['maintenance_status'] as String? ?? 'Terminé';
+                        final provider = rec['provider'] as String? ?? '';
+                        final responsible = rec['responsible'] as String? ?? '';
+                        final observation = rec['observation'] as String? ?? '';
 
                         return Container(
                           padding: const EdgeInsets.all(12),
@@ -313,6 +405,7 @@ class _FixedEquipmentMaintenanceModalState
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              // Header row: type badge + date + action icons
                               Row(
                                 children: [
                                   Container(
@@ -333,6 +426,24 @@ class _FixedEquipmentMaintenanceModalState
                                       ),
                                     ),
                                   ),
+                                  const SizedBox(width: 6),
+                                  // Status chip
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: _statusColor(status).withAlpha(22),
+                                      borderRadius: BorderRadius.circular(5),
+                                      border: Border.all(color: _statusColor(status).withAlpha(60)),
+                                    ),
+                                    child: Text(
+                                      status,
+                                      style: GoogleFonts.ibmPlexSans(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w600,
+                                        color: _statusColor(status),
+                                      ),
+                                    ),
+                                  ),
                                   const Spacer(),
                                   Text(
                                     date,
@@ -341,9 +452,36 @@ class _FixedEquipmentMaintenanceModalState
                                       color: AppTheme.mutedText,
                                     ),
                                   ),
+                                  if (widget.canEdit) ...[
+                                    const SizedBox(width: 6),
+                                    GestureDetector(
+                                      onTap: () => _showEditMaintenanceSheet(rec),
+                                      child: const Padding(
+                                        padding: EdgeInsets.all(2),
+                                        child: Icon(
+                                          Icons.edit_outlined,
+                                          size: 17,
+                                          color: AppTheme.primary,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 2),
+                                    GestureDetector(
+                                      onTap: () => _deleteMaintenanceRecord(rec),
+                                      child: const Padding(
+                                        padding: EdgeInsets.all(2),
+                                        child: Icon(
+                                          Icons.delete_outline,
+                                          size: 17,
+                                          color: AppTheme.critical,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ],
                               ),
-                              const SizedBox(height: 6),
+                              const SizedBox(height: 8),
+                              // Description
                               Text(
                                 desc,
                                 style: GoogleFonts.ibmPlexSans(
@@ -352,18 +490,86 @@ class _FixedEquipmentMaintenanceModalState
                                   color: AppTheme.darkCharcoal,
                                 ),
                               ),
-                              const SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  Text(
-                                    'Statut: $status',
-                                    style: GoogleFonts.ibmPlexSans(
-                                      fontSize: 11,
-                                      color: AppTheme.mutedText,
+                              if (responsible.isNotEmpty) ...[
+                                const SizedBox(height: 6),
+                                Row(
+                                  children: [
+                                    const Icon(Icons.person_outline, size: 13, color: AppTheme.mutedText),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      'Responsable: ',
+                                      style: GoogleFonts.ibmPlexSans(
+                                        fontSize: 11,
+                                        color: AppTheme.mutedText,
+                                      ),
                                     ),
+                                    Expanded(
+                                      child: Text(
+                                        responsible,
+                                        style: GoogleFonts.ibmPlexSans(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                          color: AppTheme.darkCharcoal,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                              if (provider.isNotEmpty) ...[
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    const Icon(Icons.business_outlined, size: 13, color: AppTheme.mutedText),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      'Prestataire: ',
+                                      style: GoogleFonts.ibmPlexSans(
+                                        fontSize: 11,
+                                        color: AppTheme.mutedText,
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Text(
+                                        provider,
+                                        style: GoogleFonts.ibmPlexSans(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                          color: AppTheme.darkCharcoal,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                              if (observation.isNotEmpty) ...[
+                                const SizedBox(height: 6),
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.surfaceVariantLight,
+                                    borderRadius: BorderRadius.circular(6),
                                   ),
-                                ],
-                              ),
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Icon(Icons.info_outline, size: 13, color: AppTheme.mutedText),
+                                      const SizedBox(width: 4),
+                                      Expanded(
+                                        child: Text(
+                                          observation,
+                                          style: GoogleFonts.ibmPlexSans(
+                                            fontSize: 11,
+                                            color: AppTheme.mutedText,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ],
                           ),
                         );
@@ -376,6 +582,19 @@ class _FixedEquipmentMaintenanceModalState
         ],
       ),
     );
+  }
+
+  Color _statusColor(String status) {
+    switch (status) {
+      case 'En cours':
+        return AppTheme.warning;
+      case 'Planifié':
+        return AppTheme.primary;
+      case 'Annulé':
+        return AppTheme.critical;
+      default:
+        return AppTheme.success;
+    }
   }
 
   int _usdTabCategoryIndex = 0; // 0 = LES VANNES, 1 = DIVERS
@@ -620,13 +839,15 @@ class _FixedEquipmentMaintenanceModalState
   }
 }
 
-// ── Add Maintenance Sheet for Fixed Equipment ──────────────────────────────────
+// ── Add/Edit Maintenance Sheet for Fixed Equipment ────────────────────────────
 class _AddFixedMaintenanceSheet extends StatefulWidget {
   final String equipmentName;
+  final Map<String, dynamic>? initialData;
   final Function(Map<String, dynamic>) onSubmit;
 
   const _AddFixedMaintenanceSheet({
     required this.equipmentName,
+    this.initialData,
     required this.onSubmit,
   });
 
@@ -646,6 +867,28 @@ class _AddFixedMaintenanceSheetState
   DateTime _selectedDate = DateTime.now();
   DateTime? _nextDate;
   bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialData != null) {
+      final d = widget.initialData!;
+      _descCtrl.text = d['description'] as String? ?? '';
+      _providerCtrl.text = d['provider'] as String? ?? '';
+      _responsibleCtrl.text = d['responsible'] as String? ?? '';
+      _observationCtrl.text = d['observation'] as String? ?? '';
+      _selectedType = d['type'] as String? ?? 'Préventive';
+      _selectedStatus = d['status'] as String? ?? 'Terminé';
+      final dateStr = d['date'] as String? ?? '';
+      if (dateStr.isNotEmpty) {
+        try { _selectedDate = DateTime.parse(dateStr); } catch (_) {}
+      }
+      final nextStr = d['next_date'] as String? ?? '';
+      if (nextStr.isNotEmpty) {
+        try { _nextDate = DateTime.parse(nextStr); } catch (_) {}
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -677,7 +920,9 @@ class _AddFixedMaintenanceSheetState
             Row(
               children: [
                 Text(
-                  'Nouvelle maintenance — ${widget.equipmentName}',
+                  widget.initialData != null
+                      ? 'Modifier maintenance — ${widget.equipmentName}'
+                      : 'Nouvelle maintenance — ${widget.equipmentName}',
                   style: GoogleFonts.ibmPlexSans(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,

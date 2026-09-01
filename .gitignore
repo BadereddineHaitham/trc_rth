@@ -47,7 +47,8 @@ app.*.map.json
 /android/app/release
 android/app/.cxx
 
-# ── Signing secrets — NEVER commit these ──────────────────────────────────────
+# Signing secrets — NEVER commit these
 android/key.properties
 android/*.jks
 android/*.keystore
+*.apk

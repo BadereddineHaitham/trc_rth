@@ -1050,6 +1050,10 @@ class SupabaseService {
     }
   }
 
+  Future<void> deleteMaintenanceRecord(String recordId) async {
+    await client.from('maintenance_records').delete().eq('id', recordId);
+  }
+
   // ── ALERTS ────────────────────────────────────────────────────────────────
 
   Future<void> syncAlertsFromFleet() async {

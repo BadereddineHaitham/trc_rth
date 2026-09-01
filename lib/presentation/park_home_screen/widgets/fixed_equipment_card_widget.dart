@@ -6,6 +6,7 @@ import '../../../../core/app_export.dart';
 class FixedEquipmentCardWidget extends StatelessWidget {
   final Map<String, dynamic> equipment;
   final VoidCallback? onDelete;
+  final VoidCallback? onEdit;
   final VoidCallback? onTap;
   final VoidCallback? onMaintenance;
 
@@ -13,6 +14,7 @@ class FixedEquipmentCardWidget extends StatelessWidget {
     super.key,
     required this.equipment,
     this.onDelete,
+    this.onEdit,
     this.onTap,
     this.onMaintenance,
   });
@@ -201,19 +203,34 @@ class FixedEquipmentCardWidget extends StatelessWidget {
                               ],
                             ),
                           ),
-                          if (onDelete != null) ...[
+                          if (onEdit != null || onDelete != null) ...[ 
                             const SizedBox(width: 4),
-                            GestureDetector(
-                              onTap: onDelete,
-                              child: const Padding(
-                                padding: EdgeInsets.all(2),
-                                child: Icon(
-                                  Icons.delete_outline,
-                                  size: 18,
-                                  color: AppTheme.critical,
+                            if (onEdit != null)
+                              GestureDetector(
+                                onTap: onEdit,
+                                child: const Padding(
+                                  padding: EdgeInsets.all(2),
+                                  child: Icon(
+                                    Icons.edit_outlined,
+                                    size: 18,
+                                    color: AppTheme.primary,
+                                  ),
                                 ),
                               ),
-                            ),
+                            if (onDelete != null) ...[
+                              const SizedBox(width: 2),
+                              GestureDetector(
+                                onTap: onDelete,
+                                child: const Padding(
+                                  padding: EdgeInsets.all(2),
+                                  child: Icon(
+                                    Icons.delete_outline,
+                                    size: 18,
+                                    color: AppTheme.critical,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ],
                         ],
                       ),

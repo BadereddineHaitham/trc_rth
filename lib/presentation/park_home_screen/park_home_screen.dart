@@ -360,6 +360,137 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
     );
   }
 
+  void _editFixedEquipment(Map<String, dynamic> equipment) {
+    final id = equipment['id'] as String?;
+    if (id == null) return;
+
+    final nameCtrl = TextEditingController(text: equipment['name'] as String? ?? '');
+    final locationCtrl = TextEditingController(text: equipment['location'] as String? ?? '');
+    String selectedStatus = equipment['status'] as String? ?? 'operational';
+    bool isSaving = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setModalState) => Padding(
+          padding: EdgeInsets.only(
+            left: 20,
+            right: 20,
+            top: 20,
+            bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Text(
+                    'Modifier l\'équipement',
+                    style: GoogleFonts.ibmPlexSans(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.darkCharcoal,
+                    ),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(ctx),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: nameCtrl,
+                decoration: const InputDecoration(labelText: 'Nom *'),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: locationCtrl,
+                decoration: const InputDecoration(labelText: 'Emplacement'),
+              ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                value: selectedStatus,
+                decoration: const InputDecoration(labelText: 'Statut'),
+                items: [
+                  DropdownMenuItem(value: 'operational', child: Text('Opérationnel')),
+                  DropdownMenuItem(value: 'maintenance', child: Text('Maintenance')),
+                  DropdownMenuItem(value: 'out_of_service', child: Text('Hors service')),
+                ].toList(),
+                onChanged: (v) => setModalState(() => selectedStatus = v ?? 'operational'),
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: isSaving
+                      ? null
+                      : () async {
+                          final name = nameCtrl.text.trim();
+                          if (name.isEmpty) return;
+                          setModalState(() => isSaving = true);
+                          try {
+                            await _svc.updateFixedEquipment(
+                              id: id,
+                              data: {
+                                'name': name,
+                                'location': locationCtrl.text.trim(),
+                                'status': selectedStatus,
+                              },
+                            );
+                            // Update local map to reflect changes immediately
+                            equipment['name'] = name;
+                            equipment['location'] = locationCtrl.text.trim();
+                            equipment['status'] = selectedStatus;
+                            await _loadData();
+                            if (ctx.mounted) Navigator.pop(ctx);
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    '"$name" mis à jour',
+                                    style: GoogleFonts.ibmPlexSans(color: Colors.white),
+                                  ),
+                                  backgroundColor: AppTheme.success,
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            setModalState(() => isSaving = false);
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Erreur: $e'),
+                                  backgroundColor: AppTheme.critical,
+                                ),
+                              );
+                            }
+                          }
+                        },
+                  child: isSaving
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        )
+                      : const Text('Enregistrer'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _deleteFixedEquipment(Map<String, dynamic> equipment) async {
     final id = equipment['id'] as String?;
     final name = (equipment['name'] as String?) ?? 'cet équipement';
@@ -824,6 +955,9 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
                                     _openFixedEquipmentMaintenanceModal(item),
                                 onMaintenance: () =>
                                     _openFixedEquipmentMaintenanceModal(item),
+                                onEdit: _canEdit
+                                    ? () => _editFixedEquipment(item)
+                                    : null,
                                 onDelete: _canEdit
                                     ? () => _deleteFixedEquipment(item)
                                     : null,
