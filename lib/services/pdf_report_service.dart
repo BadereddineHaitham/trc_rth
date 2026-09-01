@@ -38,7 +38,7 @@ class PdfReportService {
     pdf.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(32),
+        margin: const pw.EdgeInsets.all(28),
         header: (pw.Context context) {
           return pw.Column(
             children: [
@@ -47,9 +47,9 @@ class PdfReportService {
                 crossAxisAlignment: pw.CrossAxisAlignment.center,
                 children: [
                   if (logoBytes.isNotEmpty)
-                    pw.Image(pw.MemoryImage(logoBytes), width: 60, height: 60)
+                    pw.Image(pw.MemoryImage(logoBytes), width: 65, height: 65)
                   else
-                    pw.Container(width: 60, height: 60),
+                    pw.Container(width: 65, height: 65),
                   pw.Column(
                     crossAxisAlignment: pw.CrossAxisAlignment.end,
                     children: [
@@ -63,19 +63,19 @@ class PdfReportService {
                       ),
                       pw.Text(
                         'Direction Régionale Transport Hydrocarbures',
-                        style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700),
+                        style: const pw.TextStyle(fontSize: 9.5, color: PdfColors.grey700),
                       ),
                       pw.Text(
                         'Édité le: $dateFormatted',
-                        style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey600),
+                        style: const pw.TextStyle(fontSize: 8.5, color: PdfColors.grey600),
                       ),
                     ],
                   ),
                 ],
               ),
-              pw.SizedBox(height: 8),
+              pw.SizedBox(height: 6),
               pw.Divider(thickness: 1.5, color: PdfColors.amber900),
-              pw.SizedBox(height: 8),
+              pw.SizedBox(height: 6),
             ],
           );
         },
@@ -93,19 +93,19 @@ class PdfReportService {
             // Document Title
             pw.Center(
               child: pw.Text(
-                'FICHE TECHNIQUE & HISTORIQUE DE MAINTENANCE',
+                'FICHE TECHNIQUE & HISTORIQUE DE MAINTENANCE VÉHICULE',
                 style: pw.TextStyle(
-                  fontSize: 15,
+                  fontSize: 14,
                   fontWeight: pw.FontWeight.bold,
                   color: PdfColors.blueGrey900,
                 ),
               ),
             ),
-            pw.SizedBox(height: 14),
+            pw.SizedBox(height: 12),
 
             // Vehicle Details Box
             pw.Container(
-              padding: const pw.EdgeInsets.all(12),
+              padding: const pw.EdgeInsets.all(10),
               decoration: pw.BoxDecoration(
                 border: pw.Border.all(color: PdfColors.grey400),
                 borderRadius: const pw.BorderRadius.all(pw.Radius.circular(6)),
@@ -114,29 +114,29 @@ class PdfReportService {
               child: pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
-                  pw.Text('INFORMATIONS DU VÉHICULE', style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold, color: PdfColors.blueGrey800)),
-                  pw.SizedBox(height: 8),
+                  pw.Text('INFORMATIONS GÉNÉRALES VÉHICULE', style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.blueGrey800)),
+                  pw.SizedBox(height: 6),
                   pw.Row(
                     children: [
                       pw.Expanded(child: _buildInfoItem('Nom:', name)),
                       pw.Expanded(child: _buildInfoItem('Matricule:', matricule)),
                     ],
                   ),
-                  pw.SizedBox(height: 4),
+                  pw.SizedBox(height: 3),
                   pw.Row(
                     children: [
                       pw.Expanded(child: _buildInfoItem('Type:', type)),
                       pw.Expanded(child: _buildInfoItem('Affectation:', affectation)),
                     ],
                   ),
-                  pw.SizedBox(height: 4),
+                  pw.SizedBox(height: 3),
                   pw.Row(
                     children: [
                       pw.Expanded(child: _buildInfoItem('Statut:', status.toUpperCase())),
                       pw.Expanded(child: _buildInfoItem('Assurance Expiration:', insurance)),
                     ],
                   ),
-                  pw.SizedBox(height: 4),
+                  pw.SizedBox(height: 3),
                   pw.Row(
                     children: [
                       pw.Expanded(child: _buildInfoItem('Contrôle Technique:', inspection)),
@@ -146,55 +146,85 @@ class PdfReportService {
                 ],
               ),
             ),
-            pw.SizedBox(height: 16),
+            pw.SizedBox(height: 14),
 
             // Section 1: Équipements / Armement
             pw.Text(
               'ÉQUIPEMENTS & ARMEMENT (${equipmentList.length})',
-              style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold, color: PdfColors.blueGrey900),
+              style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.blueGrey900),
             ),
-            pw.SizedBox(height: 6),
+            pw.SizedBox(height: 5),
             if (equipmentList.isEmpty)
-              pw.Text('Aucun équipement renseigné.', style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey600))
+              pw.Text('Aucun équipement renseigné.', style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey600))
             else
-              pw.Table.fromTextArray(
-                headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 9),
+              pw.TableHelper.fromTextArray(
+                headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 8.5),
                 headerDecoration: const pw.BoxDecoration(color: PdfColors.amber900),
-                cellStyle: const pw.TextStyle(fontSize: 9),
-                cellPadding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                cellStyle: const pw.TextStyle(fontSize: 8),
+                cellPadding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 3),
+                columnWidths: {
+                  0: const pw.FlexColumnWidth(2.8),
+                  1: const pw.FlexColumnWidth(1.5),
+                  2: const pw.FlexColumnWidth(1.5),
+                  3: const pw.FlexColumnWidth(2.8),
+                },
                 headers: ['Équipement', 'Quantité', 'État', 'Observation'],
                 data: equipmentList.map((eq) {
-                  final eqName = (eq['name'] as String?) ?? '';
-                  final qty = (eq['quantity']?.toString()) ?? '1';
-                  final state = (eq['state'] as String?) ?? 'B';
-                  final obs = (eq['observation'] as String?) ?? '';
-                  return [eqName, qty, state, obs];
+                  final def = (eq['equipment_definitions'] as Map<String, dynamic>?) ?? {};
+                  final eqName = (def['name'] as String?) ??
+                      (eq['designation'] as String?) ??
+                      (eq['name'] as String?) ??
+                      'Équipement';
+
+                  final stdQty = (eq['standard_quantity'] as int?) ?? (eq['standard'] as int?) ?? 0;
+                  final extQty = (eq['existing_quantity'] as int?) ?? (eq['existing'] as int?) ?? 0;
+                  final qtyStr = (stdQty > 0 || extQty > 0)
+                      ? '$extQty (Exist.) / $stdQty (Std.)'
+                      : '${eq['quantity'] ?? 1}';
+
+                  final state = (eq['state'] as String?) ??
+                      (extQty < stdQty && stdQty > 0 ? 'Manquant' : 'Conforme');
+
+                  final obs = (eq['observation'] as String?) ??
+                      (eq['notes'] as String?) ??
+                      (eq['remark'] as String?) ??
+                      (extQty < stdQty && stdQty > 0 ? 'Manquant (${stdQty - extQty})' : 'R.A.S');
+
+                  return [eqName, qtyStr, state, obs];
                 }).toList(),
               ),
-            pw.SizedBox(height: 16),
+            pw.SizedBox(height: 14),
 
             // Section 2: Historique de Maintenance
             pw.Text(
               'HISTORIQUE DE MAINTENANCE (${maintenanceRecords.length})',
-              style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold, color: PdfColors.blueGrey900),
+              style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.blueGrey900),
             ),
-            pw.SizedBox(height: 6),
+            pw.SizedBox(height: 5),
             if (maintenanceRecords.isEmpty)
-              pw.Text('Aucune opération de maintenance enregistrée.', style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey600))
+              pw.Text('Aucune opération de maintenance enregistrée.', style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey600))
             else
-              pw.Table.fromTextArray(
-                headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 9),
+              pw.TableHelper.fromTextArray(
+                headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 8),
                 headerDecoration: const pw.BoxDecoration(color: PdfColors.blueGrey800),
-                cellStyle: const pw.TextStyle(fontSize: 8.5),
-                cellPadding: const pw.EdgeInsets.symmetric(horizontal: 5, vertical: 4),
+                cellStyle: const pw.TextStyle(fontSize: 7.5),
+                cellPadding: const pw.EdgeInsets.symmetric(horizontal: 3, vertical: 3),
+                columnWidths: {
+                  0: const pw.FlexColumnWidth(1.2), // Date
+                  1: const pw.FlexColumnWidth(1.1), // Type
+                  2: const pw.FlexColumnWidth(3.0), // Description
+                  3: const pw.FlexColumnWidth(1.5), // Responsable
+                  4: const pw.FlexColumnWidth(1.5), // Prestataire
+                  5: const pw.FlexColumnWidth(1.0), // Statut
+                },
                 headers: ['Date', 'Type', 'Description', 'Responsable', 'Prestataire', 'Statut'],
                 data: maintenanceRecords.map((m) {
-                  final date = (m['maintenance_date'] as String?) ?? (m['date'] as String?) ?? '';
-                  final mType = (m['maintenance_type'] as String?) ?? (m['type'] as String?) ?? '';
-                  final desc = (m['description'] as String?) ?? '';
-                  final resp = (m['responsible'] as String?) ?? '';
-                  final prov = (m['provider'] as String?) ?? '';
-                  final stat = (m['maintenance_status'] as String?) ?? (m['status'] as String?) ?? '';
+                  final date = (m['maintenance_date'] as String?) ?? (m['date'] as String?) ?? '—';
+                  final mType = (m['maintenance_type'] as String?) ?? (m['type'] as String?) ?? '—';
+                  final desc = (m['description'] as String?) ?? '—';
+                  final resp = (m['responsible'] as String?) ?? '—';
+                  final prov = (m['provider'] as String?) ?? '—';
+                  final stat = (m['maintenance_status'] as String?) ?? (m['status'] as String?) ?? 'Terminé';
                   return [date, mType, desc, resp, prov, stat];
                 }).toList(),
               ),
@@ -232,7 +262,7 @@ class PdfReportService {
     pdf.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(32),
+        margin: const pw.EdgeInsets.all(28),
         header: (pw.Context context) {
           return pw.Column(
             children: [
@@ -241,9 +271,9 @@ class PdfReportService {
                 crossAxisAlignment: pw.CrossAxisAlignment.center,
                 children: [
                   if (logoBytes.isNotEmpty)
-                    pw.Image(pw.MemoryImage(logoBytes), width: 60, height: 60)
+                    pw.Image(pw.MemoryImage(logoBytes), width: 65, height: 65)
                   else
-                    pw.Container(width: 60, height: 60),
+                    pw.Container(width: 65, height: 65),
                   pw.Column(
                     crossAxisAlignment: pw.CrossAxisAlignment.end,
                     children: [
@@ -257,19 +287,19 @@ class PdfReportService {
                       ),
                       pw.Text(
                         'Direction Régionale Transport Hydrocarbures',
-                        style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700),
+                        style: const pw.TextStyle(fontSize: 9.5, color: PdfColors.grey700),
                       ),
                       pw.Text(
                         'Édité le: $dateFormatted',
-                        style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey600),
+                        style: const pw.TextStyle(fontSize: 8.5, color: PdfColors.grey600),
                       ),
                     ],
                   ),
                 ],
               ),
-              pw.SizedBox(height: 8),
+              pw.SizedBox(height: 6),
               pw.Divider(thickness: 1.5, color: PdfColors.amber900),
-              pw.SizedBox(height: 8),
+              pw.SizedBox(height: 6),
             ],
           );
         },
@@ -289,17 +319,17 @@ class PdfReportService {
               child: pw.Text(
                 'FICHE ÉQUIPEMENT FIXE & HISTORIQUE DE MAINTENANCE',
                 style: pw.TextStyle(
-                  fontSize: 15,
+                  fontSize: 14,
                   fontWeight: pw.FontWeight.bold,
                   color: PdfColors.blueGrey900,
                 ),
               ),
             ),
-            pw.SizedBox(height: 14),
+            pw.SizedBox(height: 12),
 
             // Equipment Info Box
             pw.Container(
-              padding: const pw.EdgeInsets.all(12),
+              padding: const pw.EdgeInsets.all(10),
               decoration: pw.BoxDecoration(
                 border: pw.Border.all(color: PdfColors.grey400),
                 borderRadius: const pw.BorderRadius.all(pw.Radius.circular(6)),
@@ -308,15 +338,15 @@ class PdfReportService {
               child: pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
-                  pw.Text('INFORMATIONS ÉQUIPEMENT FIXE', style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold, color: PdfColors.blueGrey800)),
-                  pw.SizedBox(height: 8),
+                  pw.Text('INFORMATIONS ÉQUIPEMENT FIXE', style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.blueGrey800)),
+                  pw.SizedBox(height: 6),
                   pw.Row(
                     children: [
                       pw.Expanded(child: _buildInfoItem('Nom:', name)),
                       pw.Expanded(child: _buildInfoItem('Catégorie:', category)),
                     ],
                   ),
-                  pw.SizedBox(height: 4),
+                  pw.SizedBox(height: 3),
                   pw.Row(
                     children: [
                       pw.Expanded(child: _buildInfoItem('Emplacement:', location)),
@@ -326,48 +356,60 @@ class PdfReportService {
                 ],
               ),
             ),
-            pw.SizedBox(height: 16),
+            pw.SizedBox(height: 14),
 
             // If USD, USD Components table
             if (isUSD && usdDetails.isNotEmpty) ...[
               pw.Text(
                 'ÉTAT DES COMPOSANTS USD',
-                style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold, color: PdfColors.blueGrey900),
+                style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.blueGrey900),
               ),
-              pw.SizedBox(height: 6),
-              pw.Table.fromTextArray(
-                headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 9),
+              pw.SizedBox(height: 5),
+              pw.TableHelper.fromTextArray(
+                headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 8.5),
                 headerDecoration: const pw.BoxDecoration(color: PdfColors.amber900),
-                cellStyle: const pw.TextStyle(fontSize: 8.5),
-                cellPadding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                cellStyle: const pw.TextStyle(fontSize: 8),
+                cellPadding: const pw.EdgeInsets.symmetric(horizontal: 5, vertical: 3),
+                columnWidths: {
+                  0: const pw.FlexColumnWidth(3.5),
+                  1: const pw.FlexColumnWidth(1.5),
+                },
                 headers: ['Composant USD', 'État (B / M)'],
                 data: usdDetails.entries.map((e) => [e.key, e.value.toString()]).toList(),
               ),
-              pw.SizedBox(height: 16),
+              pw.SizedBox(height: 14),
             ],
 
             // Section 2: Historique de Maintenance
             pw.Text(
               'HISTORIQUE DE MAINTENANCE (${maintenanceRecords.length})',
-              style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold, color: PdfColors.blueGrey900),
+              style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.blueGrey900),
             ),
-            pw.SizedBox(height: 6),
+            pw.SizedBox(height: 5),
             if (maintenanceRecords.isEmpty)
-              pw.Text('Aucune opération de maintenance enregistrée.', style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey600))
+              pw.Text('Aucune opération de maintenance enregistrée.', style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey600))
             else
-              pw.Table.fromTextArray(
-                headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 9),
+              pw.TableHelper.fromTextArray(
+                headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 8),
                 headerDecoration: const pw.BoxDecoration(color: PdfColors.blueGrey800),
-                cellStyle: const pw.TextStyle(fontSize: 8.5),
-                cellPadding: const pw.EdgeInsets.symmetric(horizontal: 5, vertical: 4),
+                cellStyle: const pw.TextStyle(fontSize: 7.5),
+                cellPadding: const pw.EdgeInsets.symmetric(horizontal: 3, vertical: 3),
+                columnWidths: {
+                  0: const pw.FlexColumnWidth(1.2), // Date
+                  1: const pw.FlexColumnWidth(1.1), // Type
+                  2: const pw.FlexColumnWidth(3.0), // Description
+                  3: const pw.FlexColumnWidth(1.5), // Responsable
+                  4: const pw.FlexColumnWidth(1.5), // Prestataire
+                  5: const pw.FlexColumnWidth(1.0), // Statut
+                },
                 headers: ['Date', 'Type', 'Description', 'Responsable', 'Prestataire', 'Statut'],
                 data: maintenanceRecords.map((m) {
-                  final date = (m['maintenance_date'] as String?) ?? (m['date'] as String?) ?? '';
-                  final mType = (m['maintenance_type'] as String?) ?? (m['type'] as String?) ?? '';
-                  final desc = (m['description'] as String?) ?? '';
-                  final resp = (m['responsible'] as String?) ?? '';
-                  final prov = (m['provider'] as String?) ?? '';
-                  final stat = (m['maintenance_status'] as String?) ?? (m['status'] as String?) ?? '';
+                  final date = (m['maintenance_date'] as String?) ?? (m['date'] as String?) ?? '—';
+                  final mType = (m['maintenance_type'] as String?) ?? (m['type'] as String?) ?? '—';
+                  final desc = (m['description'] as String?) ?? '—';
+                  final resp = (m['responsible'] as String?) ?? '—';
+                  final prov = (m['provider'] as String?) ?? '—';
+                  final stat = (m['maintenance_status'] as String?) ?? (m['status'] as String?) ?? 'Terminé';
                   return [date, mType, desc, resp, prov, stat];
                 }).toList(),
               ),
@@ -386,9 +428,9 @@ class PdfReportService {
     return pw.Row(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
-        pw.Text('$label ', style: pw.TextStyle(fontSize: 9.5, fontWeight: pw.FontWeight.bold, color: PdfColors.grey800)),
+        pw.Text('$label ', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold, color: PdfColors.grey800)),
         pw.Expanded(
-          child: pw.Text(value, style: const pw.TextStyle(fontSize: 9.5, color: PdfColors.black)),
+          child: pw.Text(value, style: const pw.TextStyle(fontSize: 9, color: PdfColors.black)),
         ),
       ],
     );
