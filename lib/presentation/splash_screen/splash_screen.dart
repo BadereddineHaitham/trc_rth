@@ -373,6 +373,16 @@ class _SplashScreenState extends State<SplashScreen>
                           borderRadius: BorderRadius.circular(1),
                         ),
                       ),
+                      const SizedBox(height: 10),
+                      Text(
+                        'Idée & Spécifications Métier : Walid SOLTANI',
+                        style: GoogleFonts.ibmPlexSans(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          color: const Color(0xFFFFB74D),
+                          letterSpacing: 0.5,
+                        ),
+                      ),
                     ],
                   ),
                 ),
