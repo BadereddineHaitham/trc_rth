@@ -931,6 +931,108 @@ class SupabaseService {
     await client.from('fixed_equipment').delete().eq('id', id);
   }
 
+  // ── PV DIVERS ─────────────────────────────────────────────────────────────
+
+  Future<List<Map<String, dynamic>>> getPvDivers() async {
+    try {
+      final response = await client
+          .from('pv_divers')
+          .select()
+          .order('date', ascending: false);
+      return List<Map<String, dynamic>>.from(response);
+    } catch (_) {
+      try {
+        final response = await client
+            .from('fixed_equipment')
+            .select()
+            .eq('category', 'PV_DIVERS')
+            .order('created_at', ascending: false);
+        return List<Map<String, dynamic>>.from(response.map((item) {
+          final details = item['usd_details'];
+          if (details is Map<String, dynamic>) {
+            return {'id': item['id'], ...details};
+          }
+          return {
+            'id': item['id'],
+            'date': item['last_inspection'] ?? '',
+            'equipe': item['location'] ?? '',
+            'description': item['name'] ?? '',
+          };
+        }));
+      } catch (_) {
+        return [];
+      }
+    }
+  }
+
+  Future<Map<String, dynamic>> createPvDivers({
+    required String date,
+    required String equipe,
+    required String description,
+    String? pdfName,
+    String? pdfData,
+  }) async {
+    final data = {
+      'date': date,
+      'equipe': equipe,
+      'description': description,
+      if (pdfName != null) 'pdf_name': pdfName,
+      if (pdfData != null) 'pdf_data': pdfData,
+    };
+
+    try {
+      final res = await client
+          .from('pv_divers')
+          .insert(data)
+          .select()
+          .single();
+      return res;
+    } catch (_) {
+      final fallbackData = {
+        'name': description,
+        'category': 'PV_DIVERS',
+        'location': equipe,
+        'status': 'operational',
+        'last_inspection': date,
+        'usd_details': data,
+      };
+      final res = await client
+          .from('fixed_equipment')
+          .insert(fallbackData)
+          .select()
+          .single();
+      return {'id': res['id'], ...data};
+    }
+  }
+
+  Future<void> updatePvDivers({
+    required String id,
+    required Map<String, dynamic> data,
+  }) async {
+    try {
+      await client.from('pv_divers').update(data).eq('id', id);
+    } catch (_) {
+      try {
+        await client.from('fixed_equipment').update({
+          'usd_details': data,
+          'name': data['description'] ?? '',
+          'location': data['equipe'] ?? '',
+          'last_inspection': data['date'] ?? '',
+        }).eq('id', id);
+      } catch (_) {}
+    }
+  }
+
+  Future<void> deletePvDivers(String id) async {
+    try {
+      await client.from('pv_divers').delete().eq('id', id);
+    } catch (_) {
+      try {
+        await client.from('fixed_equipment').delete().eq('id', id);
+      } catch (_) {}
+    }
+  }
+
   // ── MAINTENANCE RECORDS ───────────────────────────────────────────────────
 
   Future<List<Map<String, dynamic>>> getMaintenanceRecords(

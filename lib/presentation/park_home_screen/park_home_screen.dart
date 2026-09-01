@@ -1,6 +1,9 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:universal_html/html.dart' as html;
 
 import '../../../core/app_export.dart';
 import '../../services/presence_service.dart';
@@ -29,15 +32,19 @@ class ParkHomeScreen extends StatefulWidget {
 class _ParkHomeScreenState extends State<ParkHomeScreen>
     with SingleTickerProviderStateMixin {
   int _currentNavIndex = 0;
-  int _fixesSubTabIndex = 0; // 0 = USD, 1 = Moto Pompe
+  int _fixesSubTabIndex = 0; // 0 = USD, 1 = Moto Pompe, 2 = PV Divers
   late final TabController _tabController;
   final _svc = SupabaseService.instance;
 
   List<Map<String, dynamic>> _vehicleMaps = [];
   List<Map<String, dynamic>> _fixedEquipmentMaps = [];
   List<Map<String, dynamic>> _alertMaps = [];
+  List<Map<String, dynamic>> _pvDiversMaps = [];
   bool _isLoading = true;
   String? _errorMsg;
+
+  String _pvFilterMonth = 'Tous';
+  String _pvFilterYear = 'Tous';
 
   List<Map<String, dynamic>> get _usdEquipments => _fixedEquipmentMaps
       .where((e) =>
@@ -46,12 +53,14 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
 
   List<Map<String, dynamic>> get _motoPompeEquipments => _fixedEquipmentMaps
       .where((e) =>
-          !(e['category'] as String? ?? '').toUpperCase().contains('USD'))
+          !(e['category'] as String? ?? '').toUpperCase().contains('USD') &&
+          !(e['category'] as String? ?? '').toUpperCase().contains('PV_DIVERS'))
       .toList();
 
   RealtimeChannel? _vehiclesChannel;
   RealtimeChannel? _alertsChannel;
   RealtimeChannel? _fixedEquipChannel;
+  RealtimeChannel? _pvDiversChannel;
 
   bool get _isSuperAdmin => widget.role == 'Super Admin';
   bool get _isAdmin => widget.role == 'Admin';
@@ -82,6 +91,7 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
     _vehiclesChannel?.unsubscribe();
     _alertsChannel?.unsubscribe();
     _fixedEquipChannel?.unsubscribe();
+    _pvDiversChannel?.unsubscribe();
     super.dispose();
   }
 
@@ -97,12 +107,14 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
         _svc.getVehicles(parkId: widget.parkId),
         _svc.getFixedEquipment(parkId: widget.parkId),
         _svc.getAlerts(dismissed: false),
+        _svc.getPvDivers(),
       ]);
       if (mounted) {
         setState(() {
           _vehicleMaps = results[0];
           _fixedEquipmentMaps = results[1];
           _alertMaps = results[2];
+          _pvDiversMaps = results[3];
           _isLoading = false;
         });
       }
@@ -143,6 +155,16 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
           event: PostgresChangeEvent.all,
           schema: 'public',
           table: 'fixed_equipment',
+          callback: (_) => _loadData(),
+        )
+        .subscribe();
+
+    _pvDiversChannel = _svc.client
+        .channel('park_pv_divers')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'pv_divers',
           callback: (_) => _loadData(),
         )
         .subscribe();
@@ -615,7 +637,9 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
               onPressed: onFixesTab
                   ? (_fixesSubTabIndex == 0
                       ? _showAddUSDEquipmentSheet
-                      : () => _showAddFixedEquipmentSheet(presetCategory: 'Pompe divers'))
+                      : _fixesSubTabIndex == 1
+                          ? () => _showAddFixedEquipmentSheet(presetCategory: 'Pompe divers')
+                          : _showAddPvDiversSheet)
                   : _showAddVehicleSheet,
               backgroundColor: AppTheme.primary,
               foregroundColor: Colors.white,
@@ -626,7 +650,11 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
               ),
               label: Text(
                 onFixesTab
-                    ? (_fixesSubTabIndex == 0 ? 'Ajouter USD' : 'Ajouter Pompe divers')
+                    ? (_fixesSubTabIndex == 0
+                        ? 'Ajouter USD'
+                        : _fixesSubTabIndex == 1
+                            ? 'Ajouter Pompe divers'
+                            : 'Ajouter PV')
                     : 'Véhicule',
                 style: GoogleFonts.ibmPlexSans(
                   fontSize: 14,
@@ -871,10 +899,10 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
                 onRefresh: _loadData,
                 child: Column(
                   children: [
-                    // Sub-tabs for USD / Moto Pompe
+                    // Sub-tabs for USD / Pompe divers / PV divers
                     Container(
                       color: AppTheme.surfaceVariantLight,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                       child: Row(
                         children: [
                           Expanded(
@@ -884,12 +912,20 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
                               icon: 'shield',
                             ),
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: 6),
                           Expanded(
                             child: _buildSubTabItem(
                               index: 1,
-                              label: 'Pompe divers (${_motoPompeEquipments.length})',
+                              label: 'Pompe (${_motoPompeEquipments.length})',
                               icon: 'settings',
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: _buildSubTabItem(
+                              index: 2,
+                              label: 'PV divers (${_pvDiversMaps.length})',
+                              icon: 'description',
                             ),
                           ),
                         ],
@@ -897,6 +933,9 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
                     ),
                     Expanded(
                       child: () {
+                        if (_fixesSubTabIndex == 2) {
+                          return _buildPvDiversSection();
+                        }
                         final currentList = _fixesSubTabIndex == 0
                             ? _usdEquipments
                             : _motoPompeEquipments;
@@ -1016,6 +1055,605 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
         ),
       ],
     );
+  }
+
+  void _openPdfFile(String name, String base64Data) {
+    if (base64Data.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Aucun contenu PDF à afficher.')),
+      );
+      return;
+    }
+    try {
+      final bytes = base64Decode(base64Data);
+      final blob = html.Blob([bytes], 'application/pdf');
+      final url = html.Url.createObjectUrlFromBlob(blob);
+      html.AnchorElement(href: url)
+        ..target = '_blank'
+        ..download = name.isNotEmpty ? name : 'PV_Divers.pdf'
+        ..click();
+      html.Url.revokeObjectUrl(url);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur ouverture du PDF: $e')),
+      );
+    }
+  }
+
+  Widget _buildPvDiversSection() {
+    final months = [
+      {'val': 'Tous', 'label': 'Tous les mois'},
+      {'val': '01', 'label': 'Janvier'},
+      {'val': '02', 'label': 'Février'},
+      {'val': '03', 'label': 'Mars'},
+      {'val': '04', 'label': 'Avril'},
+      {'val': '05', 'label': 'Mai'},
+      {'val': '06', 'label': 'Juin'},
+      {'val': '07', 'label': 'Juillet'},
+      {'val': '08', 'label': 'Août'},
+      {'val': '09', 'label': 'Septembre'},
+      {'val': '10', 'label': 'Octobre'},
+      {'val': '11', 'label': 'Novembre'},
+      {'val': '12', 'label': 'Décembre'},
+    ];
+
+    final years = ['Tous', '2024', '2025', '2026', '2027', '2028'];
+
+    final filteredPvList = _pvDiversMaps.where((pv) {
+      final dateStr = (pv['date'] as String?) ?? '';
+      if (_pvFilterYear != 'Tous') {
+        if (!dateStr.startsWith(_pvFilterYear)) return false;
+      }
+      if (_pvFilterMonth != 'Tous') {
+        final parts = dateStr.split('-');
+        if (parts.length >= 2) {
+          if (parts[1] != _pvFilterMonth) return false;
+        }
+      }
+      return true;
+    }).toList();
+
+    return Column(
+      children: [
+        // Search & Filter Header (Month & Year)
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          color: Colors.white,
+          child: Row(
+            children: [
+              // Month Dropdown
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  decoration: BoxDecoration(
+                    color: AppTheme.surfaceVariantLight,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppTheme.outlineVariantLight),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      value: _pvFilterMonth,
+                      isExpanded: true,
+                      style: GoogleFonts.ibmPlexSans(
+                        fontSize: 12,
+                        color: AppTheme.darkCharcoal,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      icon: const Icon(Icons.calendar_month, size: 16, color: AppTheme.primary),
+                      items: months.map((m) {
+                        return DropdownMenuItem<String>(
+                          value: m['val']!,
+                          child: Text(m['label']!),
+                        );
+                      }).toList(),
+                      onChanged: (val) {
+                        if (val != null) setState(() => _pvFilterMonth = val);
+                      },
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              // Year Dropdown
+              Container(
+                width: 110,
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                decoration: BoxDecoration(
+                  color: AppTheme.surfaceVariantLight,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppTheme.outlineVariantLight),
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    value: _pvFilterYear,
+                    isExpanded: true,
+                    style: GoogleFonts.ibmPlexSans(
+                      fontSize: 12,
+                      color: AppTheme.darkCharcoal,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    icon: const Icon(Icons.date_range, size: 16, color: AppTheme.primary),
+                    items: years.map((y) {
+                      return DropdownMenuItem<String>(
+                        value: y,
+                        child: Text(y == 'Tous' ? 'Toutes' : y),
+                      );
+                    }).toList(),
+                    onChanged: (val) {
+                      if (val != null) setState(() => _pvFilterYear = val);
+                    },
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const Divider(height: 1, color: AppTheme.outlineVariantLight),
+
+        // Cards list
+        Expanded(
+          child: filteredPvList.isEmpty
+              ? ListView(
+                  children: [
+                    const SizedBox(height: 60),
+                    Center(
+                      child: Column(
+                        children: [
+                          const Icon(
+                            Icons.description_outlined,
+                            size: 48,
+                            color: AppTheme.mutedText,
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            'Aucun PV divers trouvé',
+                            style: GoogleFonts.ibmPlexSans(
+                              color: AppTheme.mutedText,
+                              fontSize: 15,
+                            ),
+                          ),
+                          if (_canEdit) ...[
+                            const SizedBox(height: 8),
+                            Text(
+                              'Appuyez sur + pour ajouter un PV divers',
+                              style: GoogleFonts.ibmPlexSans(
+                                color: AppTheme.mutedText,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ],
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 80),
+                  itemCount: filteredPvList.length,
+                  itemBuilder: (ctx, i) {
+                    final pv = filteredPvList[i];
+                    final date = (pv['date'] as String?) ?? '';
+                    final equipe = (pv['equipe'] as String?) ?? '';
+                    final desc = (pv['description'] as String?) ?? '';
+                    final pdfName = (pv['pdf_name'] as String?) ?? '';
+                    final pdfData = (pv['pdf_data'] as String?) ?? '';
+
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppTheme.outlineVariantLight),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.03),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Header: Badge Date + Équipe + Actions
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.primary.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Icons.event, size: 13, color: AppTheme.primary),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      date,
+                                      style: GoogleFonts.ibmPlexMono(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w700,
+                                        color: AppTheme.primary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'Équipe: $equipe',
+                                  style: GoogleFonts.ibmPlexSans(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppTheme.darkCharcoal,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              if (_canEdit) ...[
+                                GestureDetector(
+                                  onTap: () => _showAddPvDiversSheet(initialPv: pv),
+                                  child: const Padding(
+                                    padding: EdgeInsets.all(4),
+                                    child: Icon(Icons.edit_outlined, size: 18, color: AppTheme.primary),
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                GestureDetector(
+                                  onTap: () => _deletePvDivers(pv),
+                                  child: const Padding(
+                                    padding: EdgeInsets.all(4),
+                                    child: Icon(Icons.delete_outline, size: 18, color: AppTheme.critical),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          // Description
+                          Text(
+                            desc,
+                            style: GoogleFonts.ibmPlexSans(
+                              fontSize: 13,
+                              color: AppTheme.darkCharcoal,
+                            ),
+                          ),
+                          // PDF attachment button
+                          if (pdfData.isNotEmpty || pdfName.isNotEmpty) ...[
+                            const SizedBox(height: 12),
+                            InkWell(
+                              onTap: () => _openPdfFile(pdfName, pdfData),
+                              borderRadius: BorderRadius.circular(8),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: Colors.red.shade50,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: Colors.red.shade200),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Icons.picture_as_pdf, color: Colors.red, size: 18),
+                                    const SizedBox(width: 6),
+                                    Flexible(
+                                      child: Text(
+                                        pdfName.isNotEmpty ? pdfName : 'Document_PV.pdf',
+                                        style: GoogleFonts.ibmPlexSans(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.red.shade800,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    const Icon(Icons.open_in_new, size: 14, color: Colors.red),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    );
+                  },
+                ),
+        ),
+      ],
+    );
+  }
+
+  void _showAddPvDiversSheet({Map<String, dynamic>? initialPv}) {
+    final isEdit = initialPv != null;
+    final dateCtrl = TextEditingController(
+      text: initialPv?['date'] as String? ??
+          '${DateTime.now().year}-${DateTime.now().month.toString().padLeft(2, '0')}-${DateTime.now().day.toString().padLeft(2, '0')}',
+    );
+    final equipeCtrl = TextEditingController(text: initialPv?['equipe'] as String? ?? '');
+    final descCtrl = TextEditingController(text: initialPv?['description'] as String? ?? '');
+    String? pdfName = initialPv?['pdf_name'] as String?;
+    String? pdfData = initialPv?['pdf_data'] as String?;
+    bool isSaving = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setModalState) => Padding(
+          padding: EdgeInsets.only(
+            left: 20,
+            right: 20,
+            top: 20,
+            bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      isEdit ? 'Modifier PV Divers' : 'Nouveau PV Divers',
+                      style: GoogleFonts.ibmPlexSans(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.darkCharcoal,
+                      ),
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(ctx),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                // Date picker
+                TextField(
+                  controller: dateCtrl,
+                  readOnly: true,
+                  decoration: InputDecoration(
+                    labelText: 'Date *',
+                    suffixIcon: IconButton(
+                      icon: const Icon(Icons.calendar_today, size: 18),
+                      onPressed: () async {
+                        final picked = await showDatePicker(
+                          context: context,
+                          initialDate: DateTime.tryParse(dateCtrl.text) ?? DateTime.now(),
+                          firstDate: DateTime(2020),
+                          lastDate: DateTime(2030),
+                        );
+                        if (picked != null) {
+                          setModalState(() {
+                            dateCtrl.text =
+                                '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
+                          });
+                        }
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                // Équipe
+                TextField(
+                  controller: equipeCtrl,
+                  decoration: const InputDecoration(
+                    labelText: 'Équipe *',
+                    hintText: 'ex: Équipe A / Intervenants',
+                  ),
+                ),
+                const SizedBox(height: 12),
+                // Description
+                TextField(
+                  controller: descCtrl,
+                  maxLines: 3,
+                  decoration: const InputDecoration(
+                    labelText: 'Description *',
+                    hintText: 'Détails et rapport du PV...',
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Button Joindre PDF
+                Text(
+                  'Fichier PDF joint:',
+                  style: GoogleFonts.ibmPlexSans(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.mutedText,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                if (pdfName != null && pdfName!.isNotEmpty)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.red.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.red.shade200),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.picture_as_pdf, color: Colors.red, size: 20),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            pdfName!,
+                            style: GoogleFonts.ibmPlexSans(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.red.shade900,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close, size: 16, color: Colors.red),
+                          onPressed: () {
+                            setModalState(() {
+                              pdfName = null;
+                              pdfData = null;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                  )
+                else
+                  OutlinedButton.icon(
+                    onPressed: () async {
+                      try {
+                        final files = await FilePicker.pickFiles(
+                          type: FileType.custom,
+                          allowedExtensions: ['pdf'],
+                        );
+                        if (files.isNotEmpty) {
+                          final file = files.first;
+                          final bytes = await file.readAsBytes();
+                          setModalState(() {
+                            pdfName = file.name;
+                            pdfData = base64Encode(bytes);
+                          });
+                        }
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Erreur sélection fichier: $e')),
+                        );
+                      }
+                    },
+                    icon: const Icon(Icons.attach_file, size: 18),
+                    label: const Text('Joindre fichier PDF'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppTheme.primary,
+                      side: const BorderSide(color: AppTheme.primary),
+                    ),
+                  ),
+
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: isSaving
+                        ? null
+                        : () async {
+                            final date = dateCtrl.text.trim();
+                            final equipe = equipeCtrl.text.trim();
+                            final desc = descCtrl.text.trim();
+                            if (date.isEmpty || equipe.isEmpty || desc.isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Veuillez remplir les champs obligatoires (*)')),
+                              );
+                              return;
+                            }
+                            setModalState(() => isSaving = true);
+                            try {
+                              if (isEdit) {
+                                await _svc.updatePvDivers(
+                                  id: initialPv!['id'] as String,
+                                  data: {
+                                    'date': date,
+                                    'equipe': equipe,
+                                    'description': desc,
+                                    'pdf_name': pdfName ?? '',
+                                    'pdf_data': pdfData ?? '',
+                                  },
+                                );
+                              } else {
+                                await _svc.createPvDivers(
+                                  date: date,
+                                  equipe: equipe,
+                                  description: desc,
+                                  pdfName: pdfName,
+                                  pdfData: pdfData,
+                                );
+                              }
+                              await _loadData();
+                              if (ctx.mounted) Navigator.pop(ctx);
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(isEdit ? 'PV Divers mis à jour' : 'PV Divers enregistré'),
+                                    backgroundColor: AppTheme.success,
+                                  ),
+                                );
+                              }
+                            } catch (e) {
+                              setModalState(() => isSaving = false);
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Erreur: $e')),
+                                );
+                              }
+                            }
+                          },
+                    child: isSaving
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          )
+                        : Text(isEdit ? 'Mettre à jour' : 'Enregistrer'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _deletePvDivers(Map<String, dynamic> pv) async {
+    final id = pv['id'] as String?;
+    final desc = (pv['description'] as String?) ?? 'ce PV';
+    if (id == null) return;
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Supprimer le PV Divers'),
+        content: Text('Supprimer "$desc" définitivement ?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Annuler'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Supprimer', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true) return;
+
+    try {
+      await _svc.deletePvDivers(id);
+      await _loadData();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('PV Divers supprimé'),
+            backgroundColor: AppTheme.success,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur: $e')),
+        );
+      }
+    }
   }
 }
 
