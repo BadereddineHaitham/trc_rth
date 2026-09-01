@@ -440,14 +440,12 @@ class _FixedEquipmentMaintenanceModalState
                               fontWeight: FontWeight.w600,
                             ),
                             icon: const Icon(Icons.date_range, size: 16, color: AppTheme.primary),
-                            items: const [
-                              DropdownMenuItem(value: 'Tous', child: Text('Toutes')),
-                              DropdownMenuItem(value: '2024', child: Text('2024')),
-                              DropdownMenuItem(value: '2025', child: Text('2025')),
-                              DropdownMenuItem(value: '2026', child: Text('2026')),
-                              DropdownMenuItem(value: '2027', child: Text('2027')),
-                              DropdownMenuItem(value: '2028', child: Text('2028')),
-                            ],
+                            items: ['Tous', for (int y = 2035; y >= 2015; y--) y.toString()].map((y) {
+                              return DropdownMenuItem<String>(
+                                value: y,
+                                child: Text(y == 'Tous' ? 'Toutes' : y),
+                              );
+                            }).toList(),
                             onChanged: (val) {
                               if (val != null) setState(() => _maintFilterYear = val);
                             },

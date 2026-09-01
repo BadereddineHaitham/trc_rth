@@ -1112,7 +1112,7 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
       {'val': '12', 'label': 'Décembre'},
     ];
 
-    final years = ['Tous', '2024', '2025', '2026', '2027', '2028'];
+    final years = ['Tous', for (int y = 2035; y >= 2015; y--) y.toString()];
 
     final filteredPvList = _pvDiversMaps.where((pv) {
       final dateStr = (pv['date'] as String?) ?? '';

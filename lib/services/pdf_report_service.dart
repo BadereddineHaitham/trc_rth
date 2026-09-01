@@ -1,4 +1,4 @@
-﻿import 'package:flutter/services.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -163,12 +163,11 @@ class PdfReportService {
                 cellStyle: const pw.TextStyle(fontSize: 8),
                 cellPadding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 3),
                 columnWidths: {
-                  0: const pw.FlexColumnWidth(2.8),
-                  1: const pw.FlexColumnWidth(1.5),
-                  2: const pw.FlexColumnWidth(1.5),
-                  3: const pw.FlexColumnWidth(2.8),
+                  0: const pw.FlexColumnWidth(3.5),
+                  1: const pw.FlexColumnWidth(2.0),
+                  2: const pw.FlexColumnWidth(4.5),
                 },
-                headers: ['Équipement', 'Quantité', 'État', 'Observation'],
+                headers: ['Équipement', 'Quantité', 'Observation'],
                 data: equipmentList.map((eq) {
                   final def = (eq['equipment_definitions'] as Map<String, dynamic>?) ?? {};
                   final eqName = (def['name'] as String?) ??
@@ -182,15 +181,12 @@ class PdfReportService {
                       ? '$extQty (Exist.) / $stdQty (Std.)'
                       : '${eq['quantity'] ?? 1}';
 
-                  final state = (eq['state'] as String?) ??
-                      (extQty < stdQty && stdQty > 0 ? 'Manquant' : 'Conforme');
-
                   final obs = (eq['observation'] as String?) ??
                       (eq['notes'] as String?) ??
                       (eq['remark'] as String?) ??
                       (extQty < stdQty && stdQty > 0 ? 'Manquant (${stdQty - extQty})' : 'R.A.S');
 
-                  return [eqName, qtyStr, state, obs];
+                  return [eqName, qtyStr, obs];
                 }).toList(),
               ),
             pw.SizedBox(height: 14),
