@@ -1,4 +1,4 @@
-import 'package:flutter/services.dart';
+﻿import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -7,6 +7,16 @@ import 'package:printing/printing.dart';
 class PdfReportService {
   static final PdfReportService instance = PdfReportService._();
   PdfReportService._();
+
+  String _clean(String text) {
+    if (text.isEmpty) return text;
+    return text
+        .replaceAll('—', ' - ')
+        .replaceAll('–', ' - ')
+        .replaceAll('’', "'")
+        .replaceAll('“', '"')
+        .replaceAll('”', '"');
+  }
 
   Future<Uint8List> _loadLogo() async {
     try {
@@ -26,13 +36,13 @@ class PdfReportService {
     final logoBytes = await _loadLogo();
     final pdf = pw.Document();
 
-    final name = (vehicle['name'] as String?) ?? 'Véhicule';
-    final type = (vehicle['type'] as String?) ?? (vehicle['vehicle_type'] as String?) ?? 'Spécialisé';
-    final matricule = (vehicle['matricule'] as String?) ?? (vehicle['id'] as String?) ?? '—';
-    final affectation = (vehicle['affectation'] as String?) ?? '—';
-    final status = (vehicle['status'] as String?) ?? 'operational';
-    final insurance = (vehicle['insurance_expiry'] as String?) ?? 'Non renseigné';
-    final inspection = (vehicle['inspection_expiry'] as String?) ?? 'Non renseigné';
+    final name = _clean((vehicle['name'] as String?) ?? 'Véhicule');
+    final type = _clean((vehicle['type'] as String?) ?? (vehicle['vehicle_type'] as String?) ?? 'Spécialisé');
+    final matricule = _clean((vehicle['matricule'] as String?) ?? (vehicle['id'] as String?) ?? '-');
+    final affectation = _clean((vehicle['affectation'] as String?) ?? '-');
+    final status = _clean((vehicle['status'] as String?) ?? 'operational');
+    final insurance = _clean((vehicle['insurance_expiry'] as String?) ?? 'Non renseigné');
+    final inspection = _clean((vehicle['inspection_expiry'] as String?) ?? 'Non renseigné');
     final dateFormatted = DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now());
 
     pdf.addPage(
@@ -83,7 +93,7 @@ class PdfReportService {
           return pw.Row(
             mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
             children: [
-              pw.Text('Sanad Sonatrach TRC RTH — Document Officiel', style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
+              pw.Text('Sanad Sonatrach TRC RTH - Document Officiel', style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
               pw.Text('Page ${context.pageNumber} sur ${context.pagesCount}', style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
             ],
           );
@@ -170,10 +180,10 @@ class PdfReportService {
                 headers: ['Équipement', 'Quantité', 'Observation'],
                 data: equipmentList.map((eq) {
                   final def = (eq['equipment_definitions'] as Map<String, dynamic>?) ?? {};
-                  final eqName = (def['name'] as String?) ??
+                  final eqName = _clean((def['name'] as String?) ??
                       (eq['designation'] as String?) ??
                       (eq['name'] as String?) ??
-                      'Équipement';
+                      'Équipement');
 
                   final stdQty = (eq['standard_quantity'] as int?) ?? (eq['standard'] as int?) ?? 0;
                   final extQty = (eq['existing_quantity'] as int?) ?? (eq['existing'] as int?) ?? 0;
@@ -181,10 +191,10 @@ class PdfReportService {
                       ? '$extQty (Exist.) / $stdQty (Std.)'
                       : '${eq['quantity'] ?? 1}';
 
-                  final obs = (eq['observation'] as String?) ??
+                  final obs = _clean((eq['observation'] as String?) ??
                       (eq['notes'] as String?) ??
                       (eq['remark'] as String?) ??
-                      (extQty < stdQty && stdQty > 0 ? 'Manquant (${stdQty - extQty})' : 'R.A.S');
+                      (extQty < stdQty && stdQty > 0 ? 'Manquant (${stdQty - extQty})' : 'R.A.S'));
 
                   return [eqName, qtyStr, obs];
                 }).toList(),
@@ -215,12 +225,12 @@ class PdfReportService {
                 },
                 headers: ['Date', 'Type', 'Description', 'Responsable', 'Prestataire', 'Statut'],
                 data: maintenanceRecords.map((m) {
-                  final date = (m['maintenance_date'] as String?) ?? (m['date'] as String?) ?? '—';
-                  final mType = (m['maintenance_type'] as String?) ?? (m['type'] as String?) ?? '—';
-                  final desc = (m['description'] as String?) ?? '—';
-                  final resp = (m['responsible'] as String?) ?? '—';
-                  final prov = (m['provider'] as String?) ?? '—';
-                  final stat = (m['maintenance_status'] as String?) ?? (m['status'] as String?) ?? 'Terminé';
+                  final date = _clean((m['maintenance_date'] as String?) ?? (m['date'] as String?) ?? '-');
+                  final mType = _clean((m['maintenance_type'] as String?) ?? (m['type'] as String?) ?? '-');
+                  final desc = _clean((m['description'] as String?) ?? '-');
+                  final resp = _clean((m['responsible'] as String?) ?? '-');
+                  final prov = _clean((m['provider'] as String?) ?? '-');
+                  final stat = _clean((m['maintenance_status'] as String?) ?? (m['status'] as String?) ?? 'Terminé');
                   return [date, mType, desc, resp, prov, stat];
                 }).toList(),
               ),
@@ -243,10 +253,10 @@ class PdfReportService {
     final logoBytes = await _loadLogo();
     final pdf = pw.Document();
 
-    final name = (equipment['name'] as String?) ?? 'Équipement Fixe';
-    final category = (equipment['category'] as String?) ?? 'Général';
-    final location = (equipment['location'] as String?) ?? '—';
-    final status = (equipment['status'] as String?) ?? 'operational';
+    final name = _clean((equipment['name'] as String?) ?? 'Équipement Fixe');
+    final category = _clean((equipment['category'] as String?) ?? 'Général');
+    final location = _clean((equipment['location'] as String?) ?? '-');
+    final status = _clean((equipment['status'] as String?) ?? 'operational');
     final isUSD = category.toUpperCase().contains('USD');
     final dateFormatted = DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now());
 
@@ -303,7 +313,7 @@ class PdfReportService {
           return pw.Row(
             mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
             children: [
-              pw.Text('Sanad Sonatrach TRC RTH — Document Officiel', style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
+              pw.Text('Sanad Sonatrach TRC RTH - Document Officiel', style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
               pw.Text('Page ${context.pageNumber} sur ${context.pagesCount}', style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
             ],
           );
@@ -371,7 +381,7 @@ class PdfReportService {
                   1: const pw.FlexColumnWidth(1.5),
                 },
                 headers: ['Composant USD', 'État (B / M)'],
-                data: usdDetails.entries.map((e) => [e.key, e.value.toString()]).toList(),
+                data: usdDetails.entries.map((e) => [_clean(e.key.toString()), _clean(e.value.toString())]).toList(),
               ),
               pw.SizedBox(height: 14),
             ],
@@ -400,12 +410,12 @@ class PdfReportService {
                 },
                 headers: ['Date', 'Type', 'Description', 'Responsable', 'Prestataire', 'Statut'],
                 data: maintenanceRecords.map((m) {
-                  final date = (m['maintenance_date'] as String?) ?? (m['date'] as String?) ?? '—';
-                  final mType = (m['maintenance_type'] as String?) ?? (m['type'] as String?) ?? '—';
-                  final desc = (m['description'] as String?) ?? '—';
-                  final resp = (m['responsible'] as String?) ?? '—';
-                  final prov = (m['provider'] as String?) ?? '—';
-                  final stat = (m['maintenance_status'] as String?) ?? (m['status'] as String?) ?? 'Terminé';
+                  final date = _clean((m['maintenance_date'] as String?) ?? (m['date'] as String?) ?? '-');
+                  final mType = _clean((m['maintenance_type'] as String?) ?? (m['type'] as String?) ?? '-');
+                  final desc = _clean((m['description'] as String?) ?? '-');
+                  final resp = _clean((m['responsible'] as String?) ?? '-');
+                  final prov = _clean((m['provider'] as String?) ?? '-');
+                  final stat = _clean((m['maintenance_status'] as String?) ?? (m['status'] as String?) ?? 'Terminé');
                   return [date, mType, desc, resp, prov, stat];
                 }).toList(),
               ),
