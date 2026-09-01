@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../presentation/splash_screen/splash_screen.dart';
 import '../presentation/qr_scanner_screen/qr_scanner_screen.dart';
@@ -20,67 +20,45 @@ class AppRoutes {
   static const String vehicleDetailsScreen = '/vehicle-details-screen';
   static const String adminLoginScreen = '/admin-login-screen';
   static const String adminDashboardScreen = '/admin-dashboard-screen';
-  static const String superAdminDashboardScreen =
-      '/superadmin-dashboard-screen';
-  static const String equipmentDefinitionsScreen =
-      '/equipment-definitions-screen';
+  static const String superAdminDashboardScreen = '/superadmin-dashboard-screen';
+  static const String equipmentDefinitionsScreen = '/equipment-definitions-screen';
   static const String alertsScreen = '/alerts-screen';
   static const String userManagementScreen = '/user-management-screen';
   static const String profileScreen = '/profile-screen';
 }
+
+Page<T> _noTransition<T>(LocalKey key, Widget child) =>
+    NoTransitionPage<T>(key: key, child: child);
+
+Page<T> _slideUp<T>(LocalKey key, Widget child) => CustomTransitionPage<T>(
+      key: key,
+      child: child,
+      transitionDuration: const Duration(milliseconds: 160),
+      reverseTransitionDuration: const Duration(milliseconds: 120),
+      transitionsBuilder: (_, animation, __, c) => SlideTransition(
+        position: Tween(begin: const Offset(0, 0.06), end: Offset.zero)
+            .animate(CurvedAnimation(parent: animation, curve: Curves.easeOut)),
+        child: FadeTransition(opacity: animation, child: c),
+      ),
+    );
 
 final GoRouter appRouter = GoRouter(
   initialLocation: AppRoutes.initial,
   routes: [
     GoRoute(
       path: AppRoutes.initial,
-      pageBuilder: (context, state) => CustomTransitionPage(
-        key: state.pageKey,
-        child: const SplashScreen(),
-        transitionDuration: const Duration(milliseconds: 120),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          return FadeTransition(
-            opacity: CurvedAnimation(
-              parent: animation,
-              curve: Curves.fastOutSlowIn,
-            ),
-            child: child,
-          );
-        },
-      ),
+      pageBuilder: (context, state) =>
+          _noTransition(state.pageKey, const SplashScreen()),
     ),
     GoRoute(
       path: AppRoutes.splashScreen,
-      pageBuilder: (context, state) => CustomTransitionPage(
-        key: state.pageKey,
-        child: const SplashScreen(),
-        transitionDuration: const Duration(milliseconds: 120),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) =>
-            FadeTransition(
-              opacity: CurvedAnimation(
-                parent: animation,
-                curve: Curves.fastOutSlowIn,
-              ),
-              child: child,
-            ),
-      ),
+      pageBuilder: (context, state) =>
+          _noTransition(state.pageKey, const SplashScreen()),
     ),
     GoRoute(
       path: AppRoutes.qrScannerScreen,
-      pageBuilder: (context, state) => CustomTransitionPage(
-        key: state.pageKey,
-        child: const QrScannerScreen(),
-        transitionDuration: const Duration(milliseconds: 120),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          return FadeTransition(
-            opacity: CurvedAnimation(
-              parent: animation,
-              curve: Curves.fastOutSlowIn,
-            ),
-            child: child,
-          );
-        },
-      ),
+      pageBuilder: (context, state) =>
+          _slideUp(state.pageKey, const QrScannerScreen()),
     ),
     GoRoute(
       path: AppRoutes.parkHomeScreen,
@@ -94,20 +72,7 @@ final GoRouter appRouter = GoRouter(
         } else if (state.extra is String) {
           role = state.extra as String;
         }
-        return CustomTransitionPage(
-          key: state.pageKey,
-          child: ParkHomeScreen(role: role, parkId: parkId),
-          transitionDuration: const Duration(milliseconds: 120),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return FadeTransition(
-              opacity: CurvedAnimation(
-                parent: animation,
-                curve: Curves.fastOutSlowIn,
-              ),
-              child: child,
-            );
-          },
-        );
+        return _noTransition(state.pageKey, ParkHomeScreen(role: role, parkId: parkId));
       },
     ),
     GoRoute(
@@ -128,43 +93,16 @@ final GoRouter appRouter = GoRouter(
           vehicleId = extra;
           role = 'User';
         }
-        return CustomTransitionPage(
-          key: state.pageKey,
-          child: VehicleDetailsScreen(
-            vehicleId: vehicleId,
-            role: role,
-            initialVehicle: initialVehicle,
-          ),
-          transitionDuration: const Duration(milliseconds: 120),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return FadeTransition(
-              opacity: CurvedAnimation(
-                parent: animation,
-                curve: Curves.fastOutSlowIn,
-              ),
-              child: child,
-            );
-          },
+        return _slideUp(
+          state.pageKey,
+          VehicleDetailsScreen(vehicleId: vehicleId, role: role, initialVehicle: initialVehicle),
         );
       },
     ),
     GoRoute(
       path: AppRoutes.adminLoginScreen,
-      pageBuilder: (context, state) => CustomTransitionPage(
-        key: state.pageKey,
-        child: const AdminLoginScreen(),
-        opaque: true,
-        barrierColor: const Color(0xFFF5F7F9),
-        transitionDuration: const Duration(milliseconds: 150),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) =>
-            FadeTransition(
-              opacity: CurvedAnimation(
-                parent: animation,
-                curve: Curves.fastOutSlowIn,
-              ),
-              child: child,
-            ),
-      ),
+      pageBuilder: (context, state) =>
+          _noTransition(state.pageKey, const AdminLoginScreen()),
     ),
     GoRoute(
       path: AppRoutes.adminDashboardScreen,
@@ -172,20 +110,7 @@ final GoRouter appRouter = GoRouter(
         final extra = state.extra as Map<String, String>?;
         final role = extra?['role'] ?? 'Admin';
         final username = extra?['username'] ?? 'admin';
-        return CustomTransitionPage(
-          key: state.pageKey,
-          child: AdminDashboardScreen(role: role, username: username),
-          transitionDuration: const Duration(milliseconds: 120),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return FadeTransition(
-              opacity: CurvedAnimation(
-                parent: animation,
-                curve: Curves.fastOutSlowIn,
-              ),
-              child: child,
-            );
-          },
-        );
+        return _noTransition(state.pageKey, AdminDashboardScreen(role: role, username: username));
       },
     ),
     GoRoute(
@@ -193,38 +118,13 @@ final GoRouter appRouter = GoRouter(
       pageBuilder: (context, state) {
         final extra = state.extra as Map<String, String>?;
         final username = extra?['username'] ?? 'superadmin';
-        return CustomTransitionPage(
-          key: state.pageKey,
-          child: SuperAdminDashboardScreen(username: username),
-          transitionDuration: const Duration(milliseconds: 120),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return FadeTransition(
-              opacity: CurvedAnimation(
-                parent: animation,
-                curve: Curves.fastOutSlowIn,
-              ),
-              child: child,
-            );
-          },
-        );
+        return _noTransition(state.pageKey, SuperAdminDashboardScreen(username: username));
       },
     ),
     GoRoute(
       path: AppRoutes.equipmentDefinitionsScreen,
-      pageBuilder: (context, state) => CustomTransitionPage(
-        key: state.pageKey,
-        child: const EquipmentDefinitionsScreen(),
-        transitionDuration: const Duration(milliseconds: 120),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          return FadeTransition(
-            opacity: CurvedAnimation(
-              parent: animation,
-              curve: Curves.fastOutSlowIn,
-            ),
-            child: child,
-          );
-        },
-      ),
+      pageBuilder: (context, state) =>
+          _slideUp(state.pageKey, const EquipmentDefinitionsScreen()),
     ),
     GoRoute(
       path: AppRoutes.alertsScreen,
@@ -238,38 +138,13 @@ final GoRouter appRouter = GoRouter(
         } else if (extra is String && extra.isNotEmpty) {
           role = extra;
         }
-        return CustomTransitionPage(
-          key: state.pageKey,
-          child: AlertsScreen(role: role),
-          transitionDuration: const Duration(milliseconds: 120),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return FadeTransition(
-              opacity: CurvedAnimation(
-                parent: animation,
-                curve: Curves.fastOutSlowIn,
-              ),
-              child: child,
-            );
-          },
-        );
+        return _noTransition(state.pageKey, AlertsScreen(role: role));
       },
     ),
     GoRoute(
       path: AppRoutes.userManagementScreen,
-      pageBuilder: (context, state) => CustomTransitionPage(
-        key: state.pageKey,
-        child: const UserManagementScreen(),
-        transitionDuration: const Duration(milliseconds: 120),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          return FadeTransition(
-            opacity: CurvedAnimation(
-              parent: animation,
-              curve: Curves.fastOutSlowIn,
-            ),
-            child: child,
-          );
-        },
-      ),
+      pageBuilder: (context, state) =>
+          _slideUp(state.pageKey, const UserManagementScreen()),
     ),
     GoRoute(
       path: AppRoutes.profileScreen,
@@ -277,22 +152,8 @@ final GoRouter appRouter = GoRouter(
         final extra = state.extra as Map<String, String>?;
         final role = extra?['role'] ?? 'User';
         final username = extra?['username'] ?? 'utilisateur';
-        return CustomTransitionPage(
-          key: state.pageKey,
-          child: ProfileScreen(role: role, username: username),
-          transitionDuration: const Duration(milliseconds: 120),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return FadeTransition(
-              opacity: CurvedAnimation(
-                parent: animation,
-                curve: Curves.fastOutSlowIn,
-              ),
-              child: child,
-            );
-          },
-        );
+        return _slideUp(state.pageKey, ProfileScreen(role: role, username: username));
       },
     ),
   ],
 );
-

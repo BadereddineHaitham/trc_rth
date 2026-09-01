@@ -942,7 +942,7 @@ class _AddFixedMaintenanceSheetState
               decoration: const InputDecoration(labelText: 'Type de maintenance'),
               items: [
                 'Préventive',
-                'Corrective',
+                'Curative',
                 'Vidange',
                 'Réparation',
                 'Inspection',

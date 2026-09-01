@@ -94,7 +94,7 @@ class _MaintenanceTabWidgetState extends State<MaintenanceTabWidget> {
         return 'blue';
       case 'Vidange':
         return 'orange';
-      case 'Corrective':
+      case 'Curative':
         return 'red';
       case 'Réparation':
         return 'red';
@@ -754,7 +754,7 @@ class _AddMaintenanceSheetState extends State<_AddMaintenanceSheet> {
               ),
               items: [
                 'Préventive',
-                'Corrective',
+                'Curative',
                 'Vidange',
                 'Réparation',
                 'Inspection',
