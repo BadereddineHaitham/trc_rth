@@ -447,6 +447,16 @@ class _QrScannerScreenState extends State<QrScannerScreen>
               fontSize: 11,
             ),
           ),
+          const SizedBox(height: 10),
+          Text(
+            'Idée & Spécifications Métier : Walid SOLTANI',
+            style: GoogleFonts.ibmPlexSans(
+              color: const Color(0xFFFFB74D),
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+              letterSpacing: 0.3,
+            ),
+          ),
         ],
       ),
     );
