@@ -428,11 +428,13 @@ class _EquipmentDefinitionsScreenState
     _subscribeRealtime();
   }
 
-  Future<void> _loadDefinitions() async {
-    setState(() {
-      _isLoading = true;
-      _errorMsg = null;
-    });
+  Future<void> _loadDefinitions({bool showLoading = false}) async {
+    if (showLoading || _definitions.isEmpty) {
+      setState(() {
+        _isLoading = true;
+        _errorMsg = null;
+      });
+    }
     try {
       final data = await _svc.getEquipmentDefinitions();
       if (mounted) {

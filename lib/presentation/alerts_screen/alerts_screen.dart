@@ -124,11 +124,13 @@ class _AlertsScreenState extends State<AlertsScreen>
     super.dispose();
   }
 
-  Future<void> _loadAlerts() async {
-    setState(() {
-      _isLoading = true;
-      _errorMsg = null;
-    });
+  Future<void> _loadAlerts({bool showLoading = false}) async {
+    if (showLoading || _alerts.isEmpty) {
+      setState(() {
+        _isLoading = true;
+        _errorMsg = null;
+      });
+    }
     try {
       final data = await _svc.getAlerts();
       if (mounted) {

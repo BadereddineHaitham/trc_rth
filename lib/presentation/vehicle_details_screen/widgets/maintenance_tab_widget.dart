@@ -46,11 +46,13 @@ class _MaintenanceTabWidgetState extends State<MaintenanceTabWidget> {
     super.dispose();
   }
 
-  Future<void> _loadData() async {
-    setState(() {
-      _isLoading = true;
-      _errorMsg = null;
-    });
+  Future<void> _loadData({bool showLoading = false}) async {
+    if (showLoading || _maintenanceMaps.isEmpty) {
+      setState(() {
+        _isLoading = true;
+        _errorMsg = null;
+      });
+    }
     try {
       final records = await _svc.getMaintenanceRecords(widget.vehicleId);
       if (mounted) {

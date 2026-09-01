@@ -61,11 +61,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     super.dispose();
   }
 
-  Future<void> _loadData() async {
-    setState(() {
-      _isLoading = true;
-      _errorMsg = null;
-    });
+  Future<void> _loadData({bool showLoading = false}) async {
+    if (showLoading || _vehicleStatusData.isEmpty) {
+      setState(() {
+        _isLoading = true;
+        _errorMsg = null;
+      });
+    }
     try {
       final results = await Future.wait([
         _svc.getDashboardStats(),

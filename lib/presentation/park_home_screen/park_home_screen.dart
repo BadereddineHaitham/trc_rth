@@ -85,11 +85,13 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
     super.dispose();
   }
 
-  Future<void> _loadData() async {
-    setState(() {
-      _isLoading = true;
-      _errorMsg = null;
-    });
+  Future<void> _loadData({bool showLoading = false}) async {
+    if (showLoading || (_vehicleMaps.isEmpty && _fixedEquipmentMaps.isEmpty)) {
+      setState(() {
+        _isLoading = true;
+        _errorMsg = null;
+      });
+    }
     try {
       final results = await Future.wait([
         _svc.getVehicles(parkId: widget.parkId),

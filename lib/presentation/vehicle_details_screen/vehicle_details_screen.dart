@@ -55,11 +55,13 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
     super.dispose();
   }
 
-  Future<void> _loadVehicle() async {
-    setState(() {
-      _isLoading = true;
-      _errorMsg = null;
-    });
+  Future<void> _loadVehicle({bool showLoading = false}) async {
+    if (showLoading || _vehicleData.isEmpty) {
+      setState(() {
+        _isLoading = true;
+        _errorMsg = null;
+      });
+    }
     try {
       final data = await _svc.getVehicleById(widget.vehicleId);
       if (mounted) {

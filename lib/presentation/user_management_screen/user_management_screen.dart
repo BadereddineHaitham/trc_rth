@@ -109,11 +109,13 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
         .subscribe();
   }
 
-  Future<void> _loadUsers() async {
-    setState(() {
-      _isLoading = true;
-      _loadError = null;
-    });
+  Future<void> _loadUsers({bool showLoading = false}) async {
+    if (showLoading || _users.isEmpty) {
+      setState(() {
+        _isLoading = true;
+        _loadError = null;
+      });
+    }
     try {
       final raw = await SupabaseService.instance.listUsers();
       final models = raw.map((u) => _UserModel.fromSupabase(u)).toList();
