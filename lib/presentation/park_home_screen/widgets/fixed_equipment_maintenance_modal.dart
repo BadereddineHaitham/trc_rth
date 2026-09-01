@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/app_export.dart';
+import '../../../../core/multi_month_selector_dialog.dart';
 import '../../../../services/pdf_report_service.dart';
 import '../../../../services/supabase_service.dart';
 
@@ -30,7 +31,7 @@ class _FixedEquipmentMaintenanceModalState
   String? _errorMsg;
   RealtimeChannel? _channel;
 
-  String _maintFilterMonth = 'Tous';
+  List<String> _maintFilterMonths = ['Tous'];
   String _maintFilterYear = 'Tous';
 
   String get _equipmentId => widget.equipment['id'] as String;
@@ -253,7 +254,7 @@ class _FixedEquipmentMaintenanceModalState
       await PdfReportService.instance.printFixedEquipmentPdf(
         equipment: widget.equipment,
         maintenanceRecords: _maintenanceRecords,
-        filterMonth: _maintFilterMonth,
+        filterMonth: _maintFilterMonths,
         filterYear: _maintFilterYear,
       );
     } catch (e) {
@@ -384,41 +385,41 @@ class _FixedEquipmentMaintenanceModalState
                   Row(
                     children: [
                       Expanded(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10),
-                          decoration: BoxDecoration(
-                            color: AppTheme.surfaceVariantLight,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: AppTheme.outlineVariantLight),
-                          ),
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton<String>(
-                              value: _maintFilterMonth,
-                              isExpanded: true,
-                              style: GoogleFonts.ibmPlexSans(
-                                fontSize: 12,
-                                color: AppTheme.darkCharcoal,
-                                fontWeight: FontWeight.w600,
-                              ),
-                              icon: const Icon(Icons.calendar_month, size: 16, color: AppTheme.primary),
-                              items: const [
-                                DropdownMenuItem(value: 'Tous', child: Text('Tous les mois')),
-                                DropdownMenuItem(value: '01', child: Text('Janvier')),
-                                DropdownMenuItem(value: '02', child: Text('Février')),
-                                DropdownMenuItem(value: '03', child: Text('Mars')),
-                                DropdownMenuItem(value: '04', child: Text('Avril')),
-                                DropdownMenuItem(value: '05', child: Text('Mai')),
-                                DropdownMenuItem(value: '06', child: Text('Juin')),
-                                DropdownMenuItem(value: '07', child: Text('Juillet')),
-                                DropdownMenuItem(value: '08', child: Text('Août')),
-                                DropdownMenuItem(value: '09', child: Text('Septembre')),
-                                DropdownMenuItem(value: '10', child: Text('Octobre')),
-                                DropdownMenuItem(value: '11', child: Text('Novembre')),
-                                DropdownMenuItem(value: '12', child: Text('Décembre')),
+                        child: InkWell(
+                          onTap: () async {
+                            final selected = await showMultiMonthSelector(
+                              context: context,
+                              currentSelected: _maintFilterMonths,
+                            );
+                            if (selected != null) {
+                              setState(() => _maintFilterMonths = selected);
+                            }
+                          },
+                          borderRadius: BorderRadius.circular(8),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: AppTheme.surfaceVariantLight,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: AppTheme.outlineVariantLight),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.calendar_month, size: 16, color: AppTheme.primary),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    getMonthsButtonLabel(_maintFilterMonths),
+                                    style: GoogleFonts.ibmPlexSans(
+                                      fontSize: 12,
+                                      color: AppTheme.darkCharcoal,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                const Icon(Icons.arrow_drop_down, size: 18, color: AppTheme.darkCharcoal),
                               ],
-                              onChanged: (val) {
-                                if (val != null) setState(() => _maintFilterMonth = val);
-                              },
                             ),
                           ),
                         ),
@@ -480,12 +481,29 @@ class _FixedEquipmentMaintenanceModalState
                     final filteredRecords = _maintenanceRecords.where((rec) {
                       final dateStr = (rec['maintenance_date'] as String?) ?? (rec['date'] as String?) ?? '';
                       if (_maintFilterYear != 'Tous') {
-                        if (!dateStr.startsWith(_maintFilterYear)) return false;
+                        if (!dateStr.contains(_maintFilterYear)) return false;
                       }
-                      if (_maintFilterMonth != 'Tous') {
-                        final parts = dateStr.split('-');
-                        if (parts.length >= 2) {
-                          if (parts[1] != _maintFilterMonth) return false;
+                      if (!_maintFilterMonths.contains('Tous') && _maintFilterMonths.isNotEmpty) {
+                        final parts = dateStr.split(RegExp(r'[\/\.\-\s]'));
+                        String? month;
+                        if (parts.length >= 3) {
+                          if (parts[0].length == 4) {
+                            month = parts[1].padLeft(2, '0');
+                          } else if (parts[2].length == 4) {
+                            month = parts[1].padLeft(2, '0');
+                          }
+                        }
+                        if (month != null) {
+                          if (!_maintFilterMonths.contains(month)) return false;
+                        } else {
+                          bool matched = false;
+                          for (final m in _maintFilterMonths) {
+                            if (dateStr.contains('-$m-') || dateStr.contains('/$m/')) {
+                              matched = true;
+                              break;
+                            }
+                          }
+                          if (!matched) return false;
                         }
                       }
                       return true;

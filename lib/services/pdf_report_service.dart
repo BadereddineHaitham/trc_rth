@@ -1,4 +1,4 @@
-import 'package:flutter/services.dart';
+﻿import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -30,30 +30,30 @@ class PdfReportService {
     }
   }
 
-  bool _matchesDateFilter(String rawDate, String filterMonth, String filterYear) {
+  bool _matchesDateFilter(String rawDate, dynamic filterMonthOrMonths, String filterYear) {
     final dateStr = rawDate.trim();
+    final List<String> filterMonths = (filterMonthOrMonths is List<String>)
+        ? filterMonthOrMonths
+        : (filterMonthOrMonths is List ? List<String>.from(filterMonthOrMonths) : [filterMonthOrMonths?.toString() ?? 'Tous']);
+
     if (dateStr.isEmpty) {
-      return (filterYear == 'Tous' && filterMonth == 'Tous');
+      return (filterYear == 'Tous' && (filterMonths.isEmpty || filterMonths.contains('Tous')));
     }
 
     String? year;
     String? month;
 
-    // Try parsing ISO or YYYY-MM-DD
     try {
       final dt = DateTime.parse(dateStr);
       year = dt.year.toString();
       month = dt.month.toString().padLeft(2, '0');
     } catch (_) {
-      // Split by common delimiters: -, /, .
       final parts = dateStr.split(RegExp(r'[\/\.\-\s]'));
       if (parts.length >= 3) {
         if (parts[0].length == 4) {
-          // YYYY-MM-DD or YYYY/MM/DD
           year = parts[0];
           month = parts[1].padLeft(2, '0');
         } else if (parts[2].length == 4) {
-          // DD-MM-YYYY or DD/MM/YYYY
           year = parts[2];
           month = parts[1].padLeft(2, '0');
         }
@@ -68,18 +68,18 @@ class PdfReportService {
       }
     }
 
-    if (filterMonth != 'Tous' && filterMonth.isNotEmpty) {
+    if (!filterMonths.contains('Tous') && filterMonths.isNotEmpty) {
       if (month != null) {
-        if (month != filterMonth) return false;
+        if (!filterMonths.contains(month)) return false;
       } else {
-        final monthDash = '-$filterMonth-';
-        final monthSlash = '/$filterMonth/';
-        final monthDot = '.$filterMonth.';
-        if (!dateStr.contains(monthDash) &&
-            !dateStr.contains(monthSlash) &&
-            !dateStr.contains(monthDot)) {
-          return false;
+        bool matchedAny = false;
+        for (final m in filterMonths) {
+          if (dateStr.contains('-$m-') || dateStr.contains('/$m/') || dateStr.contains('.$m.')) {
+            matchedAny = true;
+            break;
+          }
         }
+        if (!matchedAny) return false;
       }
     }
 
@@ -100,7 +100,7 @@ class PdfReportService {
     required Map<String, dynamic> vehicle,
     required List<Map<String, dynamic>> equipmentList,
     required List<Map<String, dynamic>> maintenanceRecords,
-    String filterMonth = 'Tous',
+    dynamic filterMonth = 'Tous',
     String filterYear = 'Tous',
   }) async {
     final logoBytes = await _loadLogo();
@@ -132,18 +132,30 @@ class PdfReportService {
 
     final dateFormatted = DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now());
 
-    // Filter maintenance records by year and month using robust matcher
+    // Filter maintenance records by year and multi-month
     final filteredMaintenance = maintenanceRecords.where((m) {
       final dateStr = (m['maintenance_date'] as String?) ?? (m['date'] as String?) ?? '';
       return _matchesDateFilter(dateStr, filterMonth, filterYear);
     }).toList();
 
     String maintHeaderTitle = 'HISTORIQUE DE MAINTENANCE (${filteredMaintenance.length})';
-    if (filterYear != 'Tous' || filterMonth != 'Tous') {
+    final List<String> monthList = (filterMonth is List<String>)
+        ? filterMonth
+        : (filterMonth is List ? List<String>.from(filterMonth) : [filterMonth.toString()]);
+
+    if (filterYear != 'Tous' || (!monthList.contains('Tous') && monthList.isNotEmpty)) {
       final filterParts = <String>[];
-      if (filterMonth != 'Tous') filterParts.add('Mois: $filterMonth');
+      if (!monthList.contains('Tous') && monthList.isNotEmpty) {
+        const monthNames = {
+          '01': 'Jan', '02': 'Fév', '03': 'Mar', '04': 'Avr',
+          '05': 'Mai', '06': 'Juin', '07': 'Juil', '08': 'Août',
+          '09': 'Sept', '10': 'Oct', '11': 'Nov', '12': 'Déc'
+        };
+        final labels = monthList.map((m) => monthNames[m] ?? m).join(', ');
+        filterParts.add('Mois: $labels');
+      }
       if (filterYear != 'Tous') filterParts.add('Année: $filterYear');
-      maintHeaderTitle += ' [Filtre: ${filterParts.join(', ')}]';
+      maintHeaderTitle += ' [Filtre: ${filterParts.join(' - ')}]';
     }
 
     pdf.addPage(
@@ -352,7 +364,7 @@ class PdfReportService {
   Future<void> printFixedEquipmentPdf({
     required Map<String, dynamic> equipment,
     required List<Map<String, dynamic>> maintenanceRecords,
-    String filterMonth = 'Tous',
+    dynamic filterMonth = 'Tous',
     String filterYear = 'Tous',
   }) async {
     final logoBytes = await _loadLogo();
@@ -370,18 +382,30 @@ class PdfReportService {
     if (rawUsd is Map<String, dynamic>) usdDetails = rawUsd;
     if (rawUsd is Map) usdDetails = Map<String, dynamic>.from(rawUsd);
 
-    // Filter maintenance records by year and month using robust matcher
+    // Filter maintenance records by year and multi-month
     final filteredMaintenance = maintenanceRecords.where((m) {
       final dateStr = (m['maintenance_date'] as String?) ?? (m['date'] as String?) ?? '';
       return _matchesDateFilter(dateStr, filterMonth, filterYear);
     }).toList();
 
     String maintHeaderTitle = 'HISTORIQUE DE MAINTENANCE (${filteredMaintenance.length})';
-    if (filterYear != 'Tous' || filterMonth != 'Tous') {
+    final List<String> monthList = (filterMonth is List<String>)
+        ? filterMonth
+        : (filterMonth is List ? List<String>.from(filterMonth) : [filterMonth.toString()]);
+
+    if (filterYear != 'Tous' || (!monthList.contains('Tous') && monthList.isNotEmpty)) {
       final filterParts = <String>[];
-      if (filterMonth != 'Tous') filterParts.add('Mois: $filterMonth');
+      if (!monthList.contains('Tous') && monthList.isNotEmpty) {
+        const monthNames = {
+          '01': 'Jan', '02': 'Fév', '03': 'Mar', '04': 'Avr',
+          '05': 'Mai', '06': 'Juin', '07': 'Juil', '08': 'Août',
+          '09': 'Sept', '10': 'Oct', '11': 'Nov', '12': 'Déc'
+        };
+        final labels = monthList.map((m) => monthNames[m] ?? m).join(', ');
+        filterParts.add('Mois: $labels');
+      }
       if (filterYear != 'Tous') filterParts.add('Année: $filterYear');
-      maintHeaderTitle += ' [Filtre: ${filterParts.join(', ')}]';
+      maintHeaderTitle += ' [Filtre: ${filterParts.join(' - ')}]';
     }
 
     pdf.addPage(
@@ -555,25 +579,37 @@ class PdfReportService {
   /// Print or share PV Divers PDF report (filtered by Month & Year)
   Future<void> printPvDiversPdf({
     required List<Map<String, dynamic>> pvList,
-    String filterMonth = 'Tous',
+    dynamic filterMonth = 'Tous',
     String filterYear = 'Tous',
   }) async {
     final logoBytes = await _loadLogo();
     final pdf = pw.Document();
     final dateFormatted = DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now());
 
-    // Filter PV records by year and month using robust matcher
+    // Filter PV records by year and multi-month
     final filteredPv = pvList.where((pv) {
       final dateStr = (pv['date'] as String?) ?? '';
       return _matchesDateFilter(dateStr, filterMonth, filterYear);
     }).toList();
 
     String pvHeaderTitle = 'PROCÈS-VERBAUX DIVERS (${filteredPv.length})';
-    if (filterYear != 'Tous' || filterMonth != 'Tous') {
+    final List<String> monthList = (filterMonth is List<String>)
+        ? filterMonth
+        : (filterMonth is List ? List<String>.from(filterMonth) : [filterMonth.toString()]);
+
+    if (filterYear != 'Tous' || (!monthList.contains('Tous') && monthList.isNotEmpty)) {
       final filterParts = <String>[];
-      if (filterMonth != 'Tous') filterParts.add('Mois: $filterMonth');
+      if (!monthList.contains('Tous') && monthList.isNotEmpty) {
+        const monthNames = {
+          '01': 'Jan', '02': 'Fév', '03': 'Mar', '04': 'Avr',
+          '05': 'Mai', '06': 'Juin', '07': 'Juil', '08': 'Août',
+          '09': 'Sept', '10': 'Oct', '11': 'Nov', '12': 'Déc'
+        };
+        final labels = monthList.map((m) => monthNames[m] ?? m).join(', ');
+        filterParts.add('Mois: $labels');
+      }
       if (filterYear != 'Tous') filterParts.add('Année: $filterYear');
-      pvHeaderTitle += ' [Filtre: ${filterParts.join(', ')}]';
+      pvHeaderTitle += ' [Filtre: ${filterParts.join(' - ')}]';
     }
 
     pdf.addPage(

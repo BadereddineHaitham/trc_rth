@@ -7,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:universal_html/html.dart' as html;
 
 import '../../../core/app_export.dart';
+import '../../core/multi_month_selector_dialog.dart';
 import '../../services/pdf_report_service.dart';
 import '../../services/presence_service.dart';
 import '../../services/supabase_service.dart';
@@ -45,7 +46,7 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
   bool _isLoading = true;
   String? _errorMsg;
 
-  String _pvFilterMonth = 'Tous';
+  List<String> _pvFilterMonths = ['Tous'];
   String _pvFilterYear = 'Tous';
 
   List<Map<String, dynamic>> get _usdEquipments => _fixedEquipmentMaps
@@ -1106,7 +1107,7 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
       );
       await PdfReportService.instance.printPvDiversPdf(
         pvList: _pvDiversMaps,
-        filterMonth: _pvFilterMonth,
+        filterMonth: _pvFilterMonths,
         filterYear: _pvFilterYear,
       );
     } catch (e) {
@@ -1119,33 +1120,34 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
   }
 
   Widget _buildPvDiversSection() {
-    final months = [
-      {'val': 'Tous', 'label': 'Tous les mois'},
-      {'val': '01', 'label': 'Janvier'},
-      {'val': '02', 'label': 'Février'},
-      {'val': '03', 'label': 'Mars'},
-      {'val': '04', 'label': 'Avril'},
-      {'val': '05', 'label': 'Mai'},
-      {'val': '06', 'label': 'Juin'},
-      {'val': '07', 'label': 'Juillet'},
-      {'val': '08', 'label': 'Août'},
-      {'val': '09', 'label': 'Septembre'},
-      {'val': '10', 'label': 'Octobre'},
-      {'val': '11', 'label': 'Novembre'},
-      {'val': '12', 'label': 'Décembre'},
-    ];
-
     final years = ['Tous', for (int y = 2035; y >= 2015; y--) y.toString()];
 
     final filteredPvList = _pvDiversMaps.where((pv) {
       final dateStr = (pv['date'] as String?) ?? '';
       if (_pvFilterYear != 'Tous') {
-        if (!dateStr.startsWith(_pvFilterYear)) return false;
+        if (!dateStr.contains(_pvFilterYear)) return false;
       }
-      if (_pvFilterMonth != 'Tous') {
-        final parts = dateStr.split('-');
-        if (parts.length >= 2) {
-          if (parts[1] != _pvFilterMonth) return false;
+      if (!_pvFilterMonths.contains('Tous') && _pvFilterMonths.isNotEmpty) {
+        final parts = dateStr.split(RegExp(r'[\/\.\-\s]'));
+        String? month;
+        if (parts.length >= 3) {
+          if (parts[0].length == 4) {
+            month = parts[1].padLeft(2, '0');
+          } else if (parts[2].length == 4) {
+            month = parts[1].padLeft(2, '0');
+          }
+        }
+        if (month != null) {
+          if (!_pvFilterMonths.contains(month)) return false;
+        } else {
+          bool matched = false;
+          for (final m in _pvFilterMonths) {
+            if (dateStr.contains('-$m-') || dateStr.contains('/$m/')) {
+              matched = true;
+              break;
+            }
+          }
+          if (!matched) return false;
         }
       }
       return true;
@@ -1153,40 +1155,49 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
 
     return Column(
       children: [
-        // Search & Filter Header (Month & Year)
+        // Search & Filter Header (Multi-Month & Year)
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           color: Colors.white,
           child: Row(
             children: [
-              // Month Dropdown
+              // Multi-Month Selector Button
               Expanded(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  decoration: BoxDecoration(
-                    color: AppTheme.surfaceVariantLight,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppTheme.outlineVariantLight),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      value: _pvFilterMonth,
-                      isExpanded: true,
-                      style: GoogleFonts.ibmPlexSans(
-                        fontSize: 12,
-                        color: AppTheme.darkCharcoal,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      icon: const Icon(Icons.calendar_month, size: 16, color: AppTheme.primary),
-                      items: months.map((m) {
-                        return DropdownMenuItem<String>(
-                          value: m['val']!,
-                          child: Text(m['label']!),
-                        );
-                      }).toList(),
-                      onChanged: (val) {
-                        if (val != null) setState(() => _pvFilterMonth = val);
-                      },
+                child: InkWell(
+                  onTap: () async {
+                    final selected = await showMultiMonthSelector(
+                      context: context,
+                      currentSelected: _pvFilterMonths,
+                    );
+                    if (selected != null) {
+                      setState(() => _pvFilterMonths = selected);
+                    }
+                  },
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: AppTheme.surfaceVariantLight,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppTheme.outlineVariantLight),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.calendar_month, size: 16, color: AppTheme.primary),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            getMonthsButtonLabel(_pvFilterMonths),
+                            style: GoogleFonts.ibmPlexSans(
+                              fontSize: 12,
+                              color: AppTheme.darkCharcoal,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const Icon(Icons.arrow_drop_down, size: 18, color: AppTheme.darkCharcoal),
+                      ],
                     ),
                   ),
                 ),
@@ -1281,6 +1292,7 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
                     final desc = (pv['description'] as String?) ?? '';
                     final pdfName = (pv['pdf_name'] as String?) ?? '';
                     final pdfData = (pv['pdf_data'] as String?) ?? '';
+                    final hasPdf = pdfData.isNotEmpty || pdfName.isNotEmpty;
 
                     return Container(
                       margin: const EdgeInsets.only(bottom: 12),
@@ -1337,7 +1349,31 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
+                              // Print Attached PDF Icon on Card
+                              GestureDetector(
+                                onTap: () {
+                                  if (hasPdf) {
+                                    _openPdfFile(pdfName, pdfData);
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Aucun fichier PDF joint à ce PV. Veuillez joindre un PDF.'),
+                                        backgroundColor: AppTheme.warning,
+                                      ),
+                                    );
+                                  }
+                                },
+                                child: Padding(
+                                  padding: const EdgeInsets.all(4),
+                                  child: Icon(
+                                    Icons.print_outlined,
+                                    size: 20,
+                                    color: hasPdf ? AppTheme.primary : AppTheme.mutedText,
+                                  ),
+                                ),
+                              ),
                               if (_canEdit) ...[
+                                const SizedBox(width: 4),
                                 GestureDetector(
                                   onTap: () => _showAddPvDiversSheet(initialPv: pv),
                                   child: const Padding(
@@ -1366,7 +1402,7 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
                             ),
                           ),
                           // PDF attachment button
-                          if (pdfData.isNotEmpty || pdfName.isNotEmpty) ...[
+                          if (hasPdf) ...[
                             const SizedBox(height: 12),
                             InkWell(
                               onTap: () => _openPdfFile(pdfName, pdfData),
@@ -1394,8 +1430,8 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
-                                    const SizedBox(width: 6),
-                                    const Icon(Icons.open_in_new, size: 14, color: Colors.red),
+                                    const SizedBox(width: 8),
+                                    const Icon(Icons.print, size: 16, color: Colors.red),
                                   ],
                                 ),
                               ),
