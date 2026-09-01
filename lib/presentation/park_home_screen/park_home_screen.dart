@@ -7,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:universal_html/html.dart' as html;
 
 import '../../../core/app_export.dart';
+import '../../services/pdf_report_service.dart';
 import '../../services/presence_service.dart';
 import '../../services/supabase_service.dart';
 import '../profile_screen/profile_screen.dart';
@@ -1095,6 +1096,28 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
     }
   }
 
+  Future<void> _printPvDiversPdf() async {
+    try {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Génération du rapport PV Divers PDF en cours...'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      await PdfReportService.instance.printPvDiversPdf(
+        pvList: _pvDiversMaps,
+        filterMonth: _pvFilterMonth,
+        filterYear: _pvFilterYear,
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur génération PDF: $e')),
+        );
+      }
+    }
+  }
+
   Widget _buildPvDiversSection() {
     final months = [
       {'val': 'Tous', 'label': 'Tous les mois'},
@@ -1171,7 +1194,7 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
               const SizedBox(width: 10),
               // Year Dropdown
               Container(
-                width: 110,
+                width: 105,
                 padding: const EdgeInsets.symmetric(horizontal: 10),
                 decoration: BoxDecoration(
                   color: AppTheme.surfaceVariantLight,
@@ -1199,6 +1222,12 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
                     },
                   ),
                 ),
+              ),
+              const SizedBox(width: 6),
+              IconButton(
+                icon: const Icon(Icons.print_outlined, color: AppTheme.primary, size: 22),
+                onPressed: _printPvDiversPdf,
+                tooltip: 'Imprimer PDF PV Divers (Filtré)',
               ),
             ],
           ),

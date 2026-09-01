@@ -423,7 +423,7 @@ class _FixedEquipmentMaintenanceModalState
                       ),
                       const SizedBox(width: 8),
                       Container(
-                        width: 110,
+                        width: 105,
                         padding: const EdgeInsets.symmetric(horizontal: 10),
                         decoration: BoxDecoration(
                           color: AppTheme.surfaceVariantLight,
@@ -451,6 +451,12 @@ class _FixedEquipmentMaintenanceModalState
                             },
                           ),
                         ),
+                      ),
+                      const SizedBox(width: 6),
+                      IconButton(
+                        icon: const Icon(Icons.print_outlined, color: AppTheme.primary, size: 22),
+                        onPressed: _printFixedEquipmentReport,
+                        tooltip: 'Imprimer PDF (Filtré)',
                       ),
                     ],
                   ),

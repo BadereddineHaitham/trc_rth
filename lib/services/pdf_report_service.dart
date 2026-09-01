@@ -510,6 +510,143 @@ class PdfReportService {
     );
   }
 
+  /// Print or share PV Divers PDF report (filtered by Month & Year)
+  Future<void> printPvDiversPdf({
+    required List<Map<String, dynamic>> pvList,
+    String filterMonth = 'Tous',
+    String filterYear = 'Tous',
+  }) async {
+    final logoBytes = await _loadLogo();
+    final pdf = pw.Document();
+    final dateFormatted = DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now());
+
+    // Filter PV records by year and month
+    final filteredPv = pvList.where((pv) {
+      final dateStr = (pv['date'] as String?) ?? '';
+      if (filterYear != 'Tous' && filterYear.isNotEmpty) {
+        if (!dateStr.startsWith(filterYear)) return false;
+      }
+      if (filterMonth != 'Tous' && filterMonth.isNotEmpty) {
+        final parts = dateStr.split('-');
+        if (parts.length >= 2 && parts[1] != filterMonth) return false;
+      }
+      return true;
+    }).toList();
+
+    String pvHeaderTitle = 'PROCÈS-VERBAUX DIVERS (${filteredPv.length})';
+    if (filterYear != 'Tous' || filterMonth != 'Tous') {
+      final filterParts = <String>[];
+      if (filterMonth != 'Tous') filterParts.add('Mois: $filterMonth');
+      if (filterYear != 'Tous') filterParts.add('Année: $filterYear');
+      pvHeaderTitle += ' [Filtre: ${filterParts.join(', ')}]';
+    }
+
+    pdf.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(28),
+        header: (pw.Context context) {
+          return pw.Column(
+            children: [
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: pw.CrossAxisAlignment.center,
+                children: [
+                  if (logoBytes.isNotEmpty)
+                    pw.Image(pw.MemoryImage(logoBytes), width: 65, height: 65)
+                  else
+                    pw.Container(width: 65, height: 65),
+                  pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.end,
+                    children: [
+                      pw.Text(
+                        'SONATRACH - TRC RTH',
+                        style: pw.TextStyle(
+                          fontSize: 14,
+                          fontWeight: pw.FontWeight.bold,
+                          color: PdfColors.amber900,
+                        ),
+                      ),
+                      pw.Text(
+                        'Direction Régionale Transport Hydrocarbures',
+                        style: const pw.TextStyle(fontSize: 9.5, color: PdfColors.grey700),
+                      ),
+                      pw.Text(
+                        'Édité le: $dateFormatted',
+                        style: const pw.TextStyle(fontSize: 8.5, color: PdfColors.grey600),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              pw.SizedBox(height: 6),
+              pw.Divider(thickness: 1.5, color: PdfColors.amber900),
+              pw.SizedBox(height: 6),
+            ],
+          );
+        },
+        footer: (pw.Context context) {
+          return pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            children: [
+              pw.Text('Sanad Sonatrach TRC RTH - Document Officiel', style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
+              pw.Text('Page ${context.pageNumber} sur ${context.pagesCount}', style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
+            ],
+          );
+        },
+        build: (pw.Context context) {
+          return [
+            pw.Center(
+              child: pw.Text(
+                'RAPPORT PV DIVERS',
+                style: pw.TextStyle(
+                  fontSize: 14,
+                  fontWeight: pw.FontWeight.bold,
+                  color: PdfColors.blueGrey900,
+                ),
+              ),
+            ),
+            pw.SizedBox(height: 12),
+            pw.Text(
+              pvHeaderTitle,
+              style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.blueGrey900),
+            ),
+            pw.SizedBox(height: 6),
+            if (filteredPv.isEmpty)
+              pw.Text('Aucun PV divers correspondant aux critères de recherche.', style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey600))
+            else
+              pw.TableHelper.fromTextArray(
+                headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 8.5),
+                headerDecoration: const pw.BoxDecoration(color: PdfColors.amber900),
+                cellStyle: const pw.TextStyle(fontSize: 8),
+                cellPadding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 3.5),
+                columnWidths: {
+                  0: const pw.FlexColumnWidth(1.5), // Date
+                  1: const pw.FlexColumnWidth(2.0), // Equipe
+                  2: const pw.FlexColumnWidth(4.5), // Description
+                  3: const pw.FlexColumnWidth(1.5), // Fichier PDF
+                },
+                headers: ['Date', 'Équipe', 'Description', 'Fichier PDF'],
+                data: filteredPv.map((pv) {
+                  final date = _clean((pv['date'] as String?) ?? '-');
+                  final equipe = _clean((pv['equipe'] as String?) ?? (pv['team'] as String?) ?? '-');
+                  final desc = _clean((pv['description'] as String?) ?? '-');
+                  final pdfUrl = (pv['pdf_url'] as String?) ?? '';
+                  final hasPdf = pdfUrl.isNotEmpty ? 'Oui (Joint)' : 'Non';
+                  return [date, equipe, desc, hasPdf];
+                }).toList(),
+              ),
+          ];
+        },
+      ),
+    );
+
+    await Printing.layoutPdf(
+      onLayout: (format) async => pdf.save(),
+      name: 'Rapport_PV_Divers.pdf',
+    );
+  }
+
   static pw.Widget _buildInfoItem(String label, String value) {
     return pw.Row(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
