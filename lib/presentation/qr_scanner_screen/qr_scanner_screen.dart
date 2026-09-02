@@ -18,7 +18,7 @@ class _QrScannerScreenState extends State<QrScannerScreen>
     with TickerProviderStateMixin {
   bool _isProcessing = false;
   final MobileScannerController _scannerController = MobileScannerController(
-    detectionSpeed: DetectionSpeed.noDuplicates,
+    detectionSpeed: DetectionSpeed.normal,
     formats: const [BarcodeFormat.qrCode],
   );
 
@@ -42,9 +42,7 @@ class _QrScannerScreenState extends State<QrScannerScreen>
     if (_isProcessing) return;
     final List<Barcode> barcodes = capture.barcodes;
     for (final barcode in barcodes) {
-      // Strictly accept only QR codes (reject all 1D barcodes)
-      if (barcode.format != BarcodeFormat.qrCode) continue;
-      final code = barcode.rawValue;
+      final code = barcode.rawValue ?? barcode.displayValue;
       if (code != null && code.trim().isNotEmpty) {
         _processQrCode(code);
         break;
@@ -58,19 +56,26 @@ class _QrScannerScreenState extends State<QrScannerScreen>
 
     try {
       final cleanCode = code.trim();
-      final upperCode = cleanCode.toUpperCase();
+      final lower = cleanCode.toLowerCase();
+      final upper = cleanCode.toUpperCase();
+      final normalized =
+          upper.replaceAll('-', '').replaceAll('_', '').replaceAll(' ', '');
 
       // ── STRICT WHITELIST OF OUR AUTHORIZED QR CODES ────────────────────────
 
-      // 1. User's generated QR code (https://q.me-qr.com/rm1fhboz)
-      final bool isUserQr = cleanCode.contains('rm1fhboz');
+      // 1. User's generated QR code (me-qr.com link: rm1fhboz or any me-qr for park)
+      final bool isUserQr =
+          lower.contains('rm1fhboz') || lower.contains('me-qr.com');
 
-      // 2. Official Sonatrach TRC RTH park code (exact match)
+      // 2. Official Sonatrach TRC RTH park code (direct QR or variants)
       final bool isOfficialPark =
-          upperCode == 'TRC-RTH-PARK-001' ||
-          upperCode == 'RTH-PARK-001' ||
-          upperCode == 'TRC_RTH_PARK_001' ||
-          upperCode == 'RTH_PARK_001';
+          upper == 'TRC-RTH-PARK-001' ||
+          upper == 'RTH-PARK-001' ||
+          upper == 'TRC_RTH_PARK_001' ||
+          upper == 'RTH_PARK_001' ||
+          upper == 'PARK-001' ||
+          normalized.contains('TRCRTHPARK') ||
+          normalized.contains('RTHPARK001');
 
       if (isUserQr || isOfficialPark) {
         Fluttertoast.showToast(
@@ -142,7 +147,11 @@ class _QrScannerScreenState extends State<QrScannerScreen>
       }
     } finally {
       if (mounted) {
-        setState(() => _isProcessing = false);
+        Future.delayed(const Duration(milliseconds: 1500), () {
+          if (mounted) {
+            setState(() => _isProcessing = false);
+          }
+        });
       }
     }
   }
