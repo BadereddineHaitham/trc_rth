@@ -248,21 +248,48 @@ class _QrScannerScreenState extends State<QrScannerScreen>
                     errorBuilder: (context, error, child) {
                       return Container(
                         color: const Color(0xFF0D1117),
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
                         alignment: Alignment.center,
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             CustomIconWidget(
                               iconName: 'camera_alt',
-                              color: AppTheme.mutedText,
+                              color: AppTheme.primary,
                               size: 48,
                             ),
                             const SizedBox(height: 12),
                             Text(
-                              'Caméra indisponible ou permission refusée',
+                              'Autorisation de la caméra requise',
+                              style: GoogleFonts.ibmPlexSans(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              'Veuillez autoriser l\'appareil photo dans votre navigateur pour scanner le QR Code',
+                              textAlign: TextAlign.center,
                               style: GoogleFonts.ibmPlexSans(
                                 color: Colors.white70,
-                                fontSize: 14,
+                                fontSize: 13,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            ElevatedButton.icon(
+                              onPressed: () {
+                                _scannerController.start();
+                              },
+                              icon: const Icon(Icons.refresh, size: 18),
+                              label: const Text('Activer la caméra'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppTheme.primary,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                  vertical: 10,
+                                ),
                               ),
                             ),
                           ],
