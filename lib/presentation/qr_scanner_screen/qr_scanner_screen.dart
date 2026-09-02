@@ -251,73 +251,7 @@ class _QrScannerScreenState extends State<QrScannerScreen>
 
                 const Spacer(),
 
-                // Scanner area label
-                if (!_isProcessing)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 32),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 10,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withAlpha(128),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: Colors.white.withAlpha(38),
-                          width: 1,
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          CustomIconWidget(
-                            iconName: 'qr_code_scanner',
-                            color: AppTheme.primary,
-                            size: 18,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Scannez le QR Code officiel',
-                            style: GoogleFonts.ibmPlexSans(
-                              color: Colors.white.withAlpha(204),
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                if (_isProcessing)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 24),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: AppTheme.primary,
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Text(
-                          'Validation du QR Code...',
-                          style: GoogleFonts.ibmPlexSans(
-                            color: Colors.white.withAlpha(204),
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                // Bottom actions
+                // Bottom actions with official QR notice clearly placed at bottom
                 _buildBottomActions(),
               ],
             ),
@@ -329,7 +263,7 @@ class _QrScannerScreenState extends State<QrScannerScreen>
 
   Widget _buildHeader() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 10),
       child: Column(
         children: [
           // Logo row
@@ -337,22 +271,22 @@ class _QrScannerScreenState extends State<QrScannerScreen>
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                width: 40,
-                height: 40,
+                width: 36,
+                height: 36,
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                padding: const EdgeInsets.all(4),
+                padding: const EdgeInsets.all(3),
                 child: CustomImageWidget(
                   imageUrl: 'assets/images/logo-1786569551645.jpeg',
-                  width: 32,
-                  height: 32,
+                  width: 30,
+                  height: 30,
                   fit: BoxFit.contain,
                   semanticLabel: 'Logo Sonatrach',
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 10),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -360,7 +294,7 @@ class _QrScannerScreenState extends State<QrScannerScreen>
                     'TRC RTH',
                     style: GoogleFonts.ibmPlexSans(
                       color: Colors.white,
-                      fontSize: 18,
+                      fontSize: 17,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 1.5,
                     ),
@@ -377,24 +311,24 @@ class _QrScannerScreenState extends State<QrScannerScreen>
               ),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 12),
           Text(
             'Scanner le QR Code du parc',
             style: GoogleFonts.ibmPlexSans(
               color: Colors.white,
-              fontSize: 20,
+              fontSize: 18,
               fontWeight: FontWeight.w700,
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 4),
           Text(
             'Positionnez le QR Code dans le cadre pour accéder au parc',
             textAlign: TextAlign.center,
             style: GoogleFonts.ibmPlexSans(
               color: Colors.white.withAlpha(140),
-              fontSize: 13,
+              fontSize: 12,
               fontWeight: FontWeight.w400,
-              height: 1.4,
+              height: 1.3,
             ),
           ),
         ],
@@ -404,9 +338,77 @@ class _QrScannerScreenState extends State<QrScannerScreen>
 
   Widget _buildBottomActions() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+      padding: const EdgeInsets.fromLTRB(24, 10, 24, 24),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
+          // Scanner status indicator / label: placed outside and below the scan square
+          if (!_isProcessing)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 14),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 18,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1E2430),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: AppTheme.primary.withAlpha(100),
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CustomIconWidget(
+                      iconName: 'qr_code_scanner',
+                      color: AppTheme.primary,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Scannez le QR Code officiel',
+                      style: GoogleFonts.ibmPlexSans(
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+          if (_isProcessing)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 14),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: AppTheme.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    'Validation du QR Code...',
+                    style: GoogleFonts.ibmPlexSans(
+                      color: Colors.white.withAlpha(220),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
           // Manual entry button
           SizedBox(
             width: double.infinity,
@@ -430,11 +432,11 @@ class _QrScannerScreenState extends State<QrScannerScreen>
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
-                padding: const EdgeInsets.symmetric(vertical: 14),
+                padding: const EdgeInsets.symmetric(vertical: 12),
               ),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           // Admin access
           TextButton(
             onPressed: () => context.go(AppRoutes.adminLoginScreen),
@@ -447,7 +449,7 @@ class _QrScannerScreenState extends State<QrScannerScreen>
               ),
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 2),
           Text(
             'Code démo: TRC-RTH-PARK-001',
             style: GoogleFonts.ibmPlexSans(
@@ -455,7 +457,7 @@ class _QrScannerScreenState extends State<QrScannerScreen>
               fontSize: 11,
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           Text(
             'Idée & Spécifications Métier : Walid SOLTANI',
             style: GoogleFonts.ibmPlexSans(
