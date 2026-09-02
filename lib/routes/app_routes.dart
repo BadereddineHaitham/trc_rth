@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../presentation/splash_screen/splash_screen.dart';
 import '../presentation/qr_scanner_screen/qr_scanner_screen.dart';
@@ -11,6 +11,7 @@ import '../presentation/equipment_definitions_screen/equipment_definitions_scree
 import '../presentation/alerts_screen/alerts_screen.dart';
 import '../presentation/user_management_screen/user_management_screen.dart';
 import '../presentation/profile_screen/profile_screen.dart';
+import '../presentation/audit_log_screen/audit_log_screen.dart';
 
 class AppRoutes {
   static const String initial = '/';
@@ -25,6 +26,7 @@ class AppRoutes {
   static const String alertsScreen = '/alerts-screen';
   static const String userManagementScreen = '/user-management-screen';
   static const String profileScreen = '/profile-screen';
+  static const String auditLogScreen = '/audit-log-screen';
 }
 
 Page<T> _noTransition<T>(LocalKey key, Widget child) =>
@@ -154,6 +156,11 @@ final GoRouter appRouter = GoRouter(
         final username = extra?['username'] ?? 'utilisateur';
         return _slideUp(state.pageKey, ProfileScreen(role: role, username: username));
       },
+    ),
+    GoRoute(
+      path: AppRoutes.auditLogScreen,
+      pageBuilder: (context, state) =>
+          _slideUp(state.pageKey, const AuditLogScreen()),
     ),
   ],
 );

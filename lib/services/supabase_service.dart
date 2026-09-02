@@ -464,12 +464,13 @@ class SupabaseService {
   // ── VEHICLES ──────────────────────────────────────────────────────────────
 
   Future<List<Map<String, dynamic>>> getVehicles({String? parkId}) async {
+    const cols = 'id, name, vehicle_type, matricule, status, affectation, parc_name, park_id, general_remark, battery, wheel_ref, insurance_expiry, inspection_expiry, oil_change_date, created_at';
     List<Map<String, dynamic>> response = [];
     if (parkId != null && parkId.isNotEmpty) {
       try {
         final filtered = await client
             .from('vehicles')
-            .select('*, parks(name)')
+            .select(cols)
             .or('park_id.eq.$parkId,park_id.is.null')
             .order('name', ascending: true);
         response = List<Map<String, dynamic>>.from(filtered);
@@ -478,7 +479,7 @@ class SupabaseService {
     if (response.isEmpty) {
       final allVehicles = await client
           .from('vehicles')
-          .select('*, parks(name)')
+          .select(cols)
           .order('name', ascending: true);
       response = List<Map<String, dynamic>>.from(allVehicles);
     }
@@ -826,12 +827,13 @@ class SupabaseService {
   // ── FIXED EQUIPMENT ───────────────────────────────────────────────────────
 
   Future<List<Map<String, dynamic>>> getFixedEquipment({String? parkId}) async {
+    const cols = 'id, name, category, location, status, park_id, last_inspection, created_at, usd_details';
     List<Map<String, dynamic>> response = [];
     if (parkId != null && parkId.isNotEmpty) {
       try {
         final filtered = await client
             .from('fixed_equipment')
-            .select()
+            .select(cols)
             .or('park_id.eq.$parkId,park_id.is.null')
             .order('name', ascending: true);
         response = List<Map<String, dynamic>>.from(filtered);
@@ -840,7 +842,7 @@ class SupabaseService {
     if (response.isEmpty) {
       final allFixed = await client
           .from('fixed_equipment')
-          .select()
+          .select(cols)
           .order('name', ascending: true);
       response = List<Map<String, dynamic>>.from(allFixed);
     }
@@ -1486,6 +1488,18 @@ class SupabaseService {
         .select()
         .order('created_at', ascending: false)
         .limit(limit);
+    return List<Map<String, dynamic>>.from(response);
+  }
+
+  Future<List<Map<String, dynamic>>> getAuditLogsPage({
+    int limit = 50,
+    int offset = 0,
+  }) async {
+    final response = await client
+        .from('audit_logs')
+        .select()
+        .order('created_at', ascending: false)
+        .range(offset, offset + limit - 1);
     return List<Map<String, dynamic>>.from(response);
   }
 

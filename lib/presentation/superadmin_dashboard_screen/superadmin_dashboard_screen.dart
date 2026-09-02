@@ -992,7 +992,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen> {
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 4, 12, 10),
             child: TextButton.icon(
-              onPressed: () => _showComingSoon('Journal d\'activité complet'),
+              onPressed: () => context.push(AppRoutes.auditLogScreen),
               icon: CustomIconWidget(
                 iconName: 'history',
                 color: AppTheme.primary,
@@ -1201,8 +1201,13 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen> {
 
   Widget _buildGreeting() {
     final now = DateTime.now();
+    const months = [
+      '', 'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
+      'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'
+    ];
+    final monthName = months[now.month];
     final dateStr =
-        '${now.day} août ${now.year}, ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
+        '${now.day} $monthName ${now.year}, ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -1527,7 +1532,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen> {
                           extra: 'Super Admin',
                         );
                       } else if (idx == 7) {
-                        _showComingSoon('Journal d\'activité');
+                        context.push(AppRoutes.auditLogScreen);
                       } else if (idx == 8) {
                         _showComingSoon('Configuration');
                       }

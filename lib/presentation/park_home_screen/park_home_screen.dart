@@ -95,12 +95,15 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
   void dispose() {
     _tabController.dispose();
     _debounceTimer?.cancel();
+    _refreshTimer?.cancel();
     _vehiclesChannel?.unsubscribe();
     _alertsChannel?.unsubscribe();
     _fixedEquipChannel?.unsubscribe();
     _pvDiversChannel?.unsubscribe();
     super.dispose();
   }
+
+  Timer? _refreshTimer;
 
   void _debouncedLoadData() {
     _debounceTimer?.cancel();
@@ -111,8 +114,65 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
     });
   }
 
+  void _debouncedRefreshVehicles() {
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 300), () {
+      if (mounted) _refreshVehicles();
+    });
+  }
+
+  void _debouncedRefreshFixed() {
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 300), () {
+      if (mounted) _refreshFixedEquipment();
+    });
+  }
+
+  void _debouncedRefreshAlerts() {
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 300), () {
+      if (mounted) _refreshAlerts();
+    });
+  }
+
+  void _debouncedRefreshPvDivers() {
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 300), () {
+      if (mounted) _refreshPvDivers();
+    });
+  }
+
+  Future<void> _refreshVehicles() async {
+    try {
+      final data = await _svc.getVehicles(parkId: widget.parkId);
+      if (mounted) setState(() => _vehicleMaps = data);
+    } catch (_) {}
+  }
+
+  Future<void> _refreshFixedEquipment() async {
+    try {
+      final data = await _svc.getFixedEquipment(parkId: widget.parkId);
+      if (mounted) setState(() => _fixedEquipmentMaps = data);
+    } catch (_) {}
+  }
+
+  Future<void> _refreshAlerts() async {
+    try {
+      final data = await _svc.getAlerts(dismissed: false);
+      if (mounted) setState(() => _alertMaps = data);
+    } catch (_) {}
+  }
+
+  Future<void> _refreshPvDivers() async {
+    try {
+      final data = await _svc.getPvDivers();
+      if (mounted) setState(() => _pvDiversMaps = data);
+    } catch (_) {}
+  }
+
   Future<void> _loadData({bool showLoading = false}) async {
-    if (showLoading || (_vehicleMaps.isEmpty && _fixedEquipmentMaps.isEmpty)) {
+    final isFirstLoad = _vehicleMaps.isEmpty && _fixedEquipmentMaps.isEmpty;
+    if (showLoading || isFirstLoad) {
       setState(() {
         _isLoading = true;
         _errorMsg = null;
@@ -151,7 +211,7 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
           event: PostgresChangeEvent.all,
           schema: 'public',
           table: 'vehicles',
-          callback: (_) => _debouncedLoadData(),
+          callback: (_) => _debouncedRefreshVehicles(),
         )
         .subscribe();
 
@@ -161,7 +221,7 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
           event: PostgresChangeEvent.all,
           schema: 'public',
           table: 'alerts',
-          callback: (_) => _debouncedLoadData(),
+          callback: (_) => _debouncedRefreshAlerts(),
         )
         .subscribe();
 
@@ -171,7 +231,7 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
           event: PostgresChangeEvent.all,
           schema: 'public',
           table: 'fixed_equipment',
-          callback: (_) => _debouncedLoadData(),
+          callback: (_) => _debouncedRefreshFixed(),
         )
         .subscribe();
 
@@ -181,7 +241,7 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
           event: PostgresChangeEvent.all,
           schema: 'public',
           table: 'pv_divers',
-          callback: (_) => _debouncedLoadData(),
+          callback: (_) => _debouncedRefreshPvDivers(),
         )
         .subscribe();
   }
