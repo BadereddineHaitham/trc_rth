@@ -458,34 +458,17 @@ class SupabaseService {
 
   Future<Map<String, dynamic>?> getParkByQrCode(String qrCode) async {
     final clean = qrCode.trim();
+    if (clean.isEmpty) return null;
     try {
       final response = await client
           .from('parks')
           .select()
           .eq('qr_code', clean)
           .maybeSingle();
-      if (response != null) return response;
-    } catch (_) {}
-
-    try {
-      final response = await client
-          .from('parks')
-          .select()
-          .eq('id', clean)
-          .maybeSingle();
-      if (response != null) return response;
-    } catch (_) {}
-
-    try {
-      final response = await client
-          .from('parks')
-          .select()
-          .ilike('name', '%$clean%')
-          .maybeSingle();
-      if (response != null) return response;
-    } catch (_) {}
-
-    return null;
+      return response;
+    } catch (_) {
+      return null;
+    }
   }
 
   Stream<List<Map<String, dynamic>>> watchParks() {
@@ -526,14 +509,7 @@ class SupabaseService {
 
   Future<Map<String, dynamic>?> getVehicleByCode(String code) async {
     final cleanCode = code.trim();
-    try {
-      final res = await client
-          .from('vehicles')
-          .select('*, parks(name)')
-          .eq('id', cleanCode)
-          .maybeSingle();
-      if (res != null) return res;
-    } catch (_) {}
+    if (cleanCode.isEmpty) return null;
 
     try {
       final res = await client
@@ -548,7 +524,7 @@ class SupabaseService {
       final res = await client
           .from('vehicles')
           .select('*, parks(name)')
-          .ilike('name', cleanCode)
+          .eq('id', cleanCode)
           .maybeSingle();
       if (res != null) return res;
     } catch (_) {}
