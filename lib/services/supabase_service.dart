@@ -937,7 +937,7 @@ class SupabaseService {
     try {
       final response = await client
           .from('pv_divers')
-          .select()
+          .select('id, date, equipe, description, pdf_name, created_at')
           .order('date', ascending: false);
       return List<Map<String, dynamic>>.from(response);
     } catch (_) {
@@ -950,7 +950,13 @@ class SupabaseService {
         return List<Map<String, dynamic>>.from(response.map((item) {
           final details = item['usd_details'];
           if (details is Map<String, dynamic>) {
-            return {'id': item['id'], ...details};
+            return {
+              'id': item['id'],
+              'date': details['date'] ?? item['last_inspection'] ?? '',
+              'equipe': details['equipe'] ?? item['location'] ?? '',
+              'description': details['description'] ?? item['name'] ?? '',
+              'pdf_name': details['pdf_name'] ?? '',
+            };
           }
           return {
             'id': item['id'],
@@ -963,6 +969,33 @@ class SupabaseService {
         return [];
       }
     }
+  }
+
+  Future<String?> getPvDiversPdfData(String id) async {
+    try {
+      final res = await client
+          .from('pv_divers')
+          .select('pdf_data')
+          .eq('id', id)
+          .maybeSingle();
+      if (res != null && res['pdf_data'] != null) {
+        return res['pdf_data'] as String;
+      }
+    } catch (_) {}
+
+    try {
+      final res = await client
+          .from('fixed_equipment')
+          .select('usd_details')
+          .eq('id', id)
+          .maybeSingle();
+      if (res != null && res['usd_details'] is Map) {
+        final details = res['usd_details'] as Map;
+        return details['pdf_data'] as String?;
+      }
+    } catch (_) {}
+
+    return null;
   }
 
   Future<Map<String, dynamic>> createPvDivers({

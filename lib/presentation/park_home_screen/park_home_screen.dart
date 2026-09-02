@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -88,14 +89,26 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
     _subscribeRealtime();
   }
 
+  Timer? _debounceTimer;
+
   @override
   void dispose() {
     _tabController.dispose();
+    _debounceTimer?.cancel();
     _vehiclesChannel?.unsubscribe();
     _alertsChannel?.unsubscribe();
     _fixedEquipChannel?.unsubscribe();
     _pvDiversChannel?.unsubscribe();
     super.dispose();
+  }
+
+  void _debouncedLoadData() {
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 400), () {
+      if (mounted) {
+        _loadData();
+      }
+    });
   }
 
   Future<void> _loadData({bool showLoading = false}) async {
@@ -138,7 +151,7 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
           event: PostgresChangeEvent.all,
           schema: 'public',
           table: 'vehicles',
-          callback: (_) => _loadData(),
+          callback: (_) => _debouncedLoadData(),
         )
         .subscribe();
 
@@ -148,7 +161,7 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
           event: PostgresChangeEvent.all,
           schema: 'public',
           table: 'alerts',
-          callback: (_) => _loadData(),
+          callback: (_) => _debouncedLoadData(),
         )
         .subscribe();
 
@@ -158,7 +171,7 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
           event: PostgresChangeEvent.all,
           schema: 'public',
           table: 'fixed_equipment',
-          callback: (_) => _loadData(),
+          callback: (_) => _debouncedLoadData(),
         )
         .subscribe();
 
@@ -168,7 +181,7 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
           event: PostgresChangeEvent.all,
           schema: 'public',
           table: 'pv_divers',
-          callback: (_) => _loadData(),
+          callback: (_) => _debouncedLoadData(),
         )
         .subscribe();
   }
@@ -1060,15 +1073,32 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
     );
   }
 
-  Future<void> _openPdfFile(String name, String base64Data) async {
-    if (base64Data.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Aucun contenu PDF à afficher.')),
-      );
+  Future<void> _openPdfFile(String id, String name, String? base64Data) async {
+    String dataToUse = base64Data ?? '';
+    if (dataToUse.isEmpty && id.isNotEmpty) {
+      try {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Téléchargement du fichier PDF joint...'),
+              duration: Duration(seconds: 1),
+            ),
+          );
+        }
+        dataToUse = (await _svc.getPvDiversPdfData(id)) ?? '';
+      } catch (_) {}
+    }
+
+    if (dataToUse.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Aucun contenu PDF à afficher.')),
+        );
+      }
       return;
     }
     try {
-      final bytes = base64Decode(base64Data);
+      final bytes = base64Decode(dataToUse);
       final filename = name.isNotEmpty
           ? (name.toLowerCase().endsWith('.pdf') ? name : '$name.pdf')
           : 'PV_Divers.pdf';
@@ -1079,7 +1109,7 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
       );
     } catch (e) {
       try {
-        final bytes = base64Decode(base64Data);
+        final bytes = base64Decode(dataToUse);
         final filename = name.isNotEmpty
             ? (name.toLowerCase().endsWith('.pdf') ? name : '$name.pdf')
             : 'PV_Divers.pdf';
@@ -1131,8 +1161,9 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
       }).toList();
 
       final attachedPvs = filteredPvList.where((pv) {
+        final pdfName = (pv['pdf_name'] as String?) ?? '';
         final pdfData = (pv['pdf_data'] as String?) ?? '';
-        return pdfData.isNotEmpty;
+        return pdfName.isNotEmpty || pdfData.isNotEmpty;
       }).toList();
 
       if (attachedPvs.isNotEmpty) {
@@ -1143,9 +1174,10 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
           ),
         );
         for (final pv in attachedPvs) {
+          final id = (pv['id'] as String?) ?? '';
           final pdfName = (pv['pdf_name'] as String?) ?? 'PV_Joint.pdf';
-          final pdfData = (pv['pdf_data'] as String?) ?? '';
-          await _openPdfFile(pdfName, pdfData);
+          final pdfData = (pv['pdf_data'] as String?);
+          await _openPdfFile(id, pdfName, pdfData);
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1337,6 +1369,7 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
                   itemCount: filteredPvList.length,
                   itemBuilder: (ctx, i) {
                     final pv = filteredPvList[i];
+                    final id = (pv['id'] as String?) ?? '';
                     final date = (pv['date'] as String?) ?? '';
                     final equipe = (pv['equipe'] as String?) ?? '';
                     final desc = (pv['description'] as String?) ?? '';
@@ -1432,7 +1465,7 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
                           if (hasPdf) ...[
                             const SizedBox(height: 12),
                             InkWell(
-                              onTap: () => _openPdfFile(pdfName, pdfData),
+                              onTap: () => _openPdfFile(id, pdfName, pdfData),
                               borderRadius: BorderRadius.circular(8),
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
