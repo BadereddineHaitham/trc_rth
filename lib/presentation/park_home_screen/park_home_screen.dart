@@ -64,7 +64,6 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
   RealtimeChannel? _vehiclesChannel;
   RealtimeChannel? _alertsChannel;
   RealtimeChannel? _fixedEquipChannel;
-  RealtimeChannel? _pvDiversChannel;
 
   bool get _isSuperAdmin => widget.role == 'Super Admin';
   bool get _isAdmin => widget.role == 'Admin';
@@ -85,6 +84,20 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     PresenceService.instance.startPresence(role: widget.role);
+
+    // Instant display from in-memory cache (0ms navigation)
+    final cachedV = _svc.cachedVehicles;
+    final cachedF = _svc.cachedFixedEquipment;
+    final cachedA = _svc.cachedAlerts;
+    final cachedP = _svc.cachedPvDivers;
+    if (cachedV.isNotEmpty || cachedF.isNotEmpty) {
+      _vehicleMaps = List.from(cachedV);
+      _fixedEquipmentMaps = List.from(cachedF);
+      _alertMaps = List.from(cachedA);
+      _pvDiversMaps = List.from(cachedP);
+      _isLoading = false;
+    }
+
     _loadData();
     _subscribeRealtime();
   }
@@ -99,7 +112,6 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
     _vehiclesChannel?.unsubscribe();
     _alertsChannel?.unsubscribe();
     _fixedEquipChannel?.unsubscribe();
-    _pvDiversChannel?.unsubscribe();
     super.dispose();
   }
 
@@ -170,9 +182,24 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
     } catch (_) {}
   }
 
+  Future<void> _refreshMobilesTab() async {
+    await Future.wait([
+      _refreshVehicles(),
+      _refreshAlerts(),
+    ]);
+  }
+
+  Future<void> _refreshFixesTab() async {
+    if (_fixesSubTabIndex == 2) {
+      await _refreshPvDivers();
+    } else {
+      await _refreshFixedEquipment();
+    }
+  }
+
   Future<void> _loadData({bool showLoading = false}) async {
-    final isFirstLoad = _vehicleMaps.isEmpty && _fixedEquipmentMaps.isEmpty;
-    if (showLoading || isFirstLoad) {
+    final hasData = _vehicleMaps.isNotEmpty || _fixedEquipmentMaps.isNotEmpty;
+    if (showLoading || !hasData) {
       setState(() {
         _isLoading = true;
         _errorMsg = null;
@@ -197,7 +224,7 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
     } catch (e) {
       if (mounted) {
         setState(() {
-          _errorMsg = e.toString();
+          if (!hasData) _errorMsg = e.toString();
           _isLoading = false;
         });
       }
@@ -231,17 +258,10 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
           event: PostgresChangeEvent.all,
           schema: 'public',
           table: 'fixed_equipment',
-          callback: (_) => _debouncedRefreshFixed(),
-        )
-        .subscribe();
-
-    _pvDiversChannel = _svc.client
-        .channel('park_pv_divers')
-        .onPostgresChanges(
-          event: PostgresChangeEvent.all,
-          schema: 'public',
-          table: 'pv_divers',
-          callback: (_) => _debouncedRefreshPvDivers(),
+          callback: (_) {
+            _debouncedRefreshFixed();
+            _debouncedRefreshPvDivers();
+          },
         )
         .subscribe();
   }
@@ -894,7 +914,7 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
             children: [
               // ── Tab 0: Mobiles ────────────────────────────────────────────
               RefreshIndicator(
-                onRefresh: _loadData,
+                onRefresh: _refreshMobilesTab,
                 child: CustomScrollView(
                   slivers: [
                     SliverToBoxAdapter(
@@ -972,7 +992,7 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
               ),
               // ── Tab 1: Fixes ──────────────────────────────────────────────
               RefreshIndicator(
-                onRefresh: _loadData,
+                onRefresh: _refreshFixesTab,
                 child: Column(
                   children: [
                     // Sub-tabs for USD / Pompe divers / PV divers

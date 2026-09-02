@@ -51,6 +51,17 @@ class SupabaseService {
   // Get current session
   Session? get currentSession => client.auth.currentSession;
 
+  // ── In-memory cache for instant navigation (0ms) ─────────────────────────
+  List<Map<String, dynamic>> _cachedVehicles = [];
+  List<Map<String, dynamic>> _cachedFixedEquipment = [];
+  List<Map<String, dynamic>> _cachedAlerts = [];
+  List<Map<String, dynamic>> _cachedPvDivers = [];
+
+  List<Map<String, dynamic>> get cachedVehicles => _cachedVehicles;
+  List<Map<String, dynamic>> get cachedFixedEquipment => _cachedFixedEquipment;
+  List<Map<String, dynamic>> get cachedAlerts => _cachedAlerts;
+  List<Map<String, dynamic>> get cachedPvDivers => _cachedPvDivers;
+
   /// Sign in with email and password.
   /// Returns a map with 'role' and 'username' on success.
   /// Throws [AuthException] or [Exception] on failure.
@@ -465,25 +476,20 @@ class SupabaseService {
 
   Future<List<Map<String, dynamic>>> getVehicles({String? parkId}) async {
     const cols = 'id, name, vehicle_type, matricule, status, affectation, parc_name, park_id, general_remark, battery, wheel_ref, insurance_expiry, inspection_expiry, oil_change_date, created_at';
-    List<Map<String, dynamic>> response = [];
-    if (parkId != null && parkId.isNotEmpty) {
-      try {
-        final filtered = await client
-            .from('vehicles')
-            .select(cols)
-            .or('park_id.eq.$parkId,park_id.is.null')
-            .order('name', ascending: true);
-        response = List<Map<String, dynamic>>.from(filtered);
-      } catch (_) {}
+    try {
+      var query = client.from('vehicles').select(cols);
+      if (parkId != null && parkId.isNotEmpty) {
+        query = query.or('park_id.eq.$parkId,park_id.is.null');
+      }
+      final response = await query.order('name', ascending: true);
+      final list = List<Map<String, dynamic>>.from(response);
+      if (list.isNotEmpty || parkId == null || parkId.isEmpty) {
+        _cachedVehicles = list;
+      }
+      return list;
+    } catch (_) {
+      return _cachedVehicles;
     }
-    if (response.isEmpty) {
-      final allVehicles = await client
-          .from('vehicles')
-          .select(cols)
-          .order('name', ascending: true);
-      response = List<Map<String, dynamic>>.from(allVehicles);
-    }
-    return response;
   }
 
   Future<Map<String, dynamic>?> getVehicleById(String vehicleId) async {
@@ -828,25 +834,20 @@ class SupabaseService {
 
   Future<List<Map<String, dynamic>>> getFixedEquipment({String? parkId}) async {
     const cols = 'id, name, category, location, status, park_id, last_inspection, created_at, usd_details';
-    List<Map<String, dynamic>> response = [];
-    if (parkId != null && parkId.isNotEmpty) {
-      try {
-        final filtered = await client
-            .from('fixed_equipment')
-            .select(cols)
-            .or('park_id.eq.$parkId,park_id.is.null')
-            .order('name', ascending: true);
-        response = List<Map<String, dynamic>>.from(filtered);
-      } catch (_) {}
+    try {
+      var query = client.from('fixed_equipment').select(cols);
+      if (parkId != null && parkId.isNotEmpty) {
+        query = query.or('park_id.eq.$parkId,park_id.is.null');
+      }
+      final response = await query.order('name', ascending: true);
+      final list = List<Map<String, dynamic>>.from(response);
+      if (list.isNotEmpty || parkId == null || parkId.isEmpty) {
+        _cachedFixedEquipment = list;
+      }
+      return list;
+    } catch (_) {
+      return _cachedFixedEquipment;
     }
-    if (response.isEmpty) {
-      final allFixed = await client
-          .from('fixed_equipment')
-          .select(cols)
-          .order('name', ascending: true);
-      response = List<Map<String, dynamic>>.from(allFixed);
-    }
-    return response;
   }
 
   Stream<List<Map<String, dynamic>>> watchFixedEquipment({String? parkId}) {
@@ -938,53 +939,38 @@ class SupabaseService {
   Future<List<Map<String, dynamic>>> getPvDivers() async {
     try {
       final response = await client
-          .from('pv_divers')
-          .select('id, date, equipe, description, pdf_name, created_at')
-          .order('date', ascending: false);
-      return List<Map<String, dynamic>>.from(response);
-    } catch (_) {
-      try {
-        final response = await client
-            .from('fixed_equipment')
-            .select()
-            .eq('category', 'PV_DIVERS')
-            .order('created_at', ascending: false);
-        return List<Map<String, dynamic>>.from(response.map((item) {
-          final details = item['usd_details'];
-          if (details is Map<String, dynamic>) {
-            return {
-              'id': item['id'],
-              'date': details['date'] ?? item['last_inspection'] ?? '',
-              'equipe': details['equipe'] ?? item['location'] ?? '',
-              'description': details['description'] ?? item['name'] ?? '',
-              'pdf_name': details['pdf_name'] ?? '',
-            };
-          }
+          .from('fixed_equipment')
+          .select('id, name, location, last_inspection, usd_details, created_at')
+          .eq('category', 'PV_DIVERS')
+          .order('created_at', ascending: false);
+
+      final list = List<Map<String, dynamic>>.from(response.map((item) {
+        final details = item['usd_details'];
+        if (details is Map<String, dynamic>) {
           return {
             'id': item['id'],
-            'date': item['last_inspection'] ?? '',
-            'equipe': item['location'] ?? '',
-            'description': item['name'] ?? '',
+            'date': details['date'] ?? item['last_inspection'] ?? '',
+            'equipe': details['equipe'] ?? item['location'] ?? '',
+            'description': details['description'] ?? item['name'] ?? '',
+            'pdf_name': details['pdf_name'] ?? '',
           };
-        }));
-      } catch (_) {
-        return [];
-      }
+        }
+        return {
+          'id': item['id'],
+          'date': item['last_inspection'] ?? '',
+          'equipe': item['location'] ?? '',
+          'description': item['name'] ?? '',
+          'pdf_name': '',
+        };
+      }));
+      _cachedPvDivers = list;
+      return list;
+    } catch (_) {
+      return _cachedPvDivers;
     }
   }
 
   Future<String?> getPvDiversPdfData(String id) async {
-    try {
-      final res = await client
-          .from('pv_divers')
-          .select('pdf_data')
-          .eq('id', id)
-          .maybeSingle();
-      if (res != null && res['pdf_data'] != null) {
-        return res['pdf_data'] as String;
-      }
-    } catch (_) {}
-
     try {
       final res = await client
           .from('fixed_equipment')
@@ -996,7 +982,6 @@ class SupabaseService {
         return details['pdf_data'] as String?;
       }
     } catch (_) {}
-
     return null;
   }
 
@@ -1015,57 +1000,39 @@ class SupabaseService {
       if (pdfData != null) 'pdf_data': pdfData,
     };
 
-    try {
-      final res = await client
-          .from('pv_divers')
-          .insert(data)
-          .select()
-          .single();
-      return res;
-    } catch (_) {
-      final fallbackData = {
-        'name': description,
-        'category': 'PV_DIVERS',
-        'location': equipe,
-        'status': 'operational',
-        'last_inspection': date,
-        'usd_details': data,
-      };
-      final res = await client
-          .from('fixed_equipment')
-          .insert(fallbackData)
-          .select()
-          .single();
-      return {'id': res['id'], ...data};
-    }
+    final equipmentData = {
+      'name': description,
+      'category': 'PV_DIVERS',
+      'location': equipe,
+      'status': 'operational',
+      'last_inspection': date,
+      'usd_details': data,
+    };
+    final res = await client
+        .from('fixed_equipment')
+        .insert(equipmentData)
+        .select()
+        .single();
+    final newPv = {'id': res['id'], ...data};
+    _cachedPvDivers.insert(0, newPv);
+    return newPv;
   }
 
   Future<void> updatePvDivers({
     required String id,
     required Map<String, dynamic> data,
   }) async {
-    try {
-      await client.from('pv_divers').update(data).eq('id', id);
-    } catch (_) {
-      try {
-        await client.from('fixed_equipment').update({
-          'usd_details': data,
-          'name': data['description'] ?? '',
-          'location': data['equipe'] ?? '',
-          'last_inspection': data['date'] ?? '',
-        }).eq('id', id);
-      } catch (_) {}
-    }
+    await client.from('fixed_equipment').update({
+      'usd_details': data,
+      'name': data['description'] ?? '',
+      'location': data['equipe'] ?? '',
+      'last_inspection': data['date'] ?? '',
+    }).eq('id', id);
   }
 
   Future<void> deletePvDivers(String id) async {
-    try {
-      await client.from('pv_divers').delete().eq('id', id);
-    } catch (_) {
-      try {
-        await client.from('fixed_equipment').delete().eq('id', id);
-      } catch (_) {}
-    }
+    await client.from('fixed_equipment').delete().eq('id', id);
+    _cachedPvDivers.removeWhere((p) => p['id'] == id);
   }
 
   // ── MAINTENANCE RECORDS ───────────────────────────────────────────────────
@@ -1419,13 +1386,18 @@ class SupabaseService {
   }
 
   Future<List<Map<String, dynamic>>> getAlerts({bool? dismissed}) async {
-    await syncAlertsFromFleet();
-    var query = client.from('alerts').select('*, vehicles(name, matricule)');
-    if (dismissed != null) {
-      query = query.eq('dismissed', dismissed);
+    try {
+      var query = client.from('alerts').select('*, vehicles(name, matricule)');
+      if (dismissed != null) {
+        query = query.eq('dismissed', dismissed);
+      }
+      final response = await query.order('severity', ascending: true);
+      final list = List<Map<String, dynamic>>.from(response);
+      _cachedAlerts = list;
+      return list;
+    } catch (_) {
+      return _cachedAlerts;
     }
-    final response = await query.order('severity', ascending: true);
-    return List<Map<String, dynamic>>.from(response);
   }
 
   Stream<List<Map<String, dynamic>>> watchAlerts({bool? dismissed}) {
