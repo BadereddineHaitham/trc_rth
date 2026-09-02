@@ -1,5 +1,3 @@
-import 'dart:async';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -21,23 +19,14 @@ class _QrScannerScreenState extends State<QrScannerScreen>
   bool _isProcessing = false;
   final MobileScannerController _scannerController = MobileScannerController(
     detectionSpeed: DetectionSpeed.normal,
-    formats: const [BarcodeFormat.qrCode],
   );
 
-  StreamSubscription<BarcodeCapture>? _barcodeSubscription;
   late AnimationController _scanLineController;
   late Animation<double> _scanLineAnimation;
 
   @override
   void initState() {
     super.initState();
-    if (kIsWeb) {
-      try {
-        MobileScannerPlatform.instance
-            .setBarcodeLibraryScriptUrl('zxing.min.js');
-      } catch (_) {}
-    }
-
     _scanLineController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 2000),
@@ -46,29 +35,6 @@ class _QrScannerScreenState extends State<QrScannerScreen>
     _scanLineAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _scanLineController, curve: Curves.easeInOut),
     );
-
-    // Guaranteed listener for both Web and native platforms
-    _barcodeSubscription = _scannerController.barcodes.listen(_onDetect);
-
-    // If opened via web link with ?qr=... or ?code=..., process directly
-    if (kIsWeb) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _checkInitialUrlParams();
-      });
-    }
-  }
-
-  void _checkInitialUrlParams() {
-    try {
-      final uri = Uri.base;
-      final param = uri.queryParameters['qr'] ??
-          uri.queryParameters['code'] ??
-          uri.queryParameters['park'] ??
-          uri.queryParameters['scan'];
-      if (param != null && param.trim().isNotEmpty) {
-        _processQrCode(param.trim());
-      }
-    } catch (_) {}
   }
 
   void _onDetect(BarcodeCapture capture) {
@@ -215,7 +181,6 @@ class _QrScannerScreenState extends State<QrScannerScreen>
 
   @override
   void dispose() {
-    _barcodeSubscription?.cancel();
     _scanLineController.dispose();
     _scannerController.dispose();
     super.dispose();
