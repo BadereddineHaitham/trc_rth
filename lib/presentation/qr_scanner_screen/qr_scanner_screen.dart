@@ -19,6 +19,7 @@ class _QrScannerScreenState extends State<QrScannerScreen>
   bool _isProcessing = false;
   final MobileScannerController _scannerController = MobileScannerController(
     detectionSpeed: DetectionSpeed.noDuplicates,
+    formats: const [BarcodeFormat.qrCode],
   );
 
   late AnimationController _scanLineController;
@@ -41,6 +42,8 @@ class _QrScannerScreenState extends State<QrScannerScreen>
     if (_isProcessing) return;
     final List<Barcode> barcodes = capture.barcodes;
     for (final barcode in barcodes) {
+      // Strictly accept only QR codes (reject 1D barcodes like EAN, UPC, Code128, etc.)
+      if (barcode.format != BarcodeFormat.qrCode) continue;
       final code = barcode.rawValue;
       if (code != null && code.trim().isNotEmpty) {
         _processQrCode(code);
@@ -54,7 +57,10 @@ class _QrScannerScreenState extends State<QrScannerScreen>
     setState(() => _isProcessing = true);
 
     try {
-      final park = await SupabaseService.instance.getParkByQrCode(code);
+      final cleanCode = code.trim();
+
+      // 1. Check if matches a registered park by exact QR code
+      final park = await SupabaseService.instance.getParkByQrCode(cleanCode);
       if (!mounted) return;
 
       if (park != null) {
@@ -76,8 +82,27 @@ class _QrScannerScreenState extends State<QrScannerScreen>
         return;
       }
 
-      // Check if QR code matches a vehicle
-      final vehicle = await SupabaseService.instance.getVehicleByCode(code);
+      // 2. Strict check for official park demo codes (exact match only)
+      final upperCode = cleanCode.toUpperCase();
+      if (upperCode == 'TRC-RTH-PARK-001' ||
+          upperCode == 'RTH-PARK-001' ||
+          upperCode == 'PARK-001') {
+        Fluttertoast.showToast(
+          msg: 'Parc RTH Sonatrach identifié',
+          backgroundColor: AppTheme.success,
+          textColor: Colors.white,
+          gravity: ToastGravity.TOP,
+          toastLength: Toast.LENGTH_SHORT,
+        );
+        context.go(
+          AppRoutes.parkHomeScreen,
+          extra: {'role': 'User'},
+        );
+        return;
+      }
+
+      // 3. Check if QR code matches a specific registered vehicle
+      final vehicle = await SupabaseService.instance.getVehicleByCode(cleanCode);
       if (!mounted) return;
 
       if (vehicle != null) {
@@ -99,25 +124,8 @@ class _QrScannerScreenState extends State<QrScannerScreen>
         return;
       }
 
-      // Fallback check for demo code matching
-      final upperCode = code.trim().toUpperCase();
-      if (upperCode.contains('TRC-RTH-PARK-001') ||
-          upperCode.contains('PARK-001') ||
-          upperCode.contains('RTH-PARK')) {
-        Fluttertoast.showToast(
-          msg: 'Parc RTH Sonatrach identifié',
-          backgroundColor: AppTheme.success,
-          textColor: Colors.white,
-          gravity: ToastGravity.TOP,
-          toastLength: Toast.LENGTH_SHORT,
-        );
-        context.go(
-          AppRoutes.parkHomeScreen,
-          extra: {'role': 'User'},
-        );
-      } else {
-        _onInvalidScan();
-      }
+      // Unknown or unrelated QR code -> Reject
+      _onInvalidScan();
     } catch (e) {
       if (mounted) {
         _onInvalidScan();
@@ -131,7 +139,7 @@ class _QrScannerScreenState extends State<QrScannerScreen>
 
   void _onInvalidScan() {
     Fluttertoast.showToast(
-      msg: 'QR Code non reconnu ou parc non trouvé.',
+      msg: 'QR Code non reconnu ou non autorisé.',
       backgroundColor: AppTheme.critical,
       textColor: Colors.white,
       gravity: ToastGravity.TOP,
@@ -151,10 +159,6 @@ class _QrScannerScreenState extends State<QrScannerScreen>
         },
       ),
     );
-  }
-
-  void _onDemoTap() {
-    _processQrCode('RTH-PARK-001');
   }
 
   @override
@@ -182,52 +186,49 @@ class _QrScannerScreenState extends State<QrScannerScreen>
 
           // Camera viewfinder area
           Positioned.fill(
-            child: GestureDetector(
-              onTap: _onDemoTap,
-              child: Stack(
-                children: [
-                  Positioned.fill(
-                    child: MobileScanner(
-                      controller: _scannerController,
-                      onDetect: _onDetect,
-                      errorBuilder: (context, error, child) {
-                        return Container(
-                          color: const Color(0xFF0D1117),
-                          alignment: Alignment.center,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              CustomIconWidget(
-                                iconName: 'camera_alt',
-                                color: AppTheme.mutedText,
-                                size: 48,
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: MobileScanner(
+                    controller: _scannerController,
+                    onDetect: _onDetect,
+                    errorBuilder: (context, error, child) {
+                      return Container(
+                        color: const Color(0xFF0D1117),
+                        alignment: Alignment.center,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            CustomIconWidget(
+                              iconName: 'camera_alt',
+                              color: AppTheme.mutedText,
+                              size: 48,
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              'Caméra indisponible ou permission refusée',
+                              style: GoogleFonts.ibmPlexSans(
+                                color: Colors.white70,
+                                fontSize: 14,
                               ),
-                              const SizedBox(height: 12),
-                              Text(
-                                'Appuyez pour simuler le scan',
-                                style: GoogleFonts.ibmPlexSans(
-                                  color: Colors.white70,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                Center(
+                  child: SizedBox(
+                    width: size.width * 0.75,
+                    height: size.width * 0.75,
+                    child: ScannerFrameWidget(
+                      scanLineAnimation: _scanLineAnimation,
+                      isProcessing: _isProcessing,
                     ),
                   ),
-                  Center(
-                    child: SizedBox(
-                      width: size.width * 0.75,
-                      height: size.width * 0.75,
-                      child: ScannerFrameWidget(
-                        scanLineAnimation: _scanLineAnimation,
-                        isProcessing: _isProcessing,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
 
@@ -244,41 +245,38 @@ class _QrScannerScreenState extends State<QrScannerScreen>
                 if (!_isProcessing)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 16),
-                    child: GestureDetector(
-                      onTap: _onDemoTap,
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 32),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 12,
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 32),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withAlpha(128),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Colors.white.withAlpha(38),
+                          width: 1,
                         ),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withAlpha(128),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: Colors.white.withAlpha(38),
-                            width: 1,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          CustomIconWidget(
+                            iconName: 'qr_code_scanner',
+                            color: AppTheme.primary,
+                            size: 18,
                           ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            CustomIconWidget(
-                              iconName: 'qr_code_scanner',
-                              color: AppTheme.primary,
-                              size: 20,
+                          const SizedBox(width: 8),
+                          Text(
+                            'Scannez le QR Code officiel',
+                            style: GoogleFonts.ibmPlexSans(
+                              color: Colors.white.withAlpha(204),
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
                             ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Appuyez pour simuler le scan',
-                              style: GoogleFonts.ibmPlexSans(
-                                color: Colors.white.withAlpha(204),
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
