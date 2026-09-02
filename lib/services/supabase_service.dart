@@ -457,12 +457,35 @@ class SupabaseService {
   }
 
   Future<Map<String, dynamic>?> getParkByQrCode(String qrCode) async {
-    final response = await client
-        .from('parks')
-        .select()
-        .eq('qr_code', qrCode.trim())
-        .maybeSingle();
-    return response;
+    final clean = qrCode.trim();
+    try {
+      final response = await client
+          .from('parks')
+          .select()
+          .eq('qr_code', clean)
+          .maybeSingle();
+      if (response != null) return response;
+    } catch (_) {}
+
+    try {
+      final response = await client
+          .from('parks')
+          .select()
+          .eq('id', clean)
+          .maybeSingle();
+      if (response != null) return response;
+    } catch (_) {}
+
+    try {
+      final response = await client
+          .from('parks')
+          .select()
+          .ilike('name', '%$clean%')
+          .maybeSingle();
+      if (response != null) return response;
+    } catch (_) {}
+
+    return null;
   }
 
   Stream<List<Map<String, dynamic>>> watchParks() {

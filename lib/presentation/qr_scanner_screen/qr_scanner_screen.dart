@@ -58,8 +58,10 @@ class _QrScannerScreenState extends State<QrScannerScreen>
 
     try {
       final cleanCode = code.trim();
+      final normalized =
+          cleanCode.toUpperCase().replaceAll('_', '-').replaceAll(' ', '');
 
-      // 1. Check if matches a registered park by exact QR code
+      // 1. Check if matches a registered park by QR code, ID, or Name
       final park = await SupabaseService.instance.getParkByQrCode(cleanCode);
       if (!mounted) return;
 
@@ -82,11 +84,14 @@ class _QrScannerScreenState extends State<QrScannerScreen>
         return;
       }
 
-      // 2. Strict check for official park demo codes (exact match only)
-      final upperCode = cleanCode.toUpperCase();
-      if (upperCode == 'TRC-RTH-PARK-001' ||
-          upperCode == 'RTH-PARK-001' ||
-          upperCode == 'PARK-001') {
+      // 2. Comprehensive check for official park codes or app URL QR codes
+      if (normalized.contains('TRC-RTH') ||
+          normalized.contains('RTH-PARK') ||
+          normalized.contains('PARK-001') ||
+          normalized.contains('TRCRTH') ||
+          normalized.contains('RTHPARK') ||
+          cleanCode.toLowerCase().contains('badereddinehaitham.github.io/trc_rth') ||
+          cleanCode.toLowerCase().contains('trc_rth')) {
         Fluttertoast.showToast(
           msg: 'Parc RTH Sonatrach identifié',
           backgroundColor: AppTheme.success,
@@ -124,11 +129,11 @@ class _QrScannerScreenState extends State<QrScannerScreen>
         return;
       }
 
-      // Unknown or unrelated QR code -> Reject
-      _onInvalidScan();
+      // Unknown or unrelated QR code -> Reject and show scanned value
+      _onInvalidScan(cleanCode);
     } catch (e) {
       if (mounted) {
-        _onInvalidScan();
+        _onInvalidScan(code);
       }
     } finally {
       if (mounted) {
@@ -137,9 +142,12 @@ class _QrScannerScreenState extends State<QrScannerScreen>
     }
   }
 
-  void _onInvalidScan() {
+  void _onInvalidScan(String code) {
+    final display = code.trim();
+    final truncated =
+        display.length > 25 ? '${display.substring(0, 22)}...' : display;
     Fluttertoast.showToast(
-      msg: 'QR Code non reconnu ou non autorisé.',
+      msg: 'QR Code non reconnu: "$truncated"',
       backgroundColor: AppTheme.critical,
       textColor: Colors.white,
       gravity: ToastGravity.TOP,
