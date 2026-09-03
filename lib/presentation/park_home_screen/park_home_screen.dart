@@ -126,58 +126,39 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
     });
   }
 
-  void _debouncedRefreshVehicles() {
-    _debounceTimer?.cancel();
-    _debounceTimer = Timer(const Duration(milliseconds: 300), () {
-      if (mounted) _refreshVehicles();
-    });
-  }
-
-  void _debouncedRefreshFixed() {
-    _debounceTimer?.cancel();
-    _debounceTimer = Timer(const Duration(milliseconds: 300), () {
-      if (mounted) _refreshFixedEquipment();
-    });
-  }
-
-  void _debouncedRefreshAlerts() {
-    _debounceTimer?.cancel();
-    _debounceTimer = Timer(const Duration(milliseconds: 300), () {
-      if (mounted) _refreshAlerts();
-    });
-  }
-
-  void _debouncedRefreshPvDivers() {
-    _debounceTimer?.cancel();
-    _debounceTimer = Timer(const Duration(milliseconds: 300), () {
-      if (mounted) _refreshPvDivers();
-    });
-  }
-
-  Future<void> _refreshVehicles() async {
+  Future<void> _refreshVehicles({bool forceRefresh = true}) async {
     try {
-      final data = await _svc.getVehicles(parkId: widget.parkId);
+      final data = await _svc.getVehicles(
+        parkId: widget.parkId,
+        forceRefresh: forceRefresh,
+      );
       if (mounted) setState(() => _vehicleMaps = data);
     } catch (_) {}
   }
 
-  Future<void> _refreshFixedEquipment() async {
+  Future<void> _refreshFixedEquipment({bool forceRefresh = true}) async {
     try {
-      final data = await _svc.getFixedEquipment(parkId: widget.parkId);
+      final data = await _svc.getFixedEquipment(
+        parkId: widget.parkId,
+        forceRefresh: forceRefresh,
+      );
       if (mounted) setState(() => _fixedEquipmentMaps = data);
     } catch (_) {}
   }
 
-  Future<void> _refreshAlerts() async {
+  Future<void> _refreshAlerts({bool forceRefresh = true}) async {
     try {
-      final data = await _svc.getAlerts(dismissed: false);
+      final data = await _svc.getAlerts(
+        dismissed: false,
+        forceRefresh: forceRefresh,
+      );
       if (mounted) setState(() => _alertMaps = data);
     } catch (_) {}
   }
 
-  Future<void> _refreshPvDivers() async {
+  Future<void> _refreshPvDivers({bool forceRefresh = true}) async {
     try {
-      final data = await _svc.getPvDivers();
+      final data = await _svc.getPvDivers(forceRefresh: forceRefresh);
       if (mounted) setState(() => _pvDiversMaps = data);
     } catch (_) {}
   }
@@ -238,7 +219,12 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
           event: PostgresChangeEvent.all,
           schema: 'public',
           table: 'vehicles',
-          callback: (_) => _debouncedRefreshVehicles(),
+          callback: (payload) {
+            _svc.applyVehicleRealtimeChange(payload);
+            if (mounted) {
+              setState(() => _vehicleMaps = _svc.cachedVehicles);
+            }
+          },
         )
         .subscribe();
 
@@ -248,7 +234,12 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
           event: PostgresChangeEvent.all,
           schema: 'public',
           table: 'alerts',
-          callback: (_) => _debouncedRefreshAlerts(),
+          callback: (payload) {
+            _svc.applyAlertRealtimeChange(payload);
+            if (mounted) {
+              setState(() => _alertMaps = _svc.cachedAlerts);
+            }
+          },
         )
         .subscribe();
 
@@ -258,9 +249,14 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
           event: PostgresChangeEvent.all,
           schema: 'public',
           table: 'fixed_equipment',
-          callback: (_) {
-            _debouncedRefreshFixed();
-            _debouncedRefreshPvDivers();
+          callback: (payload) {
+            _svc.applyFixedRealtimeChange(payload);
+            if (mounted) {
+              setState(() {
+                _fixedEquipmentMaps = _svc.cachedFixedEquipment;
+                _pvDiversMaps = _svc.cachedPvDivers;
+              });
+            }
           },
         )
         .subscribe();

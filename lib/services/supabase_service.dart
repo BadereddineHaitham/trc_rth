@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:dio/dio.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SupabaseService {
   static SupabaseService? _instance;
@@ -37,6 +39,8 @@ class SupabaseService {
         eventsPerSecond: 10,
       ),
     );
+    // Load local disk cache immediately for 0ms offline-first launch
+    await instance._loadDiskCache();
   }
 
   // Get Supabase client
@@ -51,16 +55,170 @@ class SupabaseService {
   // Get current session
   Session? get currentSession => client.auth.currentSession;
 
-  // ── In-memory cache for instant navigation (0ms) ─────────────────────────
+  // ── Persistent Disk & Memory Cache for Bandwidth Minimization ─────────────
+  static const String _keyVehicles = 'sanad_cache_vehicles_v2';
+  static const String _keyFixedEquip = 'sanad_cache_fixed_v2';
+  static const String _keyAlerts = 'sanad_cache_alerts_v2';
+  static const String _keyPvDivers = 'sanad_cache_pvdivers_v2';
+  static const String _keyDefinitions = 'sanad_cache_defs_v2';
+  static const String _keyEquipPrefix = 'sanad_cache_vequip_';
+
   List<Map<String, dynamic>> _cachedVehicles = [];
   List<Map<String, dynamic>> _cachedFixedEquipment = [];
   List<Map<String, dynamic>> _cachedAlerts = [];
   List<Map<String, dynamic>> _cachedPvDivers = [];
+  List<Map<String, dynamic>> _cachedDefinitions = [];
+
+  // Cache validity timestamps (TTL: 5 minutes)
+  int _lastVehiclesSync = 0;
+  int _lastFixedSync = 0;
+  int _lastAlertsSync = 0;
+  int _lastPvDiversSync = 0;
+  int _lastDefinitionsSync = 0;
+
+  static const int cacheTtlMs = 5 * 60 * 1000; // 5 minutes
 
   List<Map<String, dynamic>> get cachedVehicles => _cachedVehicles;
   List<Map<String, dynamic>> get cachedFixedEquipment => _cachedFixedEquipment;
   List<Map<String, dynamic>> get cachedAlerts => _cachedAlerts;
   List<Map<String, dynamic>> get cachedPvDivers => _cachedPvDivers;
+  List<Map<String, dynamic>> get cachedDefinitions => _cachedDefinitions;
+
+  /// Loads persisted cache from SharedPreferences on app startup
+  Future<void> _loadDiskCache() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final vehStr = prefs.getString(_keyVehicles);
+      if (vehStr != null && vehStr.isNotEmpty) {
+        _cachedVehicles = List<Map<String, dynamic>>.from(
+          (jsonDecode(vehStr) as List)
+              .map((e) => Map<String, dynamic>.from(e as Map)),
+        );
+      }
+      final fixedStr = prefs.getString(_keyFixedEquip);
+      if (fixedStr != null && fixedStr.isNotEmpty) {
+        _cachedFixedEquipment = List<Map<String, dynamic>>.from(
+          (jsonDecode(fixedStr) as List)
+              .map((e) => Map<String, dynamic>.from(e as Map)),
+        );
+      }
+      final alertsStr = prefs.getString(_keyAlerts);
+      if (alertsStr != null && alertsStr.isNotEmpty) {
+        _cachedAlerts = List<Map<String, dynamic>>.from(
+          (jsonDecode(alertsStr) as List)
+              .map((e) => Map<String, dynamic>.from(e as Map)),
+        );
+      }
+      final pvStr = prefs.getString(_keyPvDivers);
+      if (pvStr != null && pvStr.isNotEmpty) {
+        _cachedPvDivers = List<Map<String, dynamic>>.from(
+          (jsonDecode(pvStr) as List)
+              .map((e) => Map<String, dynamic>.from(e as Map)),
+        );
+      }
+      final defsStr = prefs.getString(_keyDefinitions);
+      if (defsStr != null && defsStr.isNotEmpty) {
+        _cachedDefinitions = List<Map<String, dynamic>>.from(
+          (jsonDecode(defsStr) as List)
+              .map((e) => Map<String, dynamic>.from(e as Map)),
+        );
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _saveDiskCache(String key, List<Map<String, dynamic>> data) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(key, jsonEncode(data));
+    } catch (_) {}
+  }
+
+  Future<List<Map<String, dynamic>>?> _getDiskCache(String key) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final str = prefs.getString(key);
+      if (str != null && str.isNotEmpty) {
+        return List<Map<String, dynamic>>.from(
+          (jsonDecode(str) as List)
+              .map((e) => Map<String, dynamic>.from(e as Map)),
+        );
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  // ── Realtime In-Memory & Disk Cache Patching (0 HTTP queries) ─────────────
+  void applyVehicleRealtimeChange(PostgresChangePayload payload) {
+    try {
+      if (payload.eventType == PostgresChangeEvent.update) {
+        final updated = payload.newRecord;
+        final idx = _cachedVehicles.indexWhere((v) => v['id'] == updated['id']);
+        if (idx != -1) {
+          _cachedVehicles[idx] = {..._cachedVehicles[idx], ...updated};
+        } else {
+          _cachedVehicles.add(Map<String, dynamic>.from(updated));
+        }
+        _saveDiskCache(_keyVehicles, _cachedVehicles);
+      } else if (payload.eventType == PostgresChangeEvent.insert) {
+        final newRec = Map<String, dynamic>.from(payload.newRecord);
+        _cachedVehicles.removeWhere((v) => v['id'] == newRec['id']);
+        _cachedVehicles.insert(0, newRec);
+        _saveDiskCache(_keyVehicles, _cachedVehicles);
+      } else if (payload.eventType == PostgresChangeEvent.delete) {
+        final oldId = payload.oldRecord['id'];
+        _cachedVehicles.removeWhere((v) => v['id'] == oldId);
+        _saveDiskCache(_keyVehicles, _cachedVehicles);
+      }
+    } catch (_) {}
+  }
+
+  void applyFixedRealtimeChange(PostgresChangePayload payload) {
+    try {
+      if (payload.eventType == PostgresChangeEvent.update) {
+        final updated = payload.newRecord;
+        final idx = _cachedFixedEquipment.indexWhere((e) => e['id'] == updated['id']);
+        if (idx != -1) {
+          _cachedFixedEquipment[idx] = {..._cachedFixedEquipment[idx], ...updated};
+        } else {
+          _cachedFixedEquipment.add(Map<String, dynamic>.from(updated));
+        }
+        _saveDiskCache(_keyFixedEquip, _cachedFixedEquipment);
+      } else if (payload.eventType == PostgresChangeEvent.insert) {
+        final newRec = Map<String, dynamic>.from(payload.newRecord);
+        _cachedFixedEquipment.removeWhere((e) => e['id'] == newRec['id']);
+        _cachedFixedEquipment.insert(0, newRec);
+        _saveDiskCache(_keyFixedEquip, _cachedFixedEquipment);
+      } else if (payload.eventType == PostgresChangeEvent.delete) {
+        final oldId = payload.oldRecord['id'];
+        _cachedFixedEquipment.removeWhere((e) => e['id'] == oldId);
+        _saveDiskCache(_keyFixedEquip, _cachedFixedEquipment);
+      }
+    } catch (_) {}
+  }
+
+  void applyAlertRealtimeChange(PostgresChangePayload payload) {
+    try {
+      if (payload.eventType == PostgresChangeEvent.update) {
+        final updated = payload.newRecord;
+        final idx = _cachedAlerts.indexWhere((a) => a['id'] == updated['id']);
+        if (idx != -1) {
+          _cachedAlerts[idx] = {..._cachedAlerts[idx], ...updated};
+        } else {
+          _cachedAlerts.add(Map<String, dynamic>.from(updated));
+        }
+        _saveDiskCache(_keyAlerts, _cachedAlerts);
+      } else if (payload.eventType == PostgresChangeEvent.insert) {
+        final newRec = Map<String, dynamic>.from(payload.newRecord);
+        _cachedAlerts.removeWhere((a) => a['id'] == newRec['id']);
+        _cachedAlerts.insert(0, newRec);
+        _saveDiskCache(_keyAlerts, _cachedAlerts);
+      } else if (payload.eventType == PostgresChangeEvent.delete) {
+        final oldId = payload.oldRecord['id'];
+        _cachedAlerts.removeWhere((a) => a['id'] == oldId);
+        _saveDiskCache(_keyAlerts, _cachedAlerts);
+      }
+    } catch (_) {}
+  }
 
   /// Sign in with email and password.
   /// Returns a map with 'role' and 'username' on success.
@@ -480,8 +638,26 @@ class SupabaseService {
 
   // ── VEHICLES ──────────────────────────────────────────────────────────────
 
-  Future<List<Map<String, dynamic>>> getVehicles({String? parkId}) async {
-    const cols = 'id, name, vehicle_type, matricule, status, affectation, parc_name, park_id, general_remark, battery, wheel_ref, insurance_expiry, inspection_expiry, oil_change_date, created_at';
+  Future<List<Map<String, dynamic>>> getVehicles({
+    String? parkId,
+    bool forceRefresh = false,
+  }) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final isCacheValid = _cachedVehicles.isNotEmpty &&
+        (now - _lastVehiclesSync < cacheTtlMs) &&
+        !forceRefresh;
+
+    if (isCacheValid) {
+      if (parkId != null && parkId.isNotEmpty) {
+        return _cachedVehicles
+            .where((v) => v['park_id'] == parkId || v['park_id'] == null)
+            .toList();
+      }
+      return _cachedVehicles;
+    }
+
+    const cols =
+        'id, name, vehicle_type, matricule, status, affectation, parc_name, park_id, general_remark, battery, wheel_ref, insurance_expiry, inspection_expiry, oil_change_date, created_at';
     try {
       var query = client.from('vehicles').select(cols);
       if (parkId != null && parkId.isNotEmpty) {
@@ -491,6 +667,8 @@ class SupabaseService {
       final list = List<Map<String, dynamic>>.from(response);
       if (list.isNotEmpty || parkId == null || parkId.isEmpty) {
         _cachedVehicles = list;
+        _lastVehiclesSync = now;
+        _saveDiskCache(_keyVehicles, list);
       }
       return list;
     } catch (_) {
@@ -593,6 +771,10 @@ class SupabaseService {
         .select()
         .single();
 
+    final row = Map<String, dynamic>.from(response);
+    _cachedVehicles.insert(0, row);
+    _saveDiskCache(_keyVehicles, _cachedVehicles);
+
     final user = currentUser;
     if (user != null) {
       final username =
@@ -610,13 +792,19 @@ class SupabaseService {
     }
 
     await syncAlertsFromFleet();
-    return Map<String, dynamic>.from(response);
+    return row;
   }
 
   Future<void> updateVehicle({
     required String vehicleId,
     required Map<String, dynamic> data,
   }) async {
+    final idx = _cachedVehicles.indexWhere((v) => v['id'] == vehicleId);
+    if (idx != -1) {
+      _cachedVehicles[idx] = {..._cachedVehicles[idx], ...data};
+      _saveDiskCache(_keyVehicles, _cachedVehicles);
+    }
+
     await client.from('vehicles').update(data).eq('id', vehicleId);
     syncAlertsFromFleet().catchError((_) {});
 
@@ -638,6 +826,8 @@ class SupabaseService {
   }
 
   Future<void> deleteVehicle(String vehicleId) async {
+    _cachedVehicles.removeWhere((v) => v['id'] == vehicleId);
+    _saveDiskCache(_keyVehicles, _cachedVehicles);
     await client.from('vehicles').delete().eq('id', vehicleId);
     await syncAlertsFromFleet();
   }
@@ -645,14 +835,30 @@ class SupabaseService {
   // ── VEHICLE EQUIPMENT ─────────────────────────────────────────────────────
 
   Future<List<Map<String, dynamic>>> getVehicleEquipment(
-    String vehicleId,
-  ) async {
-    final response = await client
-        .from('vehicle_equipment')
-        .select('*, equipment_definitions(name, category, unit)')
-        .eq('vehicle_id', vehicleId)
-        .order('created_at', ascending: true);
-    return List<Map<String, dynamic>>.from(response);
+    String vehicleId, {
+    bool forceRefresh = false,
+  }) async {
+    final key = '$_keyEquipPrefix$vehicleId';
+    if (!forceRefresh) {
+      final diskCached = await _getDiskCache(key);
+      if (diskCached != null && diskCached.isNotEmpty) {
+        return diskCached;
+      }
+    }
+
+    try {
+      final response = await client
+          .from('vehicle_equipment')
+          .select('*, equipment_definitions(name, category, unit)')
+          .eq('vehicle_id', vehicleId)
+          .order('created_at', ascending: true);
+      final list = List<Map<String, dynamic>>.from(response);
+      _saveDiskCache(key, list);
+      return list;
+    } catch (_) {
+      final diskCached = await _getDiskCache(key);
+      return diskCached ?? [];
+    }
   }
 
   Stream<List<Map<String, dynamic>>> watchVehicleEquipment(String vehicleId) {
@@ -669,6 +875,16 @@ class SupabaseService {
     required String vehicleId,
     required String vehicleName,
   }) async {
+    final key = '$_keyEquipPrefix$vehicleId';
+    final currentList = await _getDiskCache(key);
+    if (currentList != null) {
+      final idx = currentList.indexWhere((e) => e['id'] == vehicleEquipmentId);
+      if (idx != -1) {
+        currentList[idx]['existing_quantity'] = existingQuantity;
+        _saveDiskCache(key, currentList);
+      }
+    }
+
     await client
         .from('vehicle_equipment')
         .update({'existing_quantity': existingQuantity})
@@ -781,13 +997,30 @@ class SupabaseService {
 
   Future<List<Map<String, dynamic>>> getEquipmentDefinitions({
     bool? activeOnly,
+    bool forceRefresh = false,
   }) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final isCacheValid = _cachedDefinitions.isNotEmpty &&
+        (now - _lastDefinitionsSync < cacheTtlMs * 4) &&
+        !forceRefresh;
+
+    if (isCacheValid) {
+      if (activeOnly == true) {
+        return _cachedDefinitions.where((d) => d['active'] == true).toList();
+      }
+      return _cachedDefinitions;
+    }
+
     var query = client.from('equipment_definitions').select();
     if (activeOnly == true) {
       query = query.eq('active', true);
     }
     final response = await query.order('category', ascending: true);
-    return List<Map<String, dynamic>>.from(response);
+    final list = List<Map<String, dynamic>>.from(response);
+    _cachedDefinitions = list;
+    _lastDefinitionsSync = now;
+    _saveDiskCache(_keyDefinitions, list);
+    return list;
   }
 
   Stream<List<Map<String, dynamic>>> watchEquipmentDefinitions() {
@@ -831,8 +1064,26 @@ class SupabaseService {
 
   // ── FIXED EQUIPMENT ───────────────────────────────────────────────────────
 
-  Future<List<Map<String, dynamic>>> getFixedEquipment({String? parkId}) async {
-    const cols = 'id, name, category, location, status, park_id, last_inspection, created_at, usd_details';
+  Future<List<Map<String, dynamic>>> getFixedEquipment({
+    String? parkId,
+    bool forceRefresh = false,
+  }) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final isCacheValid = _cachedFixedEquipment.isNotEmpty &&
+        (now - _lastFixedSync < cacheTtlMs) &&
+        !forceRefresh;
+
+    if (isCacheValid) {
+      if (parkId != null && parkId.isNotEmpty) {
+        return _cachedFixedEquipment
+            .where((e) => e['park_id'] == parkId || e['park_id'] == null)
+            .toList();
+      }
+      return _cachedFixedEquipment;
+    }
+
+    const cols =
+        'id, name, category, location, status, park_id, last_inspection, created_at, usd_details';
     try {
       var query = client.from('fixed_equipment').select(cols);
       if (parkId != null && parkId.isNotEmpty) {
@@ -842,6 +1093,8 @@ class SupabaseService {
       final list = List<Map<String, dynamic>>.from(response);
       if (list.isNotEmpty || parkId == null || parkId.isEmpty) {
         _cachedFixedEquipment = list;
+        _lastFixedSync = now;
+        _saveDiskCache(_keyFixedEquip, list);
       }
       return list;
     } catch (_) {
@@ -889,6 +1142,10 @@ class SupabaseService {
         .select()
         .single();
 
+    final row = Map<String, dynamic>.from(response);
+    _cachedFixedEquipment.insert(0, row);
+    _saveDiskCache(_keyFixedEquip, _cachedFixedEquipment);
+
     final user = currentUser;
     if (user != null) {
       try {
@@ -903,13 +1160,19 @@ class SupabaseService {
         );
       } catch (_) {}
     }
-    return response;
+    return row;
   }
 
   Future<void> updateFixedEquipment({
     required String id,
     required Map<String, dynamic> data,
   }) async {
+    final idx = _cachedFixedEquipment.indexWhere((e) => e['id'] == id);
+    if (idx != -1) {
+      _cachedFixedEquipment[idx] = {..._cachedFixedEquipment[idx], ...data};
+      _saveDiskCache(_keyFixedEquip, _cachedFixedEquipment);
+    }
+
     await client.from('fixed_equipment').update(data).eq('id', id);
 
     final user = currentUser;
@@ -930,12 +1193,23 @@ class SupabaseService {
   }
 
   Future<void> deleteFixedEquipment(String id) async {
+    _cachedFixedEquipment.removeWhere((e) => e['id'] == id);
+    _saveDiskCache(_keyFixedEquip, _cachedFixedEquipment);
     await client.from('fixed_equipment').delete().eq('id', id);
   }
 
   // ── PV DIVERS ─────────────────────────────────────────────────────────────
 
-  Future<List<Map<String, dynamic>>> getPvDivers() async {
+  Future<List<Map<String, dynamic>>> getPvDivers({bool forceRefresh = false}) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final isCacheValid = _cachedPvDivers.isNotEmpty &&
+        (now - _lastPvDiversSync < cacheTtlMs) &&
+        !forceRefresh;
+
+    if (isCacheValid) {
+      return _cachedPvDivers;
+    }
+
     try {
       final response = await client
           .from('fixed_equipment')
@@ -963,6 +1237,8 @@ class SupabaseService {
         };
       }));
       _cachedPvDivers = list;
+      _lastPvDiversSync = now;
+      _saveDiskCache(_keyPvDivers, list);
       return list;
     } catch (_) {
       return _cachedPvDivers;
@@ -1384,7 +1660,22 @@ class SupabaseService {
     }
   }
 
-  Future<List<Map<String, dynamic>>> getAlerts({bool? dismissed}) async {
+  Future<List<Map<String, dynamic>>> getAlerts({
+    bool? dismissed,
+    bool forceRefresh = false,
+  }) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final isCacheValid = _cachedAlerts.isNotEmpty &&
+        (now - _lastAlertsSync < cacheTtlMs) &&
+        !forceRefresh;
+
+    if (isCacheValid) {
+      if (dismissed != null) {
+        return _cachedAlerts.where((a) => a['dismissed'] == dismissed).toList();
+      }
+      return _cachedAlerts;
+    }
+
     try {
       var query = client.from('alerts').select('*, vehicles(name, matricule)');
       if (dismissed != null) {
@@ -1393,6 +1684,8 @@ class SupabaseService {
       final response = await query.order('severity', ascending: true);
       final list = List<Map<String, dynamic>>.from(response);
       _cachedAlerts = list;
+      _lastAlertsSync = now;
+      _saveDiskCache(_keyAlerts, list);
       return list;
     } catch (_) {
       return _cachedAlerts;
@@ -1414,6 +1707,12 @@ class SupabaseService {
   }
 
   Future<void> dismissAlert(String alertId) async {
+    final idx = _cachedAlerts.indexWhere((a) => a['id'] == alertId);
+    if (idx != -1) {
+      _cachedAlerts[idx]['dismissed'] = true;
+      _saveDiskCache(_keyAlerts, _cachedAlerts);
+    }
+
     final user = currentUser;
     await client
         .from('alerts')
