@@ -45,15 +45,6 @@ class VehicleCardWidget extends StatelessWidget {
       (vehicle['inspectionExpiry'] as String?) ??
       '';
 
-  int get _missingEquipment {
-    final val = vehicle['missing_equipment'] ?? vehicle['missingEquipment'];
-    if (val is int) return val;
-    if (val is num) return val.toInt();
-    if (val is String) return int.tryParse(val) ?? 0;
-    return 0;
-  }
-
-
   bool _isDocumentExpiringSoon(String dateStr) {
     if (dateStr.isEmpty) return false;
     try {
@@ -248,40 +239,6 @@ class VehicleCardWidget extends StatelessWidget {
                             ],
                           ),
                         ),
-                        const Spacer(),
-                        if (_missingEquipment > 0)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppTheme.criticalContainer,
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(
-                                color: AppTheme.critical.withAlpha(60),
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                CustomIconWidget(
-                                  iconName: 'warning',
-                                  color: AppTheme.critical,
-                                  size: 13,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  '$_missingEquipment manquant(s)',
-                                  style: GoogleFonts.ibmPlexSans(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w700,
-                                    color: AppTheme.critical,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
                       ],
                     ),
                     const SizedBox(height: 10),

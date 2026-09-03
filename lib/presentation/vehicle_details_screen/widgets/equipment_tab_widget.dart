@@ -673,9 +673,7 @@ class _EquipmentTabWidgetState extends State<EquipmentTabWidget> {
                     ),
                   ),
                   Text(
-                    missing > 0
-                        ? '${_equipmentData.length} équip. • $missing manquant(s)'
-                        : '${_equipmentData.length} équip. • Complet',
+                    '${_equipmentData.length} équip. • $missing manquant(s)',
                     style: GoogleFonts.ibmPlexSans(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
