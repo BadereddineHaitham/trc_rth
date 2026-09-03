@@ -53,10 +53,6 @@ class VehicleCardWidget extends StatelessWidget {
     return 0;
   }
 
-  bool get _hasAlerts =>
-      _missingEquipment > 0 ||
-      _isDocumentExpiringSoon(_insuranceExpiry) ||
-      _isDocumentExpiringSoon(_inspectionExpiry);
 
   bool _isDocumentExpiringSoon(String dateStr) {
     if (dateStr.isEmpty) return false;
@@ -253,7 +249,7 @@ class VehicleCardWidget extends StatelessWidget {
                           ),
                         ),
                         const Spacer(),
-                        if (_hasAlerts)
+                        if (_missingEquipment > 0)
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 8,

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -211,6 +212,14 @@ class _QrScannerScreenState extends State<QrScannerScreen>
                     controller: _scannerController,
                     onDetect: _onDetect,
                     errorBuilder: (context, error, child) {
+                      final isPermission =
+                          error.errorCode == MobileScannerErrorCode.permissionDenied;
+                      final errorText = kIsWeb
+                          ? 'Veuillez autoriser l\'appareil photo dans votre navigateur pour scanner le QR Code.'
+                          : isPermission
+                              ? 'L\'autorisation caméra est désactivée.\nAllez dans Paramètres > Applications > Sanad > Autorisations > Appareil photo.'
+                              : 'Impossible d\'initialiser la caméra (${error.errorCode.name}). Vous pouvez utiliser la saisie manuelle.';
+
                       return Container(
                         color: const Color(0xFF0D1117),
                         padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -219,26 +228,29 @@ class _QrScannerScreenState extends State<QrScannerScreen>
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             CustomIconWidget(
-                              iconName: 'camera_alt',
+                              iconName: isPermission ? 'no_photography' : 'camera_alt',
                               color: AppTheme.primary,
                               size: 48,
                             ),
                             const SizedBox(height: 12),
                             Text(
-                              'Autorisation de la caméra requise',
+                              isPermission
+                                  ? 'Autorisation Caméra Requise'
+                                  : 'Erreur Caméra',
                               style: GoogleFonts.ibmPlexSans(
                                 color: Colors.white,
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
-                            const SizedBox(height: 6),
+                            const SizedBox(height: 8),
                             Text(
-                              'Veuillez autoriser l\'appareil photo dans votre navigateur pour scanner le QR Code',
+                              errorText,
                               textAlign: TextAlign.center,
                               style: GoogleFonts.ibmPlexSans(
                                 color: Colors.white70,
                                 fontSize: 13,
+                                height: 1.4,
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -247,7 +259,7 @@ class _QrScannerScreenState extends State<QrScannerScreen>
                                 _scannerController.start();
                               },
                               icon: const Icon(Icons.refresh, size: 18),
-                              label: const Text('Activer la caméra'),
+                              label: const Text('Réessayer'),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppTheme.primary,
                                 foregroundColor: Colors.white,
