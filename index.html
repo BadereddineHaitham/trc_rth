@@ -11,8 +11,10 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Sanad" />
-    <link rel="apple-touch-icon" href="icons/Icon-192.png" />
+    <meta name="apple-mobile-web-app-title" content="Sanad TRC RTH" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="icons/Icon-192.png" />
+    <link rel="apple-touch-icon" sizes="512x512" href="icons/Icon-512.png" />
 
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="favicon.png" />
@@ -62,6 +64,10 @@
       <div style="font-size: 14px; font-weight: 600; color: #E5E7EB;">Chargement de Sanad...</div>
     </div>
 
+    <!-- jsQR: reliable QR code reader for web (replaces ZXing JS which is unreliable on mobile) -->
+    <script src="jsqr.min.js"></script>
+    <!-- Shim: exposes ZXing.BrowserMultiFormatReader API using jsQR. id is required by mobile_scanner. -->
+    <script id="mobile-scanner-barcode-reader" src="scanner_shim.js"></script>
     <script src="flutter_bootstrap.js" async></script>
   </body>
 </html>
