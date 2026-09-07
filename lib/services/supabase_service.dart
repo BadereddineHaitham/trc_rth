@@ -14,11 +14,11 @@ class SupabaseService {
   // They can be overridden at build time via --dart-define if needed.
   static const String supabaseUrl = String.fromEnvironment(
     'SUPABASE_URL',
-    defaultValue: 'https://xtubsbcdjhgzskwcrigx.supabase.co',
+    defaultValue: 'https://jddmfpndryodiktulvnc.supabase.co',
   );
   static const String supabaseAnonKey = String.fromEnvironment(
     'SUPABASE_ANON_KEY',
-    defaultValue: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh0dWJzYmNkamhnenNrd2NyaWd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM0MjM1MDIsImV4cCI6MjA5ODk5OTUwMn0.cklTATxU-il980DtZQVzS9TRV8OHWslk66v1ZUWJtBI',
+    defaultValue: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpkZG1mcG5kcnlvZGlrdHVsdm5jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3Mzg2NzYsImV4cCI6MjEwNDMxNDY3Nn0.52U3yQyBm_0VQkwAY4Y-3B_Unuy1_QBy-ccXPkJCopA',
   );
   // Service role key is SECRET — never hardcode it; keep env-only.
   static const String supabaseServiceRoleKey = String.fromEnvironment(
