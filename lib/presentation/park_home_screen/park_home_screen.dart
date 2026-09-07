@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:file_picker/file_picker.dart';
@@ -472,6 +473,63 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
         onDataChanged: _loadData,
       ),
     );
+  }
+
+  Future<void> _printEquipmentPdf(Map<String, dynamic> equipment) async {
+    try {
+      final name = equipment['name'] as String? ?? 'Équipement';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Génération du rapport PDF pour "$name"...'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+
+      final id = equipment['id'] as String?;
+      List<Map<String, dynamic>> records = [];
+      if (id != null && id.isNotEmpty) {
+        try {
+          records = await _svc.getMaintenanceRecordsForEquipment(id);
+        } catch (_) {}
+      }
+
+      await PdfReportService.instance.printFixedEquipmentPdf(
+        equipment: equipment,
+        maintenanceRecords: records,
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur génération PDF: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _printFixedEquipmentListPdf() async {
+    try {
+      final isUSD = _fixesSubTabIndex == 0;
+      final currentList = isUSD ? _usdEquipments : _motoPompeEquipments;
+      final title = isUSD ? 'Unités USD' : 'Pompes & Équipements Divers';
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Génération de l\'inventaire $title (${currentList.length})...'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+
+      await PdfReportService.instance.printFixedEquipmentListPdf(
+        categoryTitle: title,
+        equipments: currentList,
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur export inventaire: $e')),
+        );
+      }
+    }
   }
 
   void _editFixedEquipment(Map<String, dynamic> equipment) {
@@ -1073,28 +1131,100 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
                           );
                         }
 
-                        return ListView.builder(
-                          padding: const EdgeInsets.fromLTRB(16, 12, 16, 80),
-                          itemCount: currentList.length,
-                          itemBuilder: (ctx, i) {
-                            final item = currentList[i];
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 10),
-                              child: FixedEquipmentCardWidget(
-                                equipment: item,
-                                onTap: () =>
-                                    _openFixedEquipmentMaintenanceModal(item),
-                                onMaintenance: () =>
-                                    _openFixedEquipmentMaintenanceModal(item),
-                                onEdit: _canEdit
-                                    ? () => _editFixedEquipment(item)
-                                    : null,
-                                onDelete: _canEdit
-                                    ? () => _deleteFixedEquipment(item)
-                                    : null,
+                        return Column(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
                               ),
-                            );
-                          },
+                              decoration: const BoxDecoration(
+                                color: Colors.white,
+                                border: Border(
+                                  bottom: BorderSide(
+                                    color: AppTheme.outlineVariantLight,
+                                  ),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.primary.withOpacity(0.08),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Text(
+                                      '${currentList.length} équipement(s)',
+                                      style: GoogleFonts.ibmPlexSans(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppTheme.primary,
+                                      ),
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  OutlinedButton.icon(
+                                    onPressed: _printFixedEquipmentListPdf,
+                                    icon: const Icon(
+                                      Icons.print_outlined,
+                                      size: 16,
+                                      color: AppTheme.primary,
+                                    ),
+                                    label: Text(
+                                      'Imprimer la liste ($subTabName)',
+                                      style: GoogleFonts.ibmPlexSans(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppTheme.primary,
+                                      ),
+                                    ),
+                                    style: OutlinedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 6,
+                                      ),
+                                      side: const BorderSide(
+                                        color: AppTheme.primary,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Expanded(
+                              child: ListView.builder(
+                                padding: const EdgeInsets.fromLTRB(16, 12, 16, 80),
+                                itemCount: currentList.length,
+                                itemBuilder: (ctx, i) {
+                                  final item = currentList[i];
+                                  return Padding(
+                                    padding: const EdgeInsets.only(bottom: 10),
+                                    child: FixedEquipmentCardWidget(
+                                      equipment: item,
+                                      onTap: () =>
+                                          _openFixedEquipmentMaintenanceModal(item),
+                                      onMaintenance: () =>
+                                          _openFixedEquipmentMaintenanceModal(item),
+                                      onPrint: () => _printEquipmentPdf(item),
+                                      onEdit: _canEdit
+                                          ? () => _editFixedEquipment(item)
+                                          : null,
+                                      onDelete: _canEdit
+                                          ? () => _deleteFixedEquipment(item)
+                                          : null,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
                         );
                       }(),
                     ),
@@ -1184,11 +1314,25 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
         filename: filename,
       );
     } catch (e) {
+      final filename = name.isNotEmpty
+          ? (name.toLowerCase().endsWith('.pdf') ? name : '$name.pdf')
+          : 'PV_Divers.pdf';
+      if (kIsWeb) {
+        try {
+          final bytes = base64Decode(dataToUse);
+          final blob = html.Blob([bytes], 'application/pdf');
+          final url = html.Url.createObjectUrlFromBlob(blob);
+          final anchor = html.AnchorElement(href: url)
+            ..setAttribute('download', filename);
+          html.document.body?.children.add(anchor);
+          anchor.click();
+          anchor.remove();
+          html.Url.revokeObjectUrl(url);
+          return;
+        } catch (_) {}
+      }
       try {
         final bytes = base64Decode(dataToUse);
-        final filename = name.isNotEmpty
-            ? (name.toLowerCase().endsWith('.pdf') ? name : '$name.pdf')
-            : 'PV_Divers.pdf';
         await Printing.layoutPdf(
           onLayout: (format) async => bytes,
           name: filename,

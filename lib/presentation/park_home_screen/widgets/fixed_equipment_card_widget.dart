@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/app_export.dart';
 
@@ -9,6 +8,7 @@ class FixedEquipmentCardWidget extends StatelessWidget {
   final VoidCallback? onEdit;
   final VoidCallback? onTap;
   final VoidCallback? onMaintenance;
+  final VoidCallback? onPrint;
 
   const FixedEquipmentCardWidget({
     super.key,
@@ -17,6 +17,7 @@ class FixedEquipmentCardWidget extends StatelessWidget {
     this.onEdit,
     this.onTap,
     this.onMaintenance,
+    this.onPrint,
   });
 
   bool get _isOperational =>
@@ -203,8 +204,20 @@ class FixedEquipmentCardWidget extends StatelessWidget {
                               ],
                             ),
                           ),
-                          if (onEdit != null || onDelete != null) ...[ 
+                          if (onPrint != null || onEdit != null || onDelete != null) ...[
                             const SizedBox(width: 4),
+                            if (onPrint != null)
+                              GestureDetector(
+                                onTap: onPrint,
+                                child: const Padding(
+                                  padding: EdgeInsets.all(2),
+                                  child: Icon(
+                                    Icons.print_outlined,
+                                    size: 18,
+                                    color: AppTheme.primary,
+                                  ),
+                                ),
+                              ),
                             if (onEdit != null)
                               GestureDetector(
                                 onTap: onEdit,
@@ -261,6 +274,43 @@ class FixedEquipmentCardWidget extends StatelessWidget {
                     ),
                   ),
                   const Spacer(),
+                  if (onPrint != null) ...[
+                    InkWell(
+                      onTap: onPrint,
+                      borderRadius: BorderRadius.circular(6),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppTheme.surfaceVariantLight,
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: AppTheme.outlineVariantLight),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.print_outlined,
+                              size: 13,
+                              color: AppTheme.primary,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Imprimer',
+                              style: GoogleFonts.ibmPlexSans(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: AppTheme.primary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                  ],
                   InkWell(
                     onTap: onMaintenance ?? onTap,
                     borderRadius: BorderRadius.circular(6),

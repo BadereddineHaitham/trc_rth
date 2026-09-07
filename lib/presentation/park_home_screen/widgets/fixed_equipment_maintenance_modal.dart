@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -43,6 +44,12 @@ class _FixedEquipmentMaintenanceModalState
     final raw = widget.equipment['usd_details'];
     if (raw is Map<String, dynamic>) return raw;
     if (raw is Map) return Map<String, dynamic>.from(raw);
+    if (raw is String && raw.isNotEmpty) {
+      try {
+        final d = jsonDecode(raw);
+        if (d is Map) return Map<String, dynamic>.from(d);
+      } catch (_) {}
+    }
     return {};
   }
 
@@ -252,7 +259,10 @@ class _FixedEquipmentMaintenanceModalState
         ),
       );
       await PdfReportService.instance.printFixedEquipmentPdf(
-        equipment: widget.equipment,
+        equipment: {
+          ...widget.equipment,
+          'usd_details': _usdDetails,
+        },
         maintenanceRecords: _maintenanceRecords,
         filterMonth: _maintFilterMonths,
         filterYear: _maintFilterYear,
