@@ -475,36 +475,6 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
     );
   }
 
-  Future<void> _printEquipmentPdf(Map<String, dynamic> equipment) async {
-    try {
-      final name = equipment['name'] as String? ?? 'Équipement';
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Génération du rapport PDF pour "$name"...'),
-          duration: const Duration(seconds: 2),
-        ),
-      );
-
-      final id = equipment['id'] as String?;
-      List<Map<String, dynamic>> records = [];
-      if (id != null && id.isNotEmpty) {
-        try {
-          records = await _svc.getMaintenanceRecordsForEquipment(id);
-        } catch (_) {}
-      }
-
-      await PdfReportService.instance.printFixedEquipmentPdf(
-        equipment: equipment,
-        maintenanceRecords: records,
-      );
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur génération PDF: $e')),
-        );
-      }
-    }
-  }
 
   Future<void> _printFixedEquipmentListPdf() async {
     try {
@@ -1212,7 +1182,6 @@ class _ParkHomeScreenState extends State<ParkHomeScreen>
                                           _openFixedEquipmentMaintenanceModal(item),
                                       onMaintenance: () =>
                                           _openFixedEquipmentMaintenanceModal(item),
-                                      onPrint: () => _printEquipmentPdf(item),
                                       onEdit: _canEdit
                                           ? () => _editFixedEquipment(item)
                                           : null,
