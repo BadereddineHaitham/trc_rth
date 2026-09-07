@@ -140316,7 +140316,7 @@ d=A.dS(j,"-","")
 d=A.dS(d,"_","")
 i=A.dS(d," ","")
 h=J.eD(k,"rm1fhboz")||J.eD(k,"me-qr.com")
-g=J.e(j,"TRC-RTH-PARK-001")||J.e(j,"RTH-PARK-001")||J.e(j,"TRC_RTH_PARK_001")||J.e(j,"RTH_PARK_001")||J.e(j,"PARK-001")||J.eD(i,"TRCRTHPARK")||J.eD(i,"RTHPARK001")
+g=J.e(j,"HSE")||J.e(i,"HSE")||J.e(j,"TRC-RTH-PARK-001")||J.e(j,"RTH-PARK-001")||J.e(j,"TRC_RTH_PARK_001")||J.e(j,"RTH_PARK_001")||J.e(j,"PARK-001")||J.eD(i,"TRCRTHPARK")||J.eD(i,"RTHPARK001")
 if(h||g){A.nB(B.a3,B.fm,"Parc RTH Sonatrach identifi\xe9",B.q,B.xR)
 d=m.c
 d.toString
@@ -140405,7 +140405,7 @@ n.push(A.bI(A.a3N(new A.aB("keyboard",18,o,p),s,q.gaMv(),A.a3O(p,p,p,p,p,p,p,p,p
 n.push(B.aX)
 n.push(A.eC(!1,A.x("Acc\xe8s Administration",p,p,p,p,A.C().$3$color$fontSize$fontWeight(B.G,14,B.V),p,p,p),p,p,p,p,p,p,new A.b77(q),p,p))
 n.push(B.fh)
-n.push(A.x("Code d\xe9mo: TRC-RTH-PARK-001",p,p,p,p,A.C().$2$color$fontSize(A.W(77,B.q.m()>>>16&255,B.q.m()>>>8&255,B.q.m()&255),11),p,p,p))
+n.push(A.x("Code d\xe9mo: HSE",p,p,p,p,A.C().$2$color$fontSize(A.W(77,B.q.m()>>>16&255,B.q.m()>>>8&255,B.q.m()&255),11),p,p,p))
 n.push(B.aX)
 n.push(A.x(u.Z,p,p,p,p,A.C().$4$color$fontSize$fontWeight$letterSpacing(B.zZ,11,B.ar,0.3),p,p,p))
 return A.a3(p,A.ap(n,B.A,B.v,B.aj),B.x,p,p,p,p,p,p,p,B.aa0,p,p,p)}}
@@ -140455,10 +140455,10 @@ s.M$=$.as()
 s.L$=0
 this.aw()},
 K(a){var s,r,q=this,p=null,o=A.bl(a,p,t.w).w,n=A.c4(A.a3(p,p,B.x,p,p,new A.ad(B.ex,p,p,A.a2(2),p,p,B.K),p,4,p,p,p,p,p,40),p,p),m=A.x("Saisir le code du parc",p,p,p,p,A.C().$3$color$fontSize$fontWeight(B.L,18,B.U),p,p,p),l=A.x("Entrez l'identifiant unique du parc RTH",p,p,p,p,A.C().$2$color$fontSize(B.aK,13),p,p,p),k=A.fJ().$3$color$fontSize$fontWeight(B.L,15,B.ar)
-k=A.t3(!0,!0,q.d,A.ik(p,p,p,p,p,p,p,p,!0,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,"Ex: TRC-RTH-PARK-001",p,p,p,p,p,p,p,p,"Code du parc",!0,!0,p,new A.aD(B.dr,new A.aB("qr_code",22,B.G,p),p),p,p,p,p,p,p,p,p,p,p,p,p),p,p,p,1,!1,p,new A.b3J(q),p,k,B.dk4,new A.b3K())
+k=A.t3(!0,!0,q.d,A.ik(p,p,p,p,p,p,p,p,!0,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,"Ex: HSE",p,p,p,p,p,p,p,p,"Code du parc",!0,!0,p,new A.aD(B.dr,new A.aB("qr_code",22,B.G,p),p),p,p,p,p,p,p,p,p,p,p,p,p),p,p,p,1,!1,p,new A.b3J(q),p,k,B.dk4,new A.b3K())
 s=A.a2(8)
 r=t.p
-return A.a3(p,A.avm(p,A.ap(A.c([n,B.bg,m,B.cA,l,B.bg,k,B.b0,A.a3(p,A.ah(A.c([new A.aB("info_outline",16,B.G,p),B.aC,A.aT(A.x("Code d\xe9mo disponible: TRC-RTH-PARK-001",p,p,p,p,A.C().$3$color$fontSize$fontWeight(B.a6k,12,B.ar),p,p,p),1)],r),B.A,B.v,B.z,0),B.x,p,p,new A.ad(B.cT,p,p,s,p,p,B.K),p,p,p,p,B.dr,p,p,p),B.bg,A.bI(A.er(!1,B.dpv,p,p,p,p,p,p,q.gaFP(),p,p),p,1/0)],r),B.a4,B.v,B.aj),q.e),B.x,p,p,B.dB,p,p,p,p,new A.ab(24,20,24,24+o.f.d),p,p,p)},
+return A.a3(p,A.avm(p,A.ap(A.c([n,B.bg,m,B.cA,l,B.bg,k,B.b0,A.a3(p,A.ah(A.c([new A.aB("info_outline",16,B.G,p),B.aC,A.aT(A.x("Code d\xe9mo disponible: HSE",p,p,p,p,A.C().$3$color$fontSize$fontWeight(B.a6k,12,B.ar),p,p,p),1)],r),B.A,B.v,B.z,0),B.x,p,p,new A.ad(B.cT,p,p,s,p,p,B.K),p,p,p,p,B.dr,p,p,p),B.bg,A.bI(A.er(!1,B.dpv,p,p,p,p,p,p,q.gaFP(),p,p),p,1/0)],r),B.a4,B.v,B.aj),q.e),B.x,p,p,B.dB,p,p,p,p,new A.ab(24,20,24,24+o.f.d),p,p,p)},
 a5R(){var s=this.e.gZ()
 s=s==null?null:s.ww()
 if(s===!0){s=this.a
