@@ -39,18 +39,21 @@ android {
     }
 
     // ── Release signing config ─────────────────────────────────────────────────
+    val hasKeystore = keyPropertiesFile.exists() && keyProperties["storeFile"] != null
     signingConfigs {
-        create("release") {
-            keyAlias = keyProperties["keyAlias"] as String? ?: ""
-            keyPassword = keyProperties["keyPassword"] as String? ?: ""
-            storeFile = keyProperties["storeFile"]?.let { rootProject.file(it) }
-            storePassword = keyProperties["storePassword"] as String? ?: ""
+        if (hasKeystore) {
+            create("release") {
+                keyAlias = keyProperties["keyAlias"] as String? ?: ""
+                keyPassword = keyProperties["keyPassword"] as String? ?: ""
+                storeFile = keyProperties["storeFile"]?.let { rootProject.file(it) }
+                storePassword = keyProperties["storePassword"] as String? ?: ""
+            }
         }
     }
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("release")
+            signingConfig = if (hasKeystore) signingConfigs.getByName("release") else signingConfigs.getByName("debug")
             isMinifyEnabled = false
             isShrinkResources = false
         }
