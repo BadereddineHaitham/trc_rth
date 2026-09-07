@@ -80,7 +80,7 @@ class _ManualEntryWidgetState extends State<ManualEntryWidget> {
               ),
               decoration: InputDecoration(
                 labelText: 'Code du parc',
-                hintText: 'Ex: TRC-RTH-PARK-001',
+                hintText: 'Ex: HSE',
                 prefixIcon: Padding(
                   padding: const EdgeInsets.all(12),
                   child: CustomIconWidget(
@@ -117,7 +117,7 @@ class _ManualEntryWidgetState extends State<ManualEntryWidget> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Code démo disponible: TRC-RTH-PARK-001',
+                      'Code démo disponible: HSE',
                       style: GoogleFonts.ibmPlexSans(
                         fontSize: 12,
                         color: AppTheme.primaryDark,

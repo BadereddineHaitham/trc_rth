@@ -69,6 +69,8 @@ class _QrScannerScreenState extends State<QrScannerScreen>
 
       // 2. Official Sonatrach TRC RTH park code (direct QR or variants)
       final bool isOfficialPark =
+          upper == 'HSE' ||
+          normalized == 'HSE' ||
           upper == 'TRC-RTH-PARK-001' ||
           upper == 'RTH-PARK-001' ||
           upper == 'TRC_RTH_PARK_001' ||
@@ -498,7 +500,7 @@ class _QrScannerScreenState extends State<QrScannerScreen>
           ),
           const SizedBox(height: 2),
           Text(
-            'Code démo: TRC-RTH-PARK-001',
+            'Code démo: HSE',
             style: GoogleFonts.ibmPlexSans(
               color: Colors.white.withAlpha(77),
               fontSize: 11,
