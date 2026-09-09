@@ -1,0 +1,1352 @@
+[
+  {
+    "id": "17279405-ec40-49f4-b59d-975061e19842",
+    "vehicle_id": "158292cf-9c0b-4438-8f4f-6514f1e3e64e",
+    "equipment_definition_id": "79728ccc-1a7c-4183-9f6d-0a4a0d22c71e",
+    "standard_quantity": 1,
+    "existing_quantity": 1,
+    "created_at": "2026-08-21T07:57:43.761706+00:00",
+    "updated_at": "2026-08-21T07:57:43.761706+00:00"
+  },
+  {
+    "id": "0ff8dbe6-6ff2-4a3f-9d9a-f465072b8312",
+    "vehicle_id": "158292cf-9c0b-4438-8f4f-6514f1e3e64e",
+    "equipment_definition_id": "f60484b2-5f44-4732-a0b8-39a1f04934d0",
+    "standard_quantity": 1,
+    "existing_quantity": 1,
+    "created_at": "2026-08-21T07:58:05.026476+00:00",
+    "updated_at": "2026-08-21T07:58:05.026476+00:00"
+  },
+  {
+    "id": "713c237e-bd7e-4087-9f0e-d2ed62ea987c",
+    "vehicle_id": "158292cf-9c0b-4438-8f4f-6514f1e3e64e",
+    "equipment_definition_id": "dd7b6ed7-3d23-429e-bfc1-8fccfb04400d",
+    "standard_quantity": 1,
+    "existing_quantity": 1,
+    "created_at": "2026-08-21T07:58:21.261922+00:00",
+    "updated_at": "2026-08-21T07:58:21.261922+00:00"
+  },
+  {
+    "id": "dc3f278b-99ff-44e1-b126-5a7108916a30",
+    "vehicle_id": "158292cf-9c0b-4438-8f4f-6514f1e3e64e",
+    "equipment_definition_id": "5f236dfa-642a-46c7-8af6-9ab331641219",
+    "standard_quantity": 2,
+    "existing_quantity": 3,
+    "created_at": "2026-08-21T07:58:37.250085+00:00",
+    "updated_at": "2026-08-21T07:58:37.250085+00:00"
+  },
+  {
+    "id": "532d5658-1911-463c-90d9-45815230c108",
+    "vehicle_id": "158292cf-9c0b-4438-8f4f-6514f1e3e64e",
+    "equipment_definition_id": "65698d8f-4e02-4e13-b590-2f26f51b32e3",
+    "standard_quantity": 1,
+    "existing_quantity": 1,
+    "created_at": "2026-08-21T07:58:52.122205+00:00",
+    "updated_at": "2026-08-21T07:58:52.122205+00:00"
+  },
+  {
+    "id": "6fbb0a04-9cfa-4853-956a-0bb6fb2f13ed",
+    "vehicle_id": "158292cf-9c0b-4438-8f4f-6514f1e3e64e",
+    "equipment_definition_id": "c52c83f9-31e0-47ff-9948-5cfba08ba47c",
+    "standard_quantity": 1,
+    "existing_quantity": 1,
+    "created_at": "2026-08-21T07:59:14.243508+00:00",
+    "updated_at": "2026-08-21T07:59:14.243508+00:00"
+  },
+  {
+    "id": "1932c73f-d342-4f0a-8701-8c7cd2293e53",
+    "vehicle_id": "158292cf-9c0b-4438-8f4f-6514f1e3e64e",
+    "equipment_definition_id": "4f6cc4fd-e961-4241-8100-fff1bd5a5005",
+    "standard_quantity": 1,
+    "existing_quantity": 1,
+    "created_at": "2026-08-21T07:59:32.440002+00:00",
+    "updated_at": "2026-08-21T07:59:32.440002+00:00"
+  },
+  {
+    "id": "630c181f-705d-4731-9ce8-7aebc74f664a",
+    "vehicle_id": "158292cf-9c0b-4438-8f4f-6514f1e3e64e",
+    "equipment_definition_id": "f4dd8109-76ff-4c04-9f5a-8b142368559e",
+    "standard_quantity": 1,
+    "existing_quantity": 1,
+    "created_at": "2026-08-21T07:59:51.025731+00:00",
+    "updated_at": "2026-08-21T07:59:51.025731+00:00"
+  },
+  {
+    "id": "7659e473-08d5-476d-a00e-f762e4520c9f",
+    "vehicle_id": "158292cf-9c0b-4438-8f4f-6514f1e3e64e",
+    "equipment_definition_id": "c95fc1aa-b179-478c-956a-3858dad5dd47",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-21T08:00:14.96605+00:00",
+    "updated_at": "2026-08-21T08:00:14.96605+00:00"
+  },
+  {
+    "id": "fe605c36-f79b-4579-84b6-e1373b3f03ac",
+    "vehicle_id": "158292cf-9c0b-4438-8f4f-6514f1e3e64e",
+    "equipment_definition_id": "4cdfaed5-8bf4-4006-abd6-8cbdfa674331",
+    "standard_quantity": 0,
+    "existing_quantity": 1,
+    "created_at": "2026-08-21T08:00:44.096206+00:00",
+    "updated_at": "2026-08-21T08:00:44.096206+00:00"
+  },
+  {
+    "id": "67baa67e-b11e-4558-8b26-2ad750fe0dde",
+    "vehicle_id": "0d7df7ef-24c2-44b4-a537-2c199f37ea6a",
+    "equipment_definition_id": "0e1b4a07-c9f1-4442-a884-816f6b1e04f1",
+    "standard_quantity": 6,
+    "existing_quantity": 6,
+    "created_at": "2026-08-21T09:10:04.309995+00:00",
+    "updated_at": "2026-08-21T09:10:04.309995+00:00"
+  },
+  {
+    "id": "38022ace-7126-4f0a-a64d-cccf22bb8d65",
+    "vehicle_id": "0d7df7ef-24c2-44b4-a537-2c199f37ea6a",
+    "equipment_definition_id": "3107b7bc-64ff-4e9d-a946-bad36725504f",
+    "standard_quantity": 6,
+    "existing_quantity": 6,
+    "created_at": "2026-08-21T09:10:23.323943+00:00",
+    "updated_at": "2026-08-21T09:10:23.323943+00:00"
+  },
+  {
+    "id": "d66cca94-7f21-4d7c-8fd9-f36d886c33f6",
+    "vehicle_id": "0d7df7ef-24c2-44b4-a537-2c199f37ea6a",
+    "equipment_definition_id": "31b80e94-76a1-491c-a131-ee8dbf77bbee",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-21T09:10:50.699594+00:00",
+    "updated_at": "2026-08-21T09:10:50.699594+00:00"
+  },
+  {
+    "id": "7f9a24ab-5d08-42b8-b3c2-99d04455b514",
+    "vehicle_id": "0d7df7ef-24c2-44b4-a537-2c199f37ea6a",
+    "equipment_definition_id": "0dfe1a92-8588-4f29-9147-59ee8f72d150",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-21T09:11:09.849275+00:00",
+    "updated_at": "2026-08-21T09:11:09.849275+00:00"
+  },
+  {
+    "id": "25f6bb68-e7a7-4b4a-8d91-fca69213fa49",
+    "vehicle_id": "0d7df7ef-24c2-44b4-a537-2c199f37ea6a",
+    "equipment_definition_id": "705253ab-12e1-406c-8d43-ba8850846807",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-21T09:11:31.364506+00:00",
+    "updated_at": "2026-08-21T09:11:31.364506+00:00"
+  },
+  {
+    "id": "bc8b8f2c-0f45-4ca7-b63b-38c692f22bf8",
+    "vehicle_id": "0d7df7ef-24c2-44b4-a537-2c199f37ea6a",
+    "equipment_definition_id": "9d940633-d2ca-44a0-b65f-d790a12291ab",
+    "standard_quantity": 1,
+    "existing_quantity": 1,
+    "created_at": "2026-08-21T09:13:02.953479+00:00",
+    "updated_at": "2026-08-21T09:13:02.953479+00:00"
+  },
+  {
+    "id": "0173fd6c-07e4-474a-a6dd-ec7653e05b39",
+    "vehicle_id": "0d7df7ef-24c2-44b4-a537-2c199f37ea6a",
+    "equipment_definition_id": "3912a378-96a7-4f6a-9513-a8cf720bcd6e",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-21T09:14:03.475501+00:00",
+    "updated_at": "2026-08-21T09:14:03.475501+00:00"
+  },
+  {
+    "id": "41af3c74-0d13-4623-aaed-999a40d5dba4",
+    "vehicle_id": "0d7df7ef-24c2-44b4-a537-2c199f37ea6a",
+    "equipment_definition_id": "115dbb06-4619-4508-9a62-517984a549dc",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-21T09:24:29.952479+00:00",
+    "updated_at": "2026-08-21T09:24:29.952479+00:00"
+  },
+  {
+    "id": "099c8c90-d278-4595-a6c9-ea2d9b879565",
+    "vehicle_id": "a882ca3f-1107-453b-b485-ca7bb99d2dcb",
+    "equipment_definition_id": "0e1b4a07-c9f1-4442-a884-816f6b1e04f1",
+    "standard_quantity": 14,
+    "existing_quantity": 14,
+    "created_at": "2026-08-20T17:20:33.530917+00:00",
+    "updated_at": "2026-08-20T17:20:33.530917+00:00"
+  },
+  {
+    "id": "e43fbde1-4605-4690-a7c1-600363dacbe9",
+    "vehicle_id": "a882ca3f-1107-453b-b485-ca7bb99d2dcb",
+    "equipment_definition_id": "3107b7bc-64ff-4e9d-a946-bad36725504f",
+    "standard_quantity": 8,
+    "existing_quantity": 8,
+    "created_at": "2026-08-20T17:21:08.467059+00:00",
+    "updated_at": "2026-08-20T17:21:08.467059+00:00"
+  },
+  {
+    "id": "9662441f-d6a4-48e0-bb87-0c93e06ba075",
+    "vehicle_id": "a882ca3f-1107-453b-b485-ca7bb99d2dcb",
+    "equipment_definition_id": "0dfe1a92-8588-4f29-9147-59ee8f72d150",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-20T17:21:38.499745+00:00",
+    "updated_at": "2026-08-20T17:21:38.499745+00:00"
+  },
+  {
+    "id": "e955a644-a307-4cbe-a45d-abb52664a485",
+    "vehicle_id": "a882ca3f-1107-453b-b485-ca7bb99d2dcb",
+    "equipment_definition_id": "31b80e94-76a1-491c-a131-ee8dbf77bbee",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-20T17:22:13.621533+00:00",
+    "updated_at": "2026-08-20T17:22:13.621533+00:00"
+  },
+  {
+    "id": "d3aec1f6-07c9-4e7e-b593-f0ee27991549",
+    "vehicle_id": "a882ca3f-1107-453b-b485-ca7bb99d2dcb",
+    "equipment_definition_id": "42f23bcd-fc46-4330-8b84-2b71793a95c0",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-20T17:22:37.891244+00:00",
+    "updated_at": "2026-08-20T17:22:37.891244+00:00"
+  },
+  {
+    "id": "52a23ca2-6dcd-4a99-ae80-6ddfd015b649",
+    "vehicle_id": "a882ca3f-1107-453b-b485-ca7bb99d2dcb",
+    "equipment_definition_id": "f48bdf55-5e2d-44af-af70-f12e4658573f",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-20T17:23:02.948577+00:00",
+    "updated_at": "2026-08-20T17:23:02.948577+00:00"
+  },
+  {
+    "id": "bf8f85bb-40c7-4c57-9188-cc53548cd44e",
+    "vehicle_id": "a882ca3f-1107-453b-b485-ca7bb99d2dcb",
+    "equipment_definition_id": "f94774c3-9f10-4eb1-8015-8fb382675149",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-20T17:23:30.869775+00:00",
+    "updated_at": "2026-08-20T17:23:30.869775+00:00"
+  },
+  {
+    "id": "290385a1-8e5d-468f-a247-7d4c0b7ca603",
+    "vehicle_id": "a882ca3f-1107-453b-b485-ca7bb99d2dcb",
+    "equipment_definition_id": "3912a378-96a7-4f6a-9513-a8cf720bcd6e",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-20T17:23:54.883573+00:00",
+    "updated_at": "2026-08-20T17:23:54.883573+00:00"
+  },
+  {
+    "id": "32028de2-497e-45c3-9fe4-74eb80fbd469",
+    "vehicle_id": "a882ca3f-1107-453b-b485-ca7bb99d2dcb",
+    "equipment_definition_id": "be08ecaf-651a-42a4-86c3-791900845ce2",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-20T17:24:26.579426+00:00",
+    "updated_at": "2026-08-20T17:24:26.579426+00:00"
+  },
+  {
+    "id": "dae47047-49d3-4b39-920d-c6f1be70f9fb",
+    "vehicle_id": "a882ca3f-1107-453b-b485-ca7bb99d2dcb",
+    "equipment_definition_id": "a9ece232-791b-4520-a4ce-82b18d94d1dd",
+    "standard_quantity": 4,
+    "existing_quantity": 4,
+    "created_at": "2026-08-20T17:24:41.418679+00:00",
+    "updated_at": "2026-08-20T17:24:41.418679+00:00"
+  },
+  {
+    "id": "d752014c-d2ab-48d6-8b41-c5ccf3bc6af2",
+    "vehicle_id": "a882ca3f-1107-453b-b485-ca7bb99d2dcb",
+    "equipment_definition_id": "4980af6d-414c-44a4-aacb-2a0b5f4dbc95",
+    "standard_quantity": 6,
+    "existing_quantity": 6,
+    "created_at": "2026-08-20T17:26:06.471013+00:00",
+    "updated_at": "2026-08-20T17:26:06.471013+00:00"
+  },
+  {
+    "id": "c97a6a24-cf2e-4c12-9c14-f7e602de4261",
+    "vehicle_id": "a882ca3f-1107-453b-b485-ca7bb99d2dcb",
+    "equipment_definition_id": "63dc9c87-ef5a-4bee-a3e8-754f9d25712d",
+    "standard_quantity": 1,
+    "existing_quantity": 1,
+    "created_at": "2026-08-20T17:26:47.524888+00:00",
+    "updated_at": "2026-08-20T17:26:47.524888+00:00"
+  },
+  {
+    "id": "f1ca384b-6a54-4651-a4ab-a995f419493b",
+    "vehicle_id": "a882ca3f-1107-453b-b485-ca7bb99d2dcb",
+    "equipment_definition_id": "f60c5d8e-9a7c-4239-a651-3b04481ed961",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-20T17:27:08.720186+00:00",
+    "updated_at": "2026-08-20T17:27:08.720186+00:00"
+  },
+  {
+    "id": "6eb52c72-0dbc-4f92-a2a7-0d4c431c7b87",
+    "vehicle_id": "a882ca3f-1107-453b-b485-ca7bb99d2dcb",
+    "equipment_definition_id": "58ab1986-d4e4-40a0-ad09-4da31d50be99",
+    "standard_quantity": 1,
+    "existing_quantity": 1,
+    "created_at": "2026-08-20T17:27:43.917087+00:00",
+    "updated_at": "2026-08-20T17:27:43.917087+00:00"
+  },
+  {
+    "id": "7bfc9dbc-5186-4e1e-ac88-4e4f6ce09db6",
+    "vehicle_id": "a882ca3f-1107-453b-b485-ca7bb99d2dcb",
+    "equipment_definition_id": "abb371de-21bf-46df-b8a6-250562f6dd8d",
+    "standard_quantity": 1,
+    "existing_quantity": 1,
+    "created_at": "2026-08-20T17:28:31.582595+00:00",
+    "updated_at": "2026-08-20T17:28:31.582595+00:00"
+  },
+  {
+    "id": "a651eb7f-3870-409c-a7aa-a305a9e7aed3",
+    "vehicle_id": "a882ca3f-1107-453b-b485-ca7bb99d2dcb",
+    "equipment_definition_id": "51dca4a6-ffac-45cb-b3fa-701da16d8425",
+    "standard_quantity": 1,
+    "existing_quantity": 1,
+    "created_at": "2026-08-20T17:25:37.53876+00:00",
+    "updated_at": "2026-08-20T17:30:01.833479+00:00"
+  },
+  {
+    "id": "bbffe3b2-7304-4168-88c6-98810deff68f",
+    "vehicle_id": "a882ca3f-1107-453b-b485-ca7bb99d2dcb",
+    "equipment_definition_id": "30023899-f381-4f23-9ae4-e473d94c1daa",
+    "standard_quantity": 1,
+    "existing_quantity": 1,
+    "created_at": "2026-08-20T17:30:59.367571+00:00",
+    "updated_at": "2026-08-20T17:30:59.367571+00:00"
+  },
+  {
+    "id": "65c90aa7-4a03-410f-a69d-11a2da79ba69",
+    "vehicle_id": "a882ca3f-1107-453b-b485-ca7bb99d2dcb",
+    "equipment_definition_id": "aec93e4d-35b6-445b-820d-5951427e5e24",
+    "standard_quantity": 1,
+    "existing_quantity": 1,
+    "created_at": "2026-08-20T17:31:16.045124+00:00",
+    "updated_at": "2026-08-21T17:31:38.085533+00:00"
+  },
+  {
+    "id": "c35659ca-e99c-4dbf-b3c4-a4a2e0f0084d",
+    "vehicle_id": "a882ca3f-1107-453b-b485-ca7bb99d2dcb",
+    "equipment_definition_id": "fd0b904f-c885-4490-bfef-4f1d31900ad6",
+    "standard_quantity": 1,
+    "existing_quantity": 1,
+    "created_at": "2026-08-20T17:32:14.526215+00:00",
+    "updated_at": "2026-08-20T17:32:14.526215+00:00"
+  },
+  {
+    "id": "5f050f61-f83c-4a1b-b7cf-fccec3f2382c",
+    "vehicle_id": "a882ca3f-1107-453b-b485-ca7bb99d2dcb",
+    "equipment_definition_id": "4a6b6adb-8bf7-4d1b-affc-1d356757df6b",
+    "standard_quantity": 1,
+    "existing_quantity": 1,
+    "created_at": "2026-08-20T17:32:33.890242+00:00",
+    "updated_at": "2026-08-20T17:32:33.890242+00:00"
+  },
+  {
+    "id": "c9e86853-b14f-41a3-96fe-af050fa53cc5",
+    "vehicle_id": "a882ca3f-1107-453b-b485-ca7bb99d2dcb",
+    "equipment_definition_id": "2f2d6b0b-8f91-4e24-8463-da7823497194",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-20T17:37:26.874906+00:00",
+    "updated_at": "2026-08-20T17:37:26.874906+00:00"
+  },
+  {
+    "id": "77cfd0f4-173b-4982-a35a-cd5a2eb9663b",
+    "vehicle_id": "0d7df7ef-24c2-44b4-a537-2c199f37ea6a",
+    "equipment_definition_id": "17fc0457-d6ae-4083-a2c8-8ef6be894838",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-21T09:14:19.964894+00:00",
+    "updated_at": "2026-08-21T09:14:19.964894+00:00"
+  },
+  {
+    "id": "bc869f59-209d-4ae9-9726-b6c5bc813ac6",
+    "vehicle_id": "a882ca3f-1107-453b-b485-ca7bb99d2dcb",
+    "equipment_definition_id": "f4e23691-29b3-4cbf-a450-e98631933b7e",
+    "standard_quantity": 4,
+    "existing_quantity": 4,
+    "created_at": "2026-08-20T17:20:05.807395+00:00",
+    "updated_at": "2026-08-21T07:28:41.677409+00:00"
+  },
+  {
+    "id": "69124ec0-b85c-4de6-bf58-a9a34ec9dc91",
+    "vehicle_id": "0d7df7ef-24c2-44b4-a537-2c199f37ea6a",
+    "equipment_definition_id": "be08ecaf-651a-42a4-86c3-791900845ce2",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-21T09:14:41.445122+00:00",
+    "updated_at": "2026-08-21T09:14:41.445122+00:00"
+  },
+  {
+    "id": "9d59efaf-e096-40da-93e0-83820ddc164b",
+    "vehicle_id": "158292cf-9c0b-4438-8f4f-6514f1e3e64e",
+    "equipment_definition_id": "f4e23691-29b3-4cbf-a450-e98631933b7e",
+    "standard_quantity": 4,
+    "existing_quantity": 1,
+    "created_at": "2026-08-21T07:48:02.788211+00:00",
+    "updated_at": "2026-08-21T07:49:22.336506+00:00"
+  },
+  {
+    "id": "74a4052b-f01c-4e5e-9ef7-ef891dafe6c1",
+    "vehicle_id": "158292cf-9c0b-4438-8f4f-6514f1e3e64e",
+    "equipment_definition_id": "096ff291-837e-4ae5-8df8-c26d04d62dec",
+    "standard_quantity": 10,
+    "existing_quantity": 7,
+    "created_at": "2026-08-21T07:49:08.442219+00:00",
+    "updated_at": "2026-08-21T07:49:27.075397+00:00"
+  },
+  {
+    "id": "c3485182-6a7f-4f36-966a-2a90c968053e",
+    "vehicle_id": "158292cf-9c0b-4438-8f4f-6514f1e3e64e",
+    "equipment_definition_id": "3107b7bc-64ff-4e9d-a946-bad36725504f",
+    "standard_quantity": 6,
+    "existing_quantity": 4,
+    "created_at": "2026-08-21T07:49:44.920905+00:00",
+    "updated_at": "2026-08-21T07:49:44.920905+00:00"
+  },
+  {
+    "id": "481b1e52-cfc1-4dbc-9327-2a11d2a8e0d9",
+    "vehicle_id": "158292cf-9c0b-4438-8f4f-6514f1e3e64e",
+    "equipment_definition_id": "0dfe1a92-8588-4f29-9147-59ee8f72d150",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-21T07:50:31.479055+00:00",
+    "updated_at": "2026-08-21T07:50:31.479055+00:00"
+  },
+  {
+    "id": "b9de6948-917a-4960-9c3c-3b723dc3bcc4",
+    "vehicle_id": "158292cf-9c0b-4438-8f4f-6514f1e3e64e",
+    "equipment_definition_id": "31b80e94-76a1-491c-a131-ee8dbf77bbee",
+    "standard_quantity": 3,
+    "existing_quantity": 2,
+    "created_at": "2026-08-21T07:50:46.446391+00:00",
+    "updated_at": "2026-08-21T07:50:46.446391+00:00"
+  },
+  {
+    "id": "de557595-bfb7-40c5-b381-a0526622f598",
+    "vehicle_id": "158292cf-9c0b-4438-8f4f-6514f1e3e64e",
+    "equipment_definition_id": "705253ab-12e1-406c-8d43-ba8850846807",
+    "standard_quantity": 3,
+    "existing_quantity": 3,
+    "created_at": "2026-08-21T07:51:08.890638+00:00",
+    "updated_at": "2026-08-21T07:51:08.890638+00:00"
+  },
+  {
+    "id": "3f470c09-4f7e-49c8-8be0-afaf0ae739c6",
+    "vehicle_id": "158292cf-9c0b-4438-8f4f-6514f1e3e64e",
+    "equipment_definition_id": "9d940633-d2ca-44a0-b65f-d790a12291ab",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-21T07:51:23.62673+00:00",
+    "updated_at": "2026-08-21T07:51:23.62673+00:00"
+  },
+  {
+    "id": "2191003f-236d-4243-9dc5-a4e1e921ea28",
+    "vehicle_id": "158292cf-9c0b-4438-8f4f-6514f1e3e64e",
+    "equipment_definition_id": "b50b33d7-ac2b-4bdc-86a4-d1d243bdacdc",
+    "standard_quantity": 1,
+    "existing_quantity": 1,
+    "created_at": "2026-08-21T07:52:09.249199+00:00",
+    "updated_at": "2026-08-21T07:52:09.249199+00:00"
+  },
+  {
+    "id": "4d901e3b-15e1-4c1b-b6a9-8a497d1217f0",
+    "vehicle_id": "158292cf-9c0b-4438-8f4f-6514f1e3e64e",
+    "equipment_definition_id": "0f9d282f-b3f1-41f4-97c4-e4c57ea63775",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-21T07:54:10.866077+00:00",
+    "updated_at": "2026-08-21T07:54:10.866077+00:00"
+  },
+  {
+    "id": "44eeab6a-65bd-44dd-af7f-d7e3754106c6",
+    "vehicle_id": "158292cf-9c0b-4438-8f4f-6514f1e3e64e",
+    "equipment_definition_id": "f94774c3-9f10-4eb1-8015-8fb382675149",
+    "standard_quantity": 1,
+    "existing_quantity": 3,
+    "created_at": "2026-08-21T07:54:53.736809+00:00",
+    "updated_at": "2026-08-21T07:54:53.736809+00:00"
+  },
+  {
+    "id": "a0b9c4e7-fd17-4f7d-b746-f6a58913e459",
+    "vehicle_id": "158292cf-9c0b-4438-8f4f-6514f1e3e64e",
+    "equipment_definition_id": "3912a378-96a7-4f6a-9513-a8cf720bcd6e",
+    "standard_quantity": 1,
+    "existing_quantity": 1,
+    "created_at": "2026-08-21T07:55:16.787405+00:00",
+    "updated_at": "2026-08-21T07:55:16.787405+00:00"
+  },
+  {
+    "id": "4da67a73-f63e-486a-802b-98b45a7b4689",
+    "vehicle_id": "158292cf-9c0b-4438-8f4f-6514f1e3e64e",
+    "equipment_definition_id": "be08ecaf-651a-42a4-86c3-791900845ce2",
+    "standard_quantity": 1,
+    "existing_quantity": 1,
+    "created_at": "2026-08-21T07:55:32.902656+00:00",
+    "updated_at": "2026-08-21T07:55:32.902656+00:00"
+  },
+  {
+    "id": "b5790a03-9a62-415f-96d0-3fe4cc1e1435",
+    "vehicle_id": "158292cf-9c0b-4438-8f4f-6514f1e3e64e",
+    "equipment_definition_id": "b38febff-5400-4e1f-8a6b-df340cca32f6",
+    "standard_quantity": 6,
+    "existing_quantity": 6,
+    "created_at": "2026-08-21T07:55:59.149812+00:00",
+    "updated_at": "2026-08-21T07:55:59.149812+00:00"
+  },
+  {
+    "id": "08a4eb0d-6454-49eb-8e5d-b75849929f91",
+    "vehicle_id": "158292cf-9c0b-4438-8f4f-6514f1e3e64e",
+    "equipment_definition_id": "d0abc1c5-47dc-4905-88da-9bb4702b7faf",
+    "standard_quantity": 1,
+    "existing_quantity": 1,
+    "created_at": "2026-08-21T07:56:45.336355+00:00",
+    "updated_at": "2026-08-21T07:56:45.336355+00:00"
+  },
+  {
+    "id": "10b9326b-b79e-4d7a-8c70-609026f57357",
+    "vehicle_id": "158292cf-9c0b-4438-8f4f-6514f1e3e64e",
+    "equipment_definition_id": "4980af6d-414c-44a4-aacb-2a0b5f4dbc95",
+    "standard_quantity": 4,
+    "existing_quantity": 4,
+    "created_at": "2026-08-21T07:57:07.520696+00:00",
+    "updated_at": "2026-08-21T07:57:07.520696+00:00"
+  },
+  {
+    "id": "a841c0ba-2892-4913-9570-47f73c73958f",
+    "vehicle_id": "158292cf-9c0b-4438-8f4f-6514f1e3e64e",
+    "equipment_definition_id": "2f2d6b0b-8f91-4e24-8463-da7823497194",
+    "standard_quantity": 2,
+    "existing_quantity": 1,
+    "created_at": "2026-08-21T07:57:23.560494+00:00",
+    "updated_at": "2026-08-21T07:57:23.560494+00:00"
+  },
+  {
+    "id": "27153ede-c2bc-4ad2-902f-35e11b09b689",
+    "vehicle_id": "0d7df7ef-24c2-44b4-a537-2c199f37ea6a",
+    "equipment_definition_id": "b50b33d7-ac2b-4bdc-86a4-d1d243bdacdc",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-21T09:15:18.32756+00:00",
+    "updated_at": "2026-08-21T09:15:18.32756+00:00"
+  },
+  {
+    "id": "0c6733f8-99b0-4cb2-9c8d-d617301ed618",
+    "vehicle_id": "0d7df7ef-24c2-44b4-a537-2c199f37ea6a",
+    "equipment_definition_id": "f94774c3-9f10-4eb1-8015-8fb382675149",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-21T09:15:33.757493+00:00",
+    "updated_at": "2026-08-21T09:15:33.757493+00:00"
+  },
+  {
+    "id": "7cc1201c-3f7e-47c3-bd2f-aa9d73feb22f",
+    "vehicle_id": "0d7df7ef-24c2-44b4-a537-2c199f37ea6a",
+    "equipment_definition_id": "a9ece232-791b-4520-a4ce-82b18d94d1dd",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-21T09:15:52.880174+00:00",
+    "updated_at": "2026-08-21T09:15:52.880174+00:00"
+  },
+  {
+    "id": "f0a006b6-402b-4fdc-b55f-2157b1f22da1",
+    "vehicle_id": "0d7df7ef-24c2-44b4-a537-2c199f37ea6a",
+    "equipment_definition_id": "2f2d6b0b-8f91-4e24-8463-da7823497194",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-21T09:16:54.261691+00:00",
+    "updated_at": "2026-08-21T09:21:41.803078+00:00"
+  },
+  {
+    "id": "04e554a5-d6ef-4bf9-bd62-4085fc92fac8",
+    "vehicle_id": "0d7df7ef-24c2-44b4-a537-2c199f37ea6a",
+    "equipment_definition_id": "88d68425-71d7-4093-82e8-5e4f85998f3b",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-21T09:22:15.027639+00:00",
+    "updated_at": "2026-08-21T09:22:15.027639+00:00"
+  },
+  {
+    "id": "69535443-52c0-4691-a341-490d6a09e534",
+    "vehicle_id": "0d7df7ef-24c2-44b4-a537-2c199f37ea6a",
+    "equipment_definition_id": "576e86c6-7dee-41ea-8f85-5acaf807ede0",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-21T09:22:27.122093+00:00",
+    "updated_at": "2026-08-21T09:22:27.122093+00:00"
+  },
+  {
+    "id": "ae3354c5-983b-4b7e-91a3-52dfeac89c92",
+    "vehicle_id": "0d7df7ef-24c2-44b4-a537-2c199f37ea6a",
+    "equipment_definition_id": "cb1764b9-74ba-417c-a1a9-0782b6bbd594",
+    "standard_quantity": 1,
+    "existing_quantity": 1,
+    "created_at": "2026-08-21T09:23:06.18506+00:00",
+    "updated_at": "2026-08-21T09:23:06.18506+00:00"
+  },
+  {
+    "id": "7708c5cc-3830-4a52-999a-0a3d06b0dc20",
+    "vehicle_id": "0d7df7ef-24c2-44b4-a537-2c199f37ea6a",
+    "equipment_definition_id": "a577d2d9-edeb-4353-b9c1-83dc810312c9",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-21T09:23:32.415441+00:00",
+    "updated_at": "2026-08-21T09:23:32.415441+00:00"
+  },
+  {
+    "id": "6ba2d428-edab-47df-83f2-398eb86afd8d",
+    "vehicle_id": "0d7df7ef-24c2-44b4-a537-2c199f37ea6a",
+    "equipment_definition_id": "fab35ac1-efea-49cf-be28-677da2131518",
+    "standard_quantity": 1,
+    "existing_quantity": 1,
+    "created_at": "2026-08-21T09:23:49.116637+00:00",
+    "updated_at": "2026-08-21T09:23:49.116637+00:00"
+  },
+  {
+    "id": "ed244f54-127f-4fa1-8e5a-5ad4a479e39d",
+    "vehicle_id": "0d7df7ef-24c2-44b4-a537-2c199f37ea6a",
+    "equipment_definition_id": "d09d57f7-dff1-40f5-9cb2-8476ea5d34df",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-21T09:24:06.978108+00:00",
+    "updated_at": "2026-08-21T09:24:06.978108+00:00"
+  },
+  {
+    "id": "810008ce-67c0-4580-9a41-32930c659e9f",
+    "vehicle_id": "0d7df7ef-24c2-44b4-a537-2c199f37ea6a",
+    "equipment_definition_id": "a3d0f9d5-a099-43ea-a46a-e351ddf5041c",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-21T09:25:03.484107+00:00",
+    "updated_at": "2026-08-21T09:25:03.484107+00:00"
+  },
+  {
+    "id": "7ec6a6dd-e71e-4111-93b9-99ef74fea5dd",
+    "vehicle_id": "0d7df7ef-24c2-44b4-a537-2c199f37ea6a",
+    "equipment_definition_id": "73fb748a-2892-4df9-90dc-6ac012d04c0d",
+    "standard_quantity": 1,
+    "existing_quantity": 1,
+    "created_at": "2026-08-21T09:25:14.223031+00:00",
+    "updated_at": "2026-08-21T09:25:14.223031+00:00"
+  },
+  {
+    "id": "0195de40-f9e6-4f04-8377-769aff3187cb",
+    "vehicle_id": "0d7df7ef-24c2-44b4-a537-2c199f37ea6a",
+    "equipment_definition_id": "eb8901c1-a036-4b2b-89c5-a9035afca374",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-21T09:25:36.334739+00:00",
+    "updated_at": "2026-08-21T09:25:36.334739+00:00"
+  },
+  {
+    "id": "d63a4948-28f8-404a-aad2-b2cc6b74a570",
+    "vehicle_id": "0d7df7ef-24c2-44b4-a537-2c199f37ea6a",
+    "equipment_definition_id": "032d1c71-e9b8-4ddb-85f0-2a0cdfcc1661",
+    "standard_quantity": 1,
+    "existing_quantity": 1,
+    "created_at": "2026-08-21T09:28:10.106808+00:00",
+    "updated_at": "2026-08-21T09:28:10.106808+00:00"
+  },
+  {
+    "id": "6c1151b5-bfda-4026-a6af-a4f3a9bcfb8f",
+    "vehicle_id": "0d7df7ef-24c2-44b4-a537-2c199f37ea6a",
+    "equipment_definition_id": "58ab1986-d4e4-40a0-ad09-4da31d50be99",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-21T09:26:11.680812+00:00",
+    "updated_at": "2026-08-21T09:27:43.074317+00:00"
+  },
+  {
+    "id": "91f9186c-6547-4f22-a8ef-549f6621bc62",
+    "vehicle_id": "0d7df7ef-24c2-44b4-a537-2c199f37ea6a",
+    "equipment_definition_id": "e085d68f-9d98-48b8-a52a-f6bb524f6f4e",
+    "standard_quantity": 1,
+    "existing_quantity": 1,
+    "created_at": "2026-08-21T09:28:58.969274+00:00",
+    "updated_at": "2026-08-21T09:28:58.969274+00:00"
+  },
+  {
+    "id": "79abcf13-352b-476d-80c9-9d579bb72b79",
+    "vehicle_id": "0d7df7ef-24c2-44b4-a537-2c199f37ea6a",
+    "equipment_definition_id": "6003a3e7-6485-4d45-84bb-0f22dcd30653",
+    "standard_quantity": 6,
+    "existing_quantity": 6,
+    "created_at": "2026-08-21T09:29:15.876023+00:00",
+    "updated_at": "2026-08-21T09:29:15.876023+00:00"
+  },
+  {
+    "id": "19fc17d3-4e49-47c3-a08f-37e93cf46ac3",
+    "vehicle_id": "a0b2ea90-014e-436d-b932-474ce2217b56",
+    "equipment_definition_id": "f4e23691-29b3-4cbf-a450-e98631933b7e",
+    "standard_quantity": 10,
+    "existing_quantity": 9,
+    "created_at": "2026-08-21T13:54:30.726729+00:00",
+    "updated_at": "2026-09-02T15:56:43.576484+00:00"
+  },
+  {
+    "id": "f69bf819-cd91-4f3b-a683-0d4ef2178ae9",
+    "vehicle_id": "0d7df7ef-24c2-44b4-a537-2c199f37ea6a",
+    "equipment_definition_id": "f4e23691-29b3-4cbf-a450-e98631933b7e",
+    "standard_quantity": 4,
+    "existing_quantity": 4,
+    "created_at": "2026-08-21T09:01:05.686568+00:00",
+    "updated_at": "2026-09-04T13:24:31.992049+00:00"
+  },
+  {
+    "id": "2a71bfca-8d54-4540-b5e4-21c76d2b01bc",
+    "vehicle_id": "a0b2ea90-014e-436d-b932-474ce2217b56",
+    "equipment_definition_id": "0e1b4a07-c9f1-4442-a884-816f6b1e04f1",
+    "standard_quantity": 20,
+    "existing_quantity": 18,
+    "created_at": "2026-08-21T13:54:48.774254+00:00",
+    "updated_at": "2026-09-02T15:56:48.533365+00:00"
+  },
+  {
+    "id": "15166f59-3152-4957-875f-b984ac116421",
+    "vehicle_id": "a0b2ea90-014e-436d-b932-474ce2217b56",
+    "equipment_definition_id": "3107b7bc-64ff-4e9d-a946-bad36725504f",
+    "standard_quantity": 10,
+    "existing_quantity": 10,
+    "created_at": "2026-08-21T13:55:03.025983+00:00",
+    "updated_at": "2026-08-21T13:55:03.025983+00:00"
+  },
+  {
+    "id": "de87fa0a-3408-432b-a6f6-80f586a346f5",
+    "vehicle_id": "a0b2ea90-014e-436d-b932-474ce2217b56",
+    "equipment_definition_id": "31b80e94-76a1-491c-a131-ee8dbf77bbee",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-21T13:55:42.860363+00:00",
+    "updated_at": "2026-08-21T13:55:42.860363+00:00"
+  },
+  {
+    "id": "7876c3ba-0460-4636-8303-47e0c19e6a06",
+    "vehicle_id": "a0b2ea90-014e-436d-b932-474ce2217b56",
+    "equipment_definition_id": "0dfe1a92-8588-4f29-9147-59ee8f72d150",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-21T13:56:06.904766+00:00",
+    "updated_at": "2026-08-21T13:56:06.904766+00:00"
+  },
+  {
+    "id": "5694e050-3124-4e94-b9a0-7e6a37ea18cb",
+    "vehicle_id": "a0b2ea90-014e-436d-b932-474ce2217b56",
+    "equipment_definition_id": "705253ab-12e1-406c-8d43-ba8850846807",
+    "standard_quantity": 4,
+    "existing_quantity": 4,
+    "created_at": "2026-08-21T13:56:28.163071+00:00",
+    "updated_at": "2026-08-21T13:56:28.163071+00:00"
+  },
+  {
+    "id": "020114d6-fa0c-42fc-8791-a2a8fe32ae00",
+    "vehicle_id": "a0b2ea90-014e-436d-b932-474ce2217b56",
+    "equipment_definition_id": "b50b33d7-ac2b-4bdc-86a4-d1d243bdacdc",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-21T13:56:57.575313+00:00",
+    "updated_at": "2026-08-21T13:56:57.575313+00:00"
+  },
+  {
+    "id": "4d15eb19-dead-41c8-8fde-48256a7c9075",
+    "vehicle_id": "a0b2ea90-014e-436d-b932-474ce2217b56",
+    "equipment_definition_id": "f94774c3-9f10-4eb1-8015-8fb382675149",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-21T13:57:17.00438+00:00",
+    "updated_at": "2026-08-21T13:57:17.00438+00:00"
+  },
+  {
+    "id": "febb347c-7948-40f2-b6cf-e6b2126c5540",
+    "vehicle_id": "a0b2ea90-014e-436d-b932-474ce2217b56",
+    "equipment_definition_id": "3912a378-96a7-4f6a-9513-a8cf720bcd6e",
+    "standard_quantity": 2,
+    "existing_quantity": 1,
+    "created_at": "2026-08-21T13:57:37.331198+00:00",
+    "updated_at": "2026-08-21T13:57:37.331198+00:00"
+  },
+  {
+    "id": "20480f68-7d91-4ae3-ad96-0c35639a97c6",
+    "vehicle_id": "a0b2ea90-014e-436d-b932-474ce2217b56",
+    "equipment_definition_id": "be08ecaf-651a-42a4-86c3-791900845ce2",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-21T13:57:56.279522+00:00",
+    "updated_at": "2026-08-21T13:57:56.279522+00:00"
+  },
+  {
+    "id": "c460ea54-f79a-41e3-b754-d3c4357820cd",
+    "vehicle_id": "a0b2ea90-014e-436d-b932-474ce2217b56",
+    "equipment_definition_id": "a9ece232-791b-4520-a4ce-82b18d94d1dd",
+    "standard_quantity": 4,
+    "existing_quantity": 4,
+    "created_at": "2026-08-21T13:58:19.671631+00:00",
+    "updated_at": "2026-08-21T13:58:19.671631+00:00"
+  },
+  {
+    "id": "10d8464d-ff1c-47b8-bb45-f0e18249e32c",
+    "vehicle_id": "a0b2ea90-014e-436d-b932-474ce2217b56",
+    "equipment_definition_id": "0d250c18-eed8-45df-86cb-332a36eaa1c2",
+    "standard_quantity": 1,
+    "existing_quantity": 1,
+    "created_at": "2026-08-21T13:59:10.119709+00:00",
+    "updated_at": "2026-08-21T13:59:10.119709+00:00"
+  },
+  {
+    "id": "fac9e4ce-be42-4f75-9413-042564e6598e",
+    "vehicle_id": "a0b2ea90-014e-436d-b932-474ce2217b56",
+    "equipment_definition_id": "93588030-fb5a-430c-9de2-54e204f2f7d1",
+    "standard_quantity": 8,
+    "existing_quantity": 8,
+    "created_at": "2026-08-21T14:00:07.040196+00:00",
+    "updated_at": "2026-08-21T14:00:07.040196+00:00"
+  },
+  {
+    "id": "df8bafbe-eeb6-4688-b0f1-2c1a9afc7ae2",
+    "vehicle_id": "a0b2ea90-014e-436d-b932-474ce2217b56",
+    "equipment_definition_id": "2f2d6b0b-8f91-4e24-8463-da7823497194",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-21T14:00:21.308051+00:00",
+    "updated_at": "2026-08-21T14:00:21.308051+00:00"
+  },
+  {
+    "id": "95076d99-4ab7-4681-a664-d8975228bb9d",
+    "vehicle_id": "a0b2ea90-014e-436d-b932-474ce2217b56",
+    "equipment_definition_id": "aec93e4d-35b6-445b-820d-5951427e5e24",
+    "standard_quantity": 2,
+    "existing_quantity": 0,
+    "created_at": "2026-08-21T14:00:54.615942+00:00",
+    "updated_at": "2026-08-21T14:00:54.615942+00:00"
+  },
+  {
+    "id": "4ded5206-c96a-431b-9732-8ef30bf0d551",
+    "vehicle_id": "a0b2ea90-014e-436d-b932-474ce2217b56",
+    "equipment_definition_id": "fd0b904f-c885-4490-bfef-4f1d31900ad6",
+    "standard_quantity": 1,
+    "existing_quantity": 1,
+    "created_at": "2026-08-21T14:01:23.783178+00:00",
+    "updated_at": "2026-08-21T14:01:23.783178+00:00"
+  },
+  {
+    "id": "ec1f1b3c-666b-4121-9da0-3d355813ec2f",
+    "vehicle_id": "a0b2ea90-014e-436d-b932-474ce2217b56",
+    "equipment_definition_id": "7df48dff-f89e-4cf5-825c-1eccd3989390",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-21T14:01:43.619505+00:00",
+    "updated_at": "2026-08-21T14:01:43.619505+00:00"
+  },
+  {
+    "id": "4c63494f-e5dc-4a97-811e-2bb6bc651b33",
+    "vehicle_id": "a0b2ea90-014e-436d-b932-474ce2217b56",
+    "equipment_definition_id": "70a61140-bfd8-4b9b-b818-2e7bab31b9b3",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-21T14:02:30.241764+00:00",
+    "updated_at": "2026-08-21T14:02:30.241764+00:00"
+  },
+  {
+    "id": "12a7fec0-1419-4bc0-926b-97a240b08026",
+    "vehicle_id": "d1aec0e0-7384-4828-b7e8-4b741f2f3d05",
+    "equipment_definition_id": "f4e23691-29b3-4cbf-a450-e98631933b7e",
+    "standard_quantity": 4,
+    "existing_quantity": 4,
+    "created_at": "2026-08-21T14:18:05.19087+00:00",
+    "updated_at": "2026-08-21T14:18:05.19087+00:00"
+  },
+  {
+    "id": "5b44d296-cb6d-44b4-8df9-36e8fdd46223",
+    "vehicle_id": "d1aec0e0-7384-4828-b7e8-4b741f2f3d05",
+    "equipment_definition_id": "0e1b4a07-c9f1-4442-a884-816f6b1e04f1",
+    "standard_quantity": 14,
+    "existing_quantity": 13,
+    "created_at": "2026-08-21T14:18:21.720063+00:00",
+    "updated_at": "2026-08-21T14:18:21.720063+00:00"
+  },
+  {
+    "id": "d7e6ea9d-b1bb-4d0c-8e28-6e3a56a924e7",
+    "vehicle_id": "d1aec0e0-7384-4828-b7e8-4b741f2f3d05",
+    "equipment_definition_id": "31b80e94-76a1-491c-a131-ee8dbf77bbee",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-21T14:18:52.395929+00:00",
+    "updated_at": "2026-08-21T14:18:52.395929+00:00"
+  },
+  {
+    "id": "002d0c11-f957-4504-bf37-ed6243e007c4",
+    "vehicle_id": "d1aec0e0-7384-4828-b7e8-4b741f2f3d05",
+    "equipment_definition_id": "0dfe1a92-8588-4f29-9147-59ee8f72d150",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-21T14:19:07.22319+00:00",
+    "updated_at": "2026-08-21T14:19:07.22319+00:00"
+  },
+  {
+    "id": "84de5ba3-528b-472f-9c87-0ba40dcda423",
+    "vehicle_id": "d1aec0e0-7384-4828-b7e8-4b741f2f3d05",
+    "equipment_definition_id": "705253ab-12e1-406c-8d43-ba8850846807",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-21T14:19:46.781926+00:00",
+    "updated_at": "2026-08-21T14:19:46.781926+00:00"
+  },
+  {
+    "id": "6db15664-e466-4bca-9a71-5d615706ad27",
+    "vehicle_id": "d1aec0e0-7384-4828-b7e8-4b741f2f3d05",
+    "equipment_definition_id": "b50b33d7-ac2b-4bdc-86a4-d1d243bdacdc",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-21T14:20:09.418369+00:00",
+    "updated_at": "2026-08-21T14:20:09.418369+00:00"
+  },
+  {
+    "id": "51293698-d0a2-41a5-ad0e-0d43a9e7d15c",
+    "vehicle_id": "d1aec0e0-7384-4828-b7e8-4b741f2f3d05",
+    "equipment_definition_id": "0ea98dec-e45a-4c97-a980-791b64df2add",
+    "standard_quantity": 1,
+    "existing_quantity": 2,
+    "created_at": "2026-08-21T14:20:27.025659+00:00",
+    "updated_at": "2026-08-21T14:20:27.025659+00:00"
+  },
+  {
+    "id": "22bddaca-fe91-4eb2-bde4-e32fc331647d",
+    "vehicle_id": "d1aec0e0-7384-4828-b7e8-4b741f2f3d05",
+    "equipment_definition_id": "3912a378-96a7-4f6a-9513-a8cf720bcd6e",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-21T14:21:50.756956+00:00",
+    "updated_at": "2026-08-21T14:21:50.756956+00:00"
+  },
+  {
+    "id": "bdda7f00-fd51-455d-96aa-971cfc4542ac",
+    "vehicle_id": "d1aec0e0-7384-4828-b7e8-4b741f2f3d05",
+    "equipment_definition_id": "be08ecaf-651a-42a4-86c3-791900845ce2",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-21T14:22:17.842298+00:00",
+    "updated_at": "2026-08-21T14:22:17.842298+00:00"
+  },
+  {
+    "id": "1552d96b-c48f-42e6-9c0e-f30f53146df3",
+    "vehicle_id": "d1aec0e0-7384-4828-b7e8-4b741f2f3d05",
+    "equipment_definition_id": "a9ece232-791b-4520-a4ce-82b18d94d1dd",
+    "standard_quantity": 4,
+    "existing_quantity": 4,
+    "created_at": "2026-08-21T14:22:36.417379+00:00",
+    "updated_at": "2026-08-21T14:22:36.417379+00:00"
+  },
+  {
+    "id": "71619710-e022-4213-99ff-d93d41ed3219",
+    "vehicle_id": "d1aec0e0-7384-4828-b7e8-4b741f2f3d05",
+    "equipment_definition_id": "5730b856-c1da-41f6-b67b-2d8ff9f7c055",
+    "standard_quantity": 1,
+    "existing_quantity": 1,
+    "created_at": "2026-08-21T14:23:02.42215+00:00",
+    "updated_at": "2026-08-21T14:23:02.42215+00:00"
+  },
+  {
+    "id": "914032cd-d495-438f-ba26-8beebc0a3476",
+    "vehicle_id": "d1aec0e0-7384-4828-b7e8-4b741f2f3d05",
+    "equipment_definition_id": "93588030-fb5a-430c-9de2-54e204f2f7d1",
+    "standard_quantity": 6,
+    "existing_quantity": 6,
+    "created_at": "2026-08-21T14:24:12.676429+00:00",
+    "updated_at": "2026-08-21T14:24:12.676429+00:00"
+  },
+  {
+    "id": "2b7c2c2d-4308-4cbc-913e-a46f293eb96a",
+    "vehicle_id": "d1aec0e0-7384-4828-b7e8-4b741f2f3d05",
+    "equipment_definition_id": "2f2d6b0b-8f91-4e24-8463-da7823497194",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-21T14:24:37.314632+00:00",
+    "updated_at": "2026-08-21T14:24:37.314632+00:00"
+  },
+  {
+    "id": "c8ad925f-0008-4ba0-a7a1-fd8227b39334",
+    "vehicle_id": "d1aec0e0-7384-4828-b7e8-4b741f2f3d05",
+    "equipment_definition_id": "9e35c069-8e33-4e2a-b5c2-2b77ba0c53ed",
+    "standard_quantity": 1,
+    "existing_quantity": 1,
+    "created_at": "2026-08-21T14:24:50.682072+00:00",
+    "updated_at": "2026-08-21T14:24:50.682072+00:00"
+  },
+  {
+    "id": "56a4d7e7-0a6f-4e6b-90fb-a0937e0e7537",
+    "vehicle_id": "d1aec0e0-7384-4828-b7e8-4b741f2f3d05",
+    "equipment_definition_id": "f60c5d8e-9a7c-4239-a651-3b04481ed961",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-21T14:25:28.592012+00:00",
+    "updated_at": "2026-08-21T14:25:28.592012+00:00"
+  },
+  {
+    "id": "c516151a-3f3a-4cd3-b72f-c26471156cfc",
+    "vehicle_id": "d1aec0e0-7384-4828-b7e8-4b741f2f3d05",
+    "equipment_definition_id": "8cfe1a35-91b1-4c64-8c3f-e8669f431d48",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-21T14:27:04.986866+00:00",
+    "updated_at": "2026-08-21T14:27:04.986866+00:00"
+  },
+  {
+    "id": "e4e2c9d0-10fc-471d-845b-dd54426d7fbc",
+    "vehicle_id": "d1aec0e0-7384-4828-b7e8-4b741f2f3d05",
+    "equipment_definition_id": "be2147c0-6bef-4686-ac45-727433dbeb3d",
+    "standard_quantity": 1,
+    "existing_quantity": 1,
+    "created_at": "2026-08-21T14:27:30.639953+00:00",
+    "updated_at": "2026-08-21T14:27:30.639953+00:00"
+  },
+  {
+    "id": "53acc55f-a3c7-444b-8823-08126a50e2ab",
+    "vehicle_id": "d1aec0e0-7384-4828-b7e8-4b741f2f3d05",
+    "equipment_definition_id": "dd7b6ed7-3d23-429e-bfc1-8fccfb04400d",
+    "standard_quantity": 1,
+    "existing_quantity": 1,
+    "created_at": "2026-08-21T14:27:44.825042+00:00",
+    "updated_at": "2026-08-21T14:27:44.825042+00:00"
+  },
+  {
+    "id": "1358ac60-a168-4a18-a8d1-487c64aefdd6",
+    "vehicle_id": "d1aec0e0-7384-4828-b7e8-4b741f2f3d05",
+    "equipment_definition_id": "aec93e4d-35b6-445b-820d-5951427e5e24",
+    "standard_quantity": 1,
+    "existing_quantity": 1,
+    "created_at": "2026-08-21T14:28:03.631005+00:00",
+    "updated_at": "2026-08-21T14:28:03.631005+00:00"
+  },
+  {
+    "id": "23ce0188-72d2-46df-89cb-a868981da42e",
+    "vehicle_id": "d1aec0e0-7384-4828-b7e8-4b741f2f3d05",
+    "equipment_definition_id": "fd0b904f-c885-4490-bfef-4f1d31900ad6",
+    "standard_quantity": 1,
+    "existing_quantity": 1,
+    "created_at": "2026-08-21T14:29:00.562106+00:00",
+    "updated_at": "2026-08-21T14:29:00.562106+00:00"
+  },
+  {
+    "id": "986b2ebd-aa25-42a5-a4a4-6f4e7b109af6",
+    "vehicle_id": "d1aec0e0-7384-4828-b7e8-4b741f2f3d05",
+    "equipment_definition_id": "cba818e0-389f-4826-ad9d-b9b76adcef75",
+    "standard_quantity": 1,
+    "existing_quantity": 1,
+    "created_at": "2026-08-21T14:29:16.407699+00:00",
+    "updated_at": "2026-08-21T14:29:16.407699+00:00"
+  },
+  {
+    "id": "a9977a29-ab1a-4dd3-b27c-00a7dfaa551b",
+    "vehicle_id": "d1aec0e0-7384-4828-b7e8-4b741f2f3d05",
+    "equipment_definition_id": "3107b7bc-64ff-4e9d-a946-bad36725504f",
+    "standard_quantity": 8,
+    "existing_quantity": 9,
+    "created_at": "2026-08-21T14:18:34.67693+00:00",
+    "updated_at": "2026-08-21T14:29:21.603664+00:00"
+  },
+  {
+    "id": "1016657a-a215-4176-a9b1-c17f5d4100bb",
+    "vehicle_id": "09016d46-549f-4c4c-94c4-b693aeea4769",
+    "equipment_definition_id": "f4e23691-29b3-4cbf-a450-e98631933b7e",
+    "standard_quantity": 10,
+    "existing_quantity": 9,
+    "created_at": "2026-08-21T14:43:20.397066+00:00",
+    "updated_at": "2026-08-21T14:43:20.397066+00:00"
+  },
+  {
+    "id": "f3220012-d0d0-4828-873a-501606594c4b",
+    "vehicle_id": "09016d46-549f-4c4c-94c4-b693aeea4769",
+    "equipment_definition_id": "0e1b4a07-c9f1-4442-a884-816f6b1e04f1",
+    "standard_quantity": 20,
+    "existing_quantity": 20,
+    "created_at": "2026-08-21T14:43:36.086197+00:00",
+    "updated_at": "2026-08-21T14:43:36.086197+00:00"
+  },
+  {
+    "id": "7281a5b9-f904-470e-a487-fa6eadbbd5b8",
+    "vehicle_id": "09016d46-549f-4c4c-94c4-b693aeea4769",
+    "equipment_definition_id": "3107b7bc-64ff-4e9d-a946-bad36725504f",
+    "standard_quantity": 10,
+    "existing_quantity": 10,
+    "created_at": "2026-08-21T14:43:48.255241+00:00",
+    "updated_at": "2026-08-21T14:43:48.255241+00:00"
+  },
+  {
+    "id": "2e7a5818-792e-4ed5-a983-cf2a2f97a37a",
+    "vehicle_id": "09016d46-549f-4c4c-94c4-b693aeea4769",
+    "equipment_definition_id": "31b80e94-76a1-491c-a131-ee8dbf77bbee",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-21T14:44:06.815592+00:00",
+    "updated_at": "2026-08-21T14:44:06.815592+00:00"
+  },
+  {
+    "id": "b8229e2a-fc6b-42fd-869e-17648fbaba45",
+    "vehicle_id": "09016d46-549f-4c4c-94c4-b693aeea4769",
+    "equipment_definition_id": "65050fc6-7622-4c33-b3e1-de2fd69edcb0",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-21T14:44:38.953729+00:00",
+    "updated_at": "2026-08-21T14:44:38.953729+00:00"
+  },
+  {
+    "id": "122e3c45-af46-480e-a100-9572a470b2e6",
+    "vehicle_id": "09016d46-549f-4c4c-94c4-b693aeea4769",
+    "equipment_definition_id": "705253ab-12e1-406c-8d43-ba8850846807",
+    "standard_quantity": 4,
+    "existing_quantity": 4,
+    "created_at": "2026-08-21T14:44:55.489133+00:00",
+    "updated_at": "2026-08-21T14:44:55.489133+00:00"
+  },
+  {
+    "id": "ba579b3a-c9d8-453e-b89e-95e5a3e6b074",
+    "vehicle_id": "09016d46-549f-4c4c-94c4-b693aeea4769",
+    "equipment_definition_id": "b50b33d7-ac2b-4bdc-86a4-d1d243bdacdc",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-21T14:45:23.482936+00:00",
+    "updated_at": "2026-08-21T14:45:23.482936+00:00"
+  },
+  {
+    "id": "7fdffc2b-0941-4316-801d-45e63ca5f2a0",
+    "vehicle_id": "09016d46-549f-4c4c-94c4-b693aeea4769",
+    "equipment_definition_id": "f94774c3-9f10-4eb1-8015-8fb382675149",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-21T14:45:45.270214+00:00",
+    "updated_at": "2026-08-21T14:45:45.270214+00:00"
+  },
+  {
+    "id": "a8f84701-c3f7-46e1-8d7e-26480438e50e",
+    "vehicle_id": "09016d46-549f-4c4c-94c4-b693aeea4769",
+    "equipment_definition_id": "3912a378-96a7-4f6a-9513-a8cf720bcd6e",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-21T14:46:21.436108+00:00",
+    "updated_at": "2026-08-21T14:46:21.436108+00:00"
+  },
+  {
+    "id": "9cf5eff3-eaa8-40d1-9605-95f7f5ec9c73",
+    "vehicle_id": "09016d46-549f-4c4c-94c4-b693aeea4769",
+    "equipment_definition_id": "be08ecaf-651a-42a4-86c3-791900845ce2",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-21T14:46:38.776664+00:00",
+    "updated_at": "2026-08-21T14:46:38.776664+00:00"
+  },
+  {
+    "id": "a4a6e31a-9fb6-461f-ae36-d7b3697aa98b",
+    "vehicle_id": "09016d46-549f-4c4c-94c4-b693aeea4769",
+    "equipment_definition_id": "a9ece232-791b-4520-a4ce-82b18d94d1dd",
+    "standard_quantity": 4,
+    "existing_quantity": 4,
+    "created_at": "2026-08-21T14:47:01.10545+00:00",
+    "updated_at": "2026-08-21T14:47:01.10545+00:00"
+  },
+  {
+    "id": "09bb6e47-260a-4308-8619-9631ee8b842b",
+    "vehicle_id": "09016d46-549f-4c4c-94c4-b693aeea4769",
+    "equipment_definition_id": "5730b856-c1da-41f6-b67b-2d8ff9f7c055",
+    "standard_quantity": 1,
+    "existing_quantity": 0,
+    "created_at": "2026-08-21T14:47:29.775805+00:00",
+    "updated_at": "2026-08-21T14:47:50.724877+00:00"
+  },
+  {
+    "id": "051756ee-1063-4bc4-bedb-dafa42956312",
+    "vehicle_id": "09016d46-549f-4c4c-94c4-b693aeea4769",
+    "equipment_definition_id": "93588030-fb5a-430c-9de2-54e204f2f7d1",
+    "standard_quantity": 8,
+    "existing_quantity": 8,
+    "created_at": "2026-08-21T14:48:12.58658+00:00",
+    "updated_at": "2026-08-21T14:48:25.110193+00:00"
+  },
+  {
+    "id": "680fcaba-8373-47a9-aebd-89be10ff84fd",
+    "vehicle_id": "09016d46-549f-4c4c-94c4-b693aeea4769",
+    "equipment_definition_id": "2f2d6b0b-8f91-4e24-8463-da7823497194",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-21T14:49:17.377308+00:00",
+    "updated_at": "2026-08-21T14:49:17.377308+00:00"
+  },
+  {
+    "id": "8e410078-3d4d-4da7-a27d-ddd24a82f1d3",
+    "vehicle_id": "09016d46-549f-4c4c-94c4-b693aeea4769",
+    "equipment_definition_id": "bc96d393-c4f8-456d-820c-58887740f247",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-21T14:50:42.442687+00:00",
+    "updated_at": "2026-08-21T14:50:42.442687+00:00"
+  },
+  {
+    "id": "b3a87431-b021-4d9a-9ea2-f4446485b66b",
+    "vehicle_id": "09016d46-549f-4c4c-94c4-b693aeea4769",
+    "equipment_definition_id": "cb906c1b-86d2-4fa8-809b-0593fdb98cc3",
+    "standard_quantity": 1,
+    "existing_quantity": 1,
+    "created_at": "2026-08-21T14:51:53.527919+00:00",
+    "updated_at": "2026-08-21T14:51:53.527919+00:00"
+  },
+  {
+    "id": "0c9d332b-674f-4591-a7ba-fec2c97ed375",
+    "vehicle_id": "09016d46-549f-4c4c-94c4-b693aeea4769",
+    "equipment_definition_id": "7df48dff-f89e-4cf5-825c-1eccd3989390",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-21T14:52:29.139426+00:00",
+    "updated_at": "2026-08-21T14:52:29.139426+00:00"
+  },
+  {
+    "id": "3509a74d-ea6c-4d77-9285-87bc5f5abd84",
+    "vehicle_id": "09016d46-549f-4c4c-94c4-b693aeea4769",
+    "equipment_definition_id": "01b69e54-39e1-48d7-a6af-65dd509d9d24",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-21T14:52:44.832933+00:00",
+    "updated_at": "2026-08-21T14:52:44.832933+00:00"
+  },
+  {
+    "id": "4451f6ac-a6ee-4e0b-935d-09e151650f9f",
+    "vehicle_id": "3b6382ca-3ca0-4e77-9c73-856a7b176a9a",
+    "equipment_definition_id": "2f2d6b0b-8f91-4e24-8463-da7823497194",
+    "standard_quantity": 1,
+    "existing_quantity": 1,
+    "created_at": "2026-08-27T09:00:43.208731+00:00",
+    "updated_at": "2026-08-27T09:00:43.208731+00:00"
+  },
+  {
+    "id": "f83797ab-8a81-4638-97dc-8fda6b4765ab",
+    "vehicle_id": "f39ee35f-d3fb-420d-b557-fb796843a829",
+    "equipment_definition_id": "b896e9b5-f158-48c9-8b17-41438d288c55",
+    "standard_quantity": 1,
+    "existing_quantity": 1,
+    "created_at": "2026-08-23T14:26:58.126024+00:00",
+    "updated_at": "2026-08-23T14:26:58.126024+00:00"
+  },
+  {
+    "id": "102c2f28-bf17-4f67-ae46-1dc8203ef1dc",
+    "vehicle_id": "f39ee35f-d3fb-420d-b557-fb796843a829",
+    "equipment_definition_id": "572d538d-d21e-4c28-9f40-b374677f2547",
+    "standard_quantity": 1,
+    "existing_quantity": 1,
+    "created_at": "2026-08-23T14:29:07.547729+00:00",
+    "updated_at": "2026-08-23T14:29:07.547729+00:00"
+  },
+  {
+    "id": "7b9eed74-ca11-4216-8cfe-c999336aa815",
+    "vehicle_id": "f39ee35f-d3fb-420d-b557-fb796843a829",
+    "equipment_definition_id": "3240d8b1-8907-46b0-b5d8-30a7f6a491b8",
+    "standard_quantity": 1,
+    "existing_quantity": 1,
+    "created_at": "2026-08-23T14:26:26.939998+00:00",
+    "updated_at": "2026-08-23T14:32:20.24207+00:00"
+  },
+  {
+    "id": "da956449-638c-4a2e-b58b-8e4a2ecfd4d1",
+    "vehicle_id": "3b6382ca-3ca0-4e77-9c73-856a7b176a9a",
+    "equipment_definition_id": "85568242-54e4-4624-994f-ceb4716ea344",
+    "standard_quantity": 3,
+    "existing_quantity": 3,
+    "created_at": "2026-08-27T08:40:46.422499+00:00",
+    "updated_at": "2026-08-27T08:40:46.422499+00:00"
+  },
+  {
+    "id": "6c929b6e-4fa7-4347-aba1-609b8db92b92",
+    "vehicle_id": "3b6382ca-3ca0-4e77-9c73-856a7b176a9a",
+    "equipment_definition_id": "0e1b4a07-c9f1-4442-a884-816f6b1e04f1",
+    "standard_quantity": 9,
+    "existing_quantity": 9,
+    "created_at": "2026-08-27T08:40:03.07627+00:00",
+    "updated_at": "2026-08-27T08:40:56.358108+00:00"
+  },
+  {
+    "id": "3febb990-61c6-44b8-9df4-0bb11d200da4",
+    "vehicle_id": "3b6382ca-3ca0-4e77-9c73-856a7b176a9a",
+    "equipment_definition_id": "dcf9066a-5606-4cb6-9131-725ab4a99e56",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-27T08:41:57.004554+00:00",
+    "updated_at": "2026-08-27T08:41:57.004554+00:00"
+  },
+  {
+    "id": "9cab185e-2e55-4b03-9f92-f93c83143fda",
+    "vehicle_id": "3b6382ca-3ca0-4e77-9c73-856a7b176a9a",
+    "equipment_definition_id": "65050fc6-7622-4c33-b3e1-de2fd69edcb0",
+    "standard_quantity": 3,
+    "existing_quantity": 3,
+    "created_at": "2026-08-27T08:42:21.588202+00:00",
+    "updated_at": "2026-08-27T08:42:21.588202+00:00"
+  },
+  {
+    "id": "3e1bbe52-7683-459d-af09-2f92290c1467",
+    "vehicle_id": "3b6382ca-3ca0-4e77-9c73-856a7b176a9a",
+    "equipment_definition_id": "d99270d5-3c74-46d9-8dd1-72edfae3ed76",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-27T08:54:59.626596+00:00",
+    "updated_at": "2026-08-27T08:54:59.626596+00:00"
+  },
+  {
+    "id": "28e1f804-678a-4a13-a3bb-493357e89e54",
+    "vehicle_id": "3b6382ca-3ca0-4e77-9c73-856a7b176a9a",
+    "equipment_definition_id": "b50b33d7-ac2b-4bdc-86a4-d1d243bdacdc",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-27T08:55:45.426077+00:00",
+    "updated_at": "2026-08-27T08:55:45.426077+00:00"
+  },
+  {
+    "id": "523ce055-d111-4bc1-a5f6-76a735076584",
+    "vehicle_id": "3b6382ca-3ca0-4e77-9c73-856a7b176a9a",
+    "equipment_definition_id": "f94774c3-9f10-4eb1-8015-8fb382675149",
+    "standard_quantity": 1,
+    "existing_quantity": 1,
+    "created_at": "2026-08-27T08:56:59.705876+00:00",
+    "updated_at": "2026-08-27T08:56:59.705876+00:00"
+  },
+  {
+    "id": "d86ce1a3-f33c-42f0-b974-f681d9c7b580",
+    "vehicle_id": "3b6382ca-3ca0-4e77-9c73-856a7b176a9a",
+    "equipment_definition_id": "a9ece232-791b-4520-a4ce-82b18d94d1dd",
+    "standard_quantity": 2,
+    "existing_quantity": 2,
+    "created_at": "2026-08-27T09:00:58.774701+00:00",
+    "updated_at": "2026-08-27T09:00:58.774701+00:00"
+  },
+  {
+    "id": "4e7e028d-4204-40a0-8ef1-7185fa4cbaf8",
+    "vehicle_id": "3b6382ca-3ca0-4e77-9c73-856a7b176a9a",
+    "equipment_definition_id": "e45a175d-1407-4eff-b4c4-da5f594570b4",
+    "standard_quantity": 1,
+    "existing_quantity": 1,
+    "created_at": "2026-08-27T09:01:34.83615+00:00",
+    "updated_at": "2026-08-27T09:01:34.83615+00:00"
+  },
+  {
+    "id": "71027ffa-2e30-4bd0-8e5d-07448bc5da2f",
+    "vehicle_id": "0d7df7ef-24c2-44b4-a537-2c199f37ea6a",
+    "equipment_definition_id": "e51fe37a-9620-40c5-8204-4d00a04b4f6a",
+    "standard_quantity": 1,
+    "existing_quantity": 1,
+    "created_at": "2026-08-21T09:22:41.661178+00:00",
+    "updated_at": "2026-09-02T11:57:56.395457+00:00"
+  },
+  {
+    "id": "b07d52d0-5968-461f-b9db-a8bbca004b52",
+    "vehicle_id": "0d7df7ef-24c2-44b4-a537-2c199f37ea6a",
+    "equipment_definition_id": "b145fe1f-9d3f-4453-9a96-0322b1f9a4dc",
+    "standard_quantity": 1,
+    "existing_quantity": 2,
+    "created_at": "2026-08-21T09:28:21.238464+00:00",
+    "updated_at": "2026-09-02T11:55:56.353228+00:00"
+  },
+  {
+    "id": "66b15582-36fb-4b29-9c73-d043c5d8ea13",
+    "vehicle_id": "0d7df7ef-24c2-44b4-a537-2c199f37ea6a",
+    "equipment_definition_id": "59ef5fc9-4d15-4847-ac0d-944a1a9d0bae",
+    "standard_quantity": 1,
+    "existing_quantity": 2,
+    "created_at": "2026-08-21T09:28:30.207748+00:00",
+    "updated_at": "2026-09-02T11:55:58.13952+00:00"
+  }
+]
